@@ -15,7 +15,7 @@ FluObject{
         title:lang.about
         icon:FluentIcons.Contact
         tapFunc:function(){
-            FluApp.navigate("/about")
+//            FluApp.navigate("/about")
         }
     }
 
