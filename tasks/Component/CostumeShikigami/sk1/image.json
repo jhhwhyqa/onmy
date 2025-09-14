@@ -164,11 +164,11 @@
   {
     "itemName": "st_souls_1",
     "imageName": "sk1_st_souls_1.png",
-    "roiFront": "1184,232,70,80",
-    "roiBack": "1182,231,70,80",
+    "roiFront": "1180,236,62,66",
+    "roiBack": "1176,230,70,80",
     "method": "Template matching",
     "threshold": 0.8,
-    "description": "点击御魂"
+    "description": "选中的御魂"
   },
   {
     "itemName": "st_replace_1",
