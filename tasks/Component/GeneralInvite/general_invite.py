@@ -556,7 +556,7 @@ class GeneralInvite(BaseTask, GeneralInviteAssets):
         队员接受邀请
         :return:
         """
-        if not self.appear(self.I_I_ACCEPT):
+        if not self.appear(self.I_I_ACCEPT) and not self.appear(self.I_I_ACCEPT_APPRENTICE):
             return False
         logger.info('Click accept')
         while 1:
@@ -573,7 +573,8 @@ class GeneralInvite(BaseTask, GeneralInviteAssets):
                 continue
             if self.appear_then_click(self.I_I_ACCEPT_DEFAULT, interval=1):
                 continue
-            if self.appear_then_click(self.I_I_ACCEPT, interval=1):
+            if self.appear_then_click(self.I_I_ACCEPT, interval=1) or \
+                    self.appear_then_click(self.I_I_ACCEPT_APPRENTICE, interval=1):
                 continue
         return True
 

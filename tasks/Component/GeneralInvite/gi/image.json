@@ -376,5 +376,14 @@
     "method": "Template matching",
     "threshold": 0.8,
     "description": "识别到寄养邀请"
+  },
+  {
+    "itemName": "i_accept_apprentice",
+    "imageName": "gi_i_accept_apprentice.png",
+    "roiFront": "115,229,55,45",
+    "roiBack": "107,209,69,296",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "师徒邀请图标"
   }
 ]
