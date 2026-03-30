@@ -255,7 +255,6 @@ class ScriptTask(ExtendGreenMark, GameUi, SwitchSoul, DokanSceneDetector):
                 logger.info(f"Fail CD: start cheering={cfg.dokan_config.dokan_auto_cheering_while_cd}..")
                 if cfg.dokan_config.dokan_auto_cheering_while_cd:
                     self.start_cheering()
-                sleep(2)
                 continue
             # 场景状态：战斗中，左上角的加油图标
             if current_scene == DokanScene.RYOU_DOKAN_SCENE_FIGHTING:
@@ -786,7 +785,8 @@ class ScriptTask(ExtendGreenMark, GameUi, SwitchSoul, DokanSceneDetector):
         while not cheering_timer.reached():
             self.screenshot()
             # 道馆成员战斗成功或失败或馆主战结束出现排名, 交给上层处理
-            if self.appear(self.I_RYOU_DOKAN_WIN, interval=1) or self.appear(self.I_FALSE) or self.appear(self.I_RYOU_DOKAN_TOPPA_RANK):
+            _, battle_end = self.is_battle_end()
+            if battle_end:
                 self.click(random_click(), interval=1)
                 logger.info(f'Cheer finish, count[{cheer_cnt}]')
                 self.device.stuck_record_clear()
@@ -992,6 +992,47 @@ class ScriptTask(ExtendGreenMark, GameUi, SwitchSoul, DokanSceneDetector):
                 continue
         return False
 
+    def is_battle_end(self) -> (bool, bool):
+        # 如果出现赢 就点击
+        if self.appear(GeneralBattle.I_WIN):
+            logger.info("Dokan guards eliminated, boss is on the way")
+            win = True
+            return win, True
+
+        # 如果出现打败馆主的赢，就点击
+        if self.appear(self.I_RYOU_DOKAN_WIN):
+            logger.info("We've defeated the boss, and win the final game.")
+            win = True
+            return win, True
+
+        # 如果出现失败 就点击，返回False。 TODO 不知道挑战馆主失败是不是同一个画面？
+        if self.appear(GeneralBattle.I_FALSE):
+            logger.info("Battle failed")
+            win = False
+            return win, True
+
+        # 如果领奖励
+        if self.appear(self.I_RYOU_DOKAN_BATTLE_OVER, threshold=0.6):
+            logger.info("Battle over")
+            win = True
+            return win, True
+
+        # 如果领奖励出现金币
+        if self.appear(GeneralBattle.I_REWARD_GOLD):
+            logger.info("Reward gold")
+            win = True
+            return win, True
+
+        # 如果出现 寮境顶部“道馆突破”字样，表示已不再战斗中
+        # 可能是截图时绿标，导致没有检测到战斗结束
+        if self.appear(self.I_RYOU_DOKAN_CENTER_TOP):
+            logger.info("Exit Battle already")
+            # 因为不确定战斗成功还是失败，姑且当作成功
+            win = True
+            return win, True
+
+        return False, False
+
     def dokan_battle(self, cfg: Dokan, battle_count_limit=None):
         """ 道馆战斗
         道馆集结结束后会自动进入战斗，打完一个也会自动进入下一个，因此直接点击右下角的开始
@@ -1024,55 +1065,11 @@ class ScriptTask(ExtendGreenMark, GameUi, SwitchSoul, DokanSceneDetector):
                 self.green_mark_screenshot(anti_wait_long_time)
             else:
                 self.screenshot()
-
-            def is_battle_end() -> (bool, bool):
-
-                if battle_count_limit < 0:
-                    logger.info(f"battle_count_limit:{battle_count_limit}")
-                    win = True
-                    return win, True
-
-                # 如果出现赢 就点击
-                if self.appear(GeneralBattle.I_WIN):
-                    logger.info("Dokan guards eliminated, boss is on the way")
-                    win = True
-                    return win, True
-
-                # 如果出现打败馆主的赢，就点击
-                if self.appear(self.I_RYOU_DOKAN_WIN):
-                    logger.info("We've defeated the boss, and win the final game.")
-                    win = True
-                    return win, True
-
-                # 如果出现失败 就点击，返回False。 TODO 不知道挑战馆主失败是不是同一个画面？
-                if self.appear(GeneralBattle.I_FALSE):
-                    logger.info("Battle failed")
-                    win = False
-                    return win, True
-
-                # 如果领奖励
-                if self.appear(self.I_RYOU_DOKAN_BATTLE_OVER, threshold=0.6):
-                    logger.info("Battle over")
-                    win = True
-                    return win, True
-
-                # 如果领奖励出现金币
-                if self.appear(GeneralBattle.I_REWARD_GOLD):
-                    logger.info("Reward gold")
-                    win = True
-                    return win, True
-
-                # 如果出现 寮境顶部“道馆突破”字样，表示已不再战斗中
-                # 可能是截图时绿标，导致没有检测到战斗结束
-                if self.appear(self.I_RYOU_DOKAN_CENTER_TOP):
-                    logger.info("Exit Battle already")
-                    # 因为不确定战斗成功还是失败，姑且当作成功
-                    win = True
-                    return win, True
-
-                return False, False
-
-            win, is_battle_end_and_exit = is_battle_end()
+            if battle_count_limit < 0:
+                logger.info(f"battle_count_limit:{battle_count_limit}")
+                win, is_battle_end_and_exit = True, True
+            else:
+                win, is_battle_end_and_exit = self.is_battle_end()
             if is_battle_end_and_exit:
                 break
 
