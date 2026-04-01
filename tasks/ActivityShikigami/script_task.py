@@ -215,7 +215,7 @@ class ScriptTask(StateMachine, GameUi, BaseActivity, SwitchSoul, ActivityShikiga
                 self.click([self.O_RM_ANSWER_1, self.O_RM_ANSWER_2, self.O_RM_ANSWER_3][index - 1], interval=1)
                 self.device.click_record_clear()
                 continue
-            if self.ocr_appear(self.O_FIRE, interval=2):  # 开始战斗
+            if self.ocr_appear(self.O_FIRE, interval=1.5):  # 开始战斗
                 if not switch_souled:
                     self.switch_soul(self.I_BATTLE_MAIN_TO_RECORDS, self.I_CHECK_BATTLE_MAIN)
                     switch_souled = True
@@ -355,7 +355,7 @@ class ScriptTask(StateMachine, GameUi, BaseActivity, SwitchSoul, ActivityShikiga
             if self.appear_then_click(self.I_UI_CONFIRM_SAMLL, interval=1) or \
                     self.appear_then_click(self.I_UI_CONFIRM, interval=1):
                 continue
-            if self.ocr_appear_click(self.O_FIRE, interval=2):
+            if self.ocr_appear_click(self.O_FIRE, interval=1.5):
                 click_times += 1
                 logger.info(f'Try click fire, remain times[{max_times - click_times}]')
                 continue
