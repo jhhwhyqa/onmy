@@ -145,15 +145,20 @@ class ScriptTask(StateMachine, GameUi, BaseActivity, SwitchSoul, ActivityShikiga
         logger.hr(f'Start run climb type PASS', 1)
         self.click(self.I_TO_BATTLE_MAIN)
         switch_souled = False
+        click_ticket, no_tickets = 0, random.randint(3, 5)
         while True:
             self.screenshot()
             self.put_status()
+            if click_ticket > no_tickets:
+                logger.warning(f'Click ticket {click_ticket} times, no tickets left')
+                break
             if self.ui_reward_appear_click():  # 获得奖励
                 continue
             if self.appear(self.I_RM_FORWARD, interval=1.2):  # 等待骰子结果
                 continue
             if self.appear_then_click(self.I_RM_THROW, interval=2):  # 开始扔骰子
                 logger.hr('Throw ticket', 3)
+                click_ticket = 0
                 self.device.stuck_record_clear()
                 self.device.stuck_record_add('BATTLE_STATUS_S')
                 while True:
@@ -175,6 +180,7 @@ class ScriptTask(StateMachine, GameUi, BaseActivity, SwitchSoul, ActivityShikiga
             if self.appear(self.I_RM_BUY_AP) or self.appear(self.I_RM_BUY_REWARD) or \
                     self.appear(self.I_RM_BUY_TICKET):  # 开始买东西
                 logger.hr('Buy envent', 3)
+                click_ticket = 0
                 rich_man_conf = self.config.model.activity_shikigami.rich_man
                 timeout_timer = Timer(5).start()
                 while True:
@@ -202,6 +208,7 @@ class ScriptTask(StateMachine, GameUi, BaseActivity, SwitchSoul, ActivityShikiga
                                                                                                        interval=1.5):
                         continue
             if self.appear(self.I_RM_QUESTION, interval=2):  # 开始答题
+                click_ticket = 0
                 logger.hr('Start question', 3)
                 q, a1, a2, a3 = self.detect_question_and_answers()
                 index = self.anwser.answer_one(question=q, options=[a1, a2, a3])
@@ -215,19 +222,19 @@ class ScriptTask(StateMachine, GameUi, BaseActivity, SwitchSoul, ActivityShikiga
                 self.click([self.O_RM_ANSWER_1, self.O_RM_ANSWER_2, self.O_RM_ANSWER_3][index - 1], interval=1)
                 self.device.click_record_clear()
                 continue
-            if self.appear_then_click(self.I_RICH_MAN_FIRE, interval=2):  # 开始战斗
+            if self.appear(self.I_RICH_MAN_FIRE, interval=2):  # 开始战斗
+                click_ticket = 0
                 if not switch_souled:
                     self.switch_soul(self.I_BATTLE_MAIN_TO_RECORDS, self.I_CHECK_BATTLE_MAIN)
                     switch_souled = True
                 if self.conf.general_climb.random_sleep:
                     random_sleep(probability=0.2)
+                self.click(self.I_RICH_MAN_FIRE)
                 self.run_general_battle(config=self.get_general_battle_conf())
                 continue
-            if self.appear(self.I_CHECK_BATTLE_MAIN, interval=2):  # 扔门票骰子
-                if not self.check_tickets_enough():  # 检查是否有门票骰子
-                    logger.warning(f'No tickets left, wait for next time')
-                    break
+            if self.appear(self.I_CHECK_BATTLE_MAIN, interval=3):  # 扔门票骰子
                 self.click(self.I_CHECK_BATTLE_MAIN)
+                click_ticket += 1
                 continue
         self.ui_goto_page(game.page_climb_act)
 
