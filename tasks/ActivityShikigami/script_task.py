@@ -181,7 +181,8 @@ class ScriptTask(StateMachine, GameUi, BaseActivity, SwitchSoul, ActivityShikiga
                     self.screenshot()
                     if self.ui_reward_appear_click():  # 获得奖励跳出循环
                         break
-                    if self.appear_then_click(self.I_UI_CONFIRM_SAMLL, interval=1):
+                    if self.appear_then_click(self.I_UI_CONFIRM, interval=1) or \
+                            self.appear_then_click(self.I_UI_CONFIRM_SAMLL, interval=1):
                         timeout_timer.reset()
                         continue
                     if timeout_timer.reached():  # 如果购买超时了则说明购买有问题, 则不买了
@@ -191,11 +192,14 @@ class ScriptTask(StateMachine, GameUi, BaseActivity, SwitchSoul, ActivityShikiga
                     if not rich_man_conf.buy_ap and not rich_man_conf.buy_ticket and not rich_man_conf.buy_reward:
                         self.appear_then_click(self.I_RED_EXIT, interval=1.5)  # 一个都不买直接退出
                         continue
-                    if self.config.model.activity_shikigami.rich_man.buy_ticket and self.appear_then_click(self.I_RM_BUY_TICKET, interval=1.5):
+                    if self.config.model.activity_shikigami.rich_man.buy_ticket and self.appear_then_click(
+                            self.I_RM_BUY_TICKET, interval=1.5):
                         continue
-                    if self.config.model.activity_shikigami.rich_man.buy_reward and self.appear_then_click(self.I_RM_BUY_REWARD, interval=1.5):
+                    if self.config.model.activity_shikigami.rich_man.buy_reward and self.appear_then_click(
+                            self.I_RM_BUY_REWARD, interval=1.5):
                         continue
-                    if self.config.model.activity_shikigami.rich_man.buy_ap and self.appear_then_click(self.I_RM_BUY_AP, interval=1.5):
+                    if self.config.model.activity_shikigami.rich_man.buy_ap and self.appear_then_click(self.I_RM_BUY_AP,
+                                                                                                       interval=1.5):
                         continue
             if self.appear(self.I_RM_QUESTION, interval=2):  # 开始答题
                 logger.hr('Start question', 3)
@@ -340,7 +344,7 @@ class ScriptTask(StateMachine, GameUi, BaseActivity, SwitchSoul, ActivityShikiga
         self.ui_goto_page(game.page_climb_act)
 
     def start_battle(self):
-        click_times, max_times = 0, random.randint(2, 4)
+        click_times, max_times = 0, random.randint(3, 4)
         while 1:
             self.screenshot()
             if self.is_in_battle(False):
@@ -348,8 +352,8 @@ class ScriptTask(StateMachine, GameUi, BaseActivity, SwitchSoul, ActivityShikiga
             if click_times >= max_times:
                 logger.warning(f'Climb {self.climb_type} cannot enter, maybe already end, try next')
                 return
-            if (self.appear_then_click(self.I_UI_CONFIRM_SAMLL, interval=1) or
-                    self.appear_then_click(self.I_UI_CONFIRM, interval=1) ):
+            if self.appear_then_click(self.I_UI_CONFIRM_SAMLL, interval=1) or \
+                    self.appear_then_click(self.I_UI_CONFIRM, interval=1):
                 continue
             if self.ocr_appear_click(self.O_FIRE, interval=2):
                 click_times += 1
@@ -497,13 +501,4 @@ class ScriptTask(StateMachine, GameUi, BaseActivity, SwitchSoul, ActivityShikiga
 
 
 if __name__ == '__main__':
-    from module.config.config import Config
-    from module.device.device import Device
-
-    c = Config('oas1')
-    d = Device(c)
-    t = ScriptTask(c, d)
-
-    t.run()
-
-
+    print([1, 2, 3][2])

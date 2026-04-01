@@ -27,7 +27,7 @@ class Debugger:
         options = [remove_symbols(option) for option in options]
         file = self._log_file()
         lock = FileLock(f"{file}.lock")
-        line = f'{question},{options[0]},{options[1]},{options[2]},{options[3]}\n'
+        line = f'{question},{",".join(options)}\n'
         with lock:
             with open(file, 'a', encoding='utf-8') as f:
                 f.write(line)
