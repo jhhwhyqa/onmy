@@ -176,6 +176,8 @@ class BaseTask(GlobalGameAssets, CostumeBase):
                 return False
         if isinstance(target, RuleOcr):
             appear = self.ocr_appear(target, interval)
+        elif isinstance(target, RuleImage):
+            appear = target.match(self.device.image, threshold=threshold)
         else:
             appear = target.match(self.device.image, threshold=threshold)
 
