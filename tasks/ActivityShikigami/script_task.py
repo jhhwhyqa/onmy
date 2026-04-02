@@ -161,14 +161,14 @@ class ScriptTask(StateMachine, GameUi, BaseActivity, SwitchSoul, ActivityShikiga
                 continue
             if self.appear(self.I_RM_FORWARD, interval=1.2):  # 等待骰子结果
                 continue
-            if not already_passed and self.appear(self.I_RM_CHECK_BOSS, interval=1.2):
+            if self.appear(self.I_RM_CHECK_BOSS, interval=1.5):
                 already_passed = True
                 logger.info('Already passed')
-                continue
             if already_passed and self.appear(self.I_RM_BOSS, interval=1.2):  # 已经通关了且出现首领则退出,否则还要打
                 logger.info('Boss passed, exit')
                 self.appear_then_click(self.I_BACK_YOLLOW, interval=1.2)
                 continue
+            already_passed = False
             if self.appear_then_click(self.I_UI_CONFIRM, interval=2):
                 continue
             if self.appear_then_click(self.I_RM_THROW, interval=2):  # 开始扔骰子
