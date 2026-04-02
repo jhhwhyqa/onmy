@@ -158,14 +158,12 @@ class BaseTask(GlobalGameAssets, CostumeBase):
     def appear(self,
                target: RuleImage | RuleGif | RuleOcr,
                interval: float = None,
-               threshold: float = None,
-               scale_range: tuple[float, float] | tuple[float, float, float] = None):
+               threshold: float = None):
         """
 
         :param target: 匹配的目标可以是RuleImage, 也可以是RuleOcr
         :param interval:
         :param threshold:
-        :param scale_range: RuleImage专用，(min_scale, max_scale) 或 (min_scale, max_scale, step)
         :return: interval时间到达且匹配成功则返回True, 否则False
         """
         if interval:
@@ -179,7 +177,7 @@ class BaseTask(GlobalGameAssets, CostumeBase):
         if isinstance(target, RuleOcr):
             appear = self.ocr_appear(target, interval)
         elif isinstance(target, RuleImage):
-            appear = target.match(self.device.image, threshold=threshold, scale_range=scale_range)
+            appear = target.match(self.device.image, threshold=threshold)
         else:
             appear = target.match(self.device.image, threshold=threshold)
 
@@ -193,8 +191,7 @@ class BaseTask(GlobalGameAssets, CostumeBase):
                           action: Union[RuleClick, RuleLongClick] = None,
                           interval: float = None,
                           threshold: float = None,
-                          duration: float = None,
-                          scale_range: tuple[float, float] | tuple[float, float, float] = None):
+                          duration: float = None):
         """
         出现了就点击，默认点击图片的位置，如果添加了click参数，就点击click的位置
         :param duration: 如果是长按，可以手动指定duration，不指定默认.单位是ms！！！！
@@ -202,10 +199,9 @@ class BaseTask(GlobalGameAssets, CostumeBase):
         :param target: 可以是RuleImage后续支持RuleOcr
         :param interval:
         :param threshold:
-        :param scale_range: RuleImage专用，(min_scale, max_scale) 或 (min_scale, max_scale, step)
         :return: True or False
         """
-        appear = self.appear(target, interval=interval, threshold=threshold, scale_range=scale_range)
+        appear = self.appear(target, interval=interval, threshold=threshold)
         if appear and not action:
             x, y = target.coord()
             self.device.click(x, y, control_name=target.name)

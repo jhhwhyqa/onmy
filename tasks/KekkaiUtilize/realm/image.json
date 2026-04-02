@@ -4,7 +4,7 @@
     "imageName": "realm_shi_grown.png",
     "roiFront": "595,291,35,38",
     "roiBack": "530,220,202,267",
-    "method": "Template matching",
+    "method": "Multi-scale template matching",
     "threshold": 0.6,
     "description": "育成"
   },
@@ -13,7 +13,7 @@
     "imageName": "realm_shi_card.png",
     "roiFront": "891,300,31,55",
     "roiBack": "823,210,252,297",
-    "method": "Template matching",
+    "method": "Multi-scale template matching",
     "threshold": 0.6,
     "description": "结界卡"
   },
