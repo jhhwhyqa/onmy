@@ -22,12 +22,18 @@ class GuildActivity(BaseModel):
 
     # 保持前端翻译，自动转换格式
     def __getattr__(self, name):
-        camel = ''.join(w.capitalize() for w in name.split('_'))
-        return getattr(self, camel) if hasattr(self, camel) else super().__getattr__(name)
+        fields = type(self).model_fields
+        camel = ''.join(w[:1].upper() + w[1:] for w in name.split('_'))
+        if camel not in fields and name:
+            camel = name[0].upper() + name[1:]
+        return getattr(self, camel) if camel in fields else super().__getattr__(name)
 
     def __setattr__(self, name, value):
-        camel = ''.join(w.capitalize() for w in name.split('_'))
-        super().__setattr__(camel if hasattr(self, camel) else name, value)
+        fields = type(self).model_fields
+        camel = ''.join(w[:1].upper() + w[1:] for w in name.split('_'))
+        if camel not in fields and name:
+            camel = name[0].upper() + name[1:]
+        super().__setattr__(camel if camel in fields else name, value)
 
 
 class GuildActivityMonitor(ConfigBase):
