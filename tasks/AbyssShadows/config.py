@@ -286,6 +286,8 @@ class ProcessManage(ConfigBase):
     strategy_elite: str = Field(default='4380000', description='精英战斗策略,同首领')
     # 是否启用切换御魂
     enable_switch_soul_in_as: bool = Field(default=False)
+    # 是否同步切换预设
+    enable_switch_preset_in_as: bool = Field(default=False)
     # 首领预设
     preset_boss: str = Field(default='6,1', description='例6,1，同其他通用预设配置')
     # 副将预设

@@ -548,7 +548,7 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, AbyssShadowsAssets):
                     return self.config.model.abyss_shadows.process_manage.preset_elite
 
         preset = get_preset(enemy_type)
-        if preset != self.cur_preset:
+        if preset != self.cur_preset and self.config.model.abyss_shadows.process_manage.enable_switch_preset_in_as:
             logger.info(f"enemyType{enemy_type}--Switch preset to {preset} and {self.cur_preset=}")
             self.switch_preset_team_with_str(preset)
             self.cur_preset = preset
