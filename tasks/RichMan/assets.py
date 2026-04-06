@@ -275,9 +275,9 @@ class RichManAssets:
 	# 多少号位 
 	O_SCA_DEMON_POSTION = RuleOcr(roi=(960,244,88,41), area=(960,244,88,41), mode="Single", method="Default", keyword="", name="sca_demon_postion")
 	# 朴素的御魂 
-	O_SCA_RES_OROCHI = RuleOcr(roi=(531,9,127,37), area=(531,9,127,37), mode="DigitCounter", method="Default", keyword="", name="sca_res_orochi")
+	O_SCA_RES_OROCHI = RuleOcr(roi=(613,9,127,37), area=(613,9,127,37), mode="DigitCounter", method="Default", keyword="", name="sca_res_orochi")
 	# 首领御魂数量 
-	O_SCA_RES_DEMON = RuleOcr(roi=(949,10,86,35), area=(949,10,86,35), mode="Digit", method="Default", keyword="", name="sca_res_demon")
+	O_SCA_RES_DEMON = RuleOcr(roi=(969,10,86,35), area=(969,10,86,35), mode="Digit", method="Default", keyword="", name="sca_res_demon")
 	# 永生之海 
 	O_SCA_RES_SEA = RuleOcr(roi=(1152,11,80,38), area=(1152,11,80,38), mode="Digit", method="Default", keyword="", name="sca_res_sea")
 
