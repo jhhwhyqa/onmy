@@ -45,8 +45,14 @@ class ScriptTask(GameUi):
         # 获取初始通知时间
         init_time, _ = self.get_notification_info()
 
+        stuck_interval = Timer(280)
         # 主监控循环
         while True:
+            if not stuck_interval.started() or stuck_interval.reached():  # 重置等待间隔, 防止等待超时
+                self.device.stuck_record_clear()
+                self.device.stuck_record_add('PAUSE')
+                stuck_interval.reset()
+
             if check_timer.reached():
                 logger.info("监控时间到，任务结束")
                 raise TaskEnd('GuildActivityMonitor')
@@ -111,17 +117,6 @@ class ScriptTask(GameUi):
         except Exception as e:
             logger.warning(f"获取通知失败: {e}")
             return 0, ""
-
-    '''
-    def clear_notifications(self):
-        """清理系统通知"""
-        try:
-            # 清理所有通知
-            self.device.adb_shell(['cmd', 'notification', 'remove-all'])
-            logger.info("已清理系统通知")
-        except Exception as e:
-            logger.warning(f"清理通知失败: {e}")
-    '''
 
 
 if __name__ == '__main__':
