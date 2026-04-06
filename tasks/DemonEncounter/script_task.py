@@ -528,6 +528,7 @@ class ScriptTask(GameUi, GeneralBattle, DemonEncounterAssets, SwitchSoul):
             if self.appear(self.I_FALSE):
                 logger.warning('False battle')
                 self.ui_click_until_disappear(self.I_FALSE)
+                self.ui_click_until_disappear(self.I_REWARD)
                 return False
             # 时间到
             if check_timer and check_timer.reached():
