@@ -111,11 +111,7 @@ class BaseExploration(GameUi, GeneralBattle, GeneralRoom, GeneralInvite, Replace
         self.ui_goto(page_exploration)
 
     def post_process(self):
-        self.wait_until_stable(self.I_UI_BACK_RED)
-        if self.appear(self.I_UI_BACK_RED):
-            self.ui_click_until_disappear(self.I_UI_BACK_RED)
-        self.ui_get_current_page()
-        self.ui_goto(page_main)
+        self.ui_goto_page(page_main)
         con = self._config.exploration_config
         if con.buff_gold_50_click or con.buff_gold_100_click or con.buff_exp_50_click or con.buff_exp_100_click:
             self.open_buff()
@@ -351,7 +347,7 @@ class BaseExploration(GameUi, GeneralBattle, GeneralRoom, GeneralInvite, Replace
                 logger.warning('Exit immediately after the boss battle')
                 break
             if self.appear_then_click(self.I_E_EXIT_CONFIRM, interval=0.8) or \
-                    self.appear_then_click(self.I_BACK_Y, interval=0.8):
+                    self.appear_then_click(self.I_BACK_Y, interval=2.8):
                 continue
             if self.appear(self.I_EXPLORATION_TITLE) or self.appear(self.I_CHECK_EXPLORATION):
                 break

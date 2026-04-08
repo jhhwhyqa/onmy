@@ -242,9 +242,11 @@ class SoloExploration(BaseExploration):
     def run_member(self):
         logger.hr('member')
         explore_init = False
-        wait_timer = Timer(50)
+        wait_timer = Timer(50).start()
         friend_leave_timer = Timer(5)
         team_log, leader_leave_log = False, False
+        self.device.stuck_record_clear()
+        self.device.stuck_record_add('PAUSE')
         while True:
             self.screenshot()
             scene = self.get_current_scene()
@@ -257,7 +259,7 @@ class SoloExploration(BaseExploration):
                     break
                 if self.check_then_accept():
                     pass
-                if wait_timer.started() and wait_timer.reached():
+                if wait_timer.reached():
                     logger.warning('Wait timer reached')
                     break
                 continue
@@ -294,20 +296,25 @@ class SoloExploration(BaseExploration):
                         friend_leave_timer = Timer(5)
                         friend_leave_timer.start()
                         # 好友离开计时器刚开, 总的等待计时器也必须重置
-                        wait_timer = Timer(50)
+                        wait_timer.reset()
+                        self.device.stuck_record_clear()
+                        self.device.stuck_record_add('PAUSE')
                     elif friend_leave_timer.started() and friend_leave_timer.reached():
                         logger.warning('Mate leave timer reached')
                         logger.warning('Exit team')
                         self.quit_explore()
-                        wait_timer = Timer(50)
-                        wait_timer.start()
+                        wait_timer.reset()
+                        self.device.stuck_record_clear()
+                        self.device.stuck_record_add('PAUSE')
                     continue
                 else:
                     if not team_log:
                         logger.info('Team emoji appear again, clear friend_leave_timer')
                         team_log = True
                     # 出现好友标志, 重置计时器
-                    wait_timer = Timer(50)
+                    wait_timer.reset()
+                    self.device.stuck_record_clear()
+                    self.device.stuck_record_add('PAUSE')
                     friend_leave_timer = Timer(5)
                     leader_leave_log = False
             elif scene == Scene.BATTLE_PREPARE or scene == Scene.BATTLE_FIGHTING:
@@ -320,7 +327,7 @@ class SoloExploration(BaseExploration):
 
     def invite_friend(self, name: str = None, find_mode: FindMode = FindMode.AUTO_FIND) -> bool:
         logger.info('Click add to invite friend')
-        no_click_timeout = Timer(5)
+        no_click_timeout = Timer(5).start()
         # 点击＋号
         while True:
             self.screenshot()
@@ -333,10 +340,10 @@ class SoloExploration(BaseExploration):
             if self.appear(self.I_INVITE_ENSURE):
                 break
             if self.appear_then_click(self.I_ADD_2, interval=1):
-                no_click_timeout = Timer(5)
+                no_click_timeout.reset()
                 continue
             if self.appear_then_click(self.I_ADD_5_4, interval=1):
-                no_click_timeout = Timer(5)
+                no_click_timeout.reset()
                 continue
 
         friend_class = []
