@@ -12,7 +12,7 @@ from tasks.Component.config_base import ConfigBase, Time
 
 class DemonRetreatTime(ConfigBase):
     # 自定义运行时间
-    custom_run_time: Time = Field(default=Time(hour=10, minute=0, second=0))
+    custom_run_time: Time = Field(default=Time(hour=10, minute=0, second=0), description='demon_retreat_time_help')
 
 
 class DemonRetreat(ConfigBase):
