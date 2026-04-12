@@ -58,6 +58,7 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, AbyssShadowsAssets):
         """
         cfg: AbyssShadows = self.config.abyss_shadows
         if not self.check_date(datetime.now()):
+            logger.warning("Abyss shadows is not available now")
             self.set_next_run(task='AbyssShadows', server=False, target=self.get_next_dt(datetime.now()))
             raise TaskEnd
 
@@ -763,8 +764,8 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, AbyssShadowsAssets):
                     return datetime.combine(next_fri_dt, as_time.abyss_shadows_4)
         if now < target_dt:  # 还没到点
             return target_dt
-        # 到点了且在1小时之内, 则设置5分钟后再运行一次
-        return now + timedelta(minutes=5)
+        # 到点了且在1小时之内, 则设置失败的间隔时间之后运行
+        return now + self.config.model.abyss_shadows.scheduler.failure_interval
 
     def check_date(self, now: datetime) -> bool:
         """
