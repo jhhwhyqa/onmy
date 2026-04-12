@@ -921,23 +921,23 @@ class ScriptTask(ExtendGreenMark, GameUi, SwitchSoul, DokanSceneDetector):
             return
         # 道馆没有开启
         now = datetime.now()
-        ser_time: Time = self.config.dokan.scheduler.server_update
-        ser_time = datetime.combine(now.date(), ser_time)
+        run_time: Time = self.config.model.dokan.dokan_config.dokan_run_time
+        run_time = datetime.combine(now.date(), run_time)
         if not is_dokan_activated:
             # 在服务器时间之前,设置为服务器时间
-            if now < ser_time:
-                self.set_next_run(task="Dokan", target=now.replace(hour=ser_time.hour, minute=ser_time.minute))
+            if now < run_time:
+                self.set_next_run(task="Dokan", target=now.replace(hour=run_time.hour, minute=run_time.minute))
                 return
             # 在服务器时间之后,如超过两小时,则直接当作成功;未超过则当作失败
-            if now - ser_time > timedelta(hours=2):
+            if now - run_time > timedelta(hours=1):
                 self.set_next_run(task="Dokan", finish=False, success=True, server=True)
                 return
-            # 时间在道馆开启时间附近，3分钟后执行
+            # 时间在道馆开启时间附近，failure_interval后执行
 
             self.set_next_run(task="Dokan", target=now + self.config.dokan.scheduler.failure_interval)
         # 道馆已开启
         if is_dokan_activated:
-            # 如果打两次,当前是第一次,设置为3分钟后运行
+            # 如果打两次,当前是第一次,设置为failure_interval后运行
             #   # 本来以为server为False(finish=True,success=False,server=False)就不会变成明天，谁知道还是变成明天
             #   # 逻辑太复杂,不如直接target，简单点
             if self.config.dokan.attack_count_config.remain_attack_count == 1 and self.config.dokan.attack_count_config.daily_attack_count == 2:
@@ -1121,20 +1121,6 @@ class ScriptTask(ExtendGreenMark, GameUi, SwitchSoul, DokanSceneDetector):
         self.stop_green_mark()
         logger.info(f"Win: {win}")
         return win
-
-
-def test_goto_main():
-    from module.config.config import Config
-    from module.device.device import Device
-
-    config = Config('oas1')
-    device = Device(config)
-    t = ScriptTask(config, device)
-    # t.run()
-    # t.ui_current = page_dokan
-    t.run()
-    # t.find_dokan(score=2.6)
-    print("=====================")
 
 
 if __name__ == "__main__":

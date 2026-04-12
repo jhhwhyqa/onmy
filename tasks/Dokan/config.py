@@ -11,7 +11,7 @@ from pydantic import BaseModel, Field
 
 from tasks.Component.GeneralBattle.config_general_battle import GeneralBattleConfig
 from tasks.Component.SwitchSoul.switch_soul_config import SwitchSoulConfig
-from tasks.Component.config_base import ConfigBase
+from tasks.Component.config_base import ConfigBase, Time
 from tasks.Component.config_scheduler import Scheduler
 
 
@@ -117,10 +117,7 @@ class AttackAccountConfig(BaseModel):
 
 
 class DokanConfig(BaseModel):
-    # # 寮管理开启道馆
-    # dokan_declare_war: bool = Field(default=False, description='dokan_declare_war_help')
-    # # 选择哪一个竂
-    # dokan_declear_war_priority: int = Field(default=0, description='dokan_declear_war_priority_help')
+    dokan_run_time: Time = Field(Time(hour=20, minute=0, second=0), description='dokan_run_time_help')
 
     # 攻击优先顺序: 见习=0,初级=1...
     dokan_attack_priority: int = Field(default=0, description='dokan_attack_priority_help')
