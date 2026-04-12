@@ -45,5 +45,7 @@
   "abyss_shadows_4": "狭间周五运行时间",
   "abyss_shadows_5": "狭间周六运行时间",
   "abyss_shadows_6": "狭间周日运行时间",
-  "abyss_shadows_time_help": "若当前时间未开启则会在1小时之内按照调度器失败间隔不断重试"
+  "abyss_shadows_time_help": "若当前时间未开启则会在1小时之内按照调度器失败间隔不断重试",
+  "run_time_1": "第一次运行时间",
+  "run_time_2": "第二次运行时间"
 }
