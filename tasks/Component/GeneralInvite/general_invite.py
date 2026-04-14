@@ -39,10 +39,6 @@ class GeneralInvite(BaseTask, GeneralInviteAssets):
     timer_wait = None
     timer_emoji = None  # 等待期间如果没有操作的话，可能会导致长时间无响应报错
 
-    """
-
-    """
-
     def run_invite(self, config: InviteConfig, is_first: bool = False) -> bool:
         """
         队长！！身份。。。在组队界面邀请好友（ 如果开启is_first） 等待队员进入开启挑战
@@ -52,7 +48,6 @@ class GeneralInvite(BaseTask, GeneralInviteAssets):
         :param is_first: 如果是第一次开房间的那就要邀请队员，其他情况等待队员进入
         :return:
         """
-        logger.hr('Invite friend', 2)
         if not self.ensure_enter():
             logger.warning('Not enter invite page')
             return False
@@ -60,7 +55,7 @@ class GeneralInvite(BaseTask, GeneralInviteAssets):
             _ = self.room_type
             self.timer_invite = Timer(20)
             self.timer_invite.start()
-            self.ensure_room_type(config.invite_number)
+            self.ensure_room_type(len(config.friend_list.split('\n')))
             self.invite_friends(config)
         else:
             self.timer_invite = Timer(30)
@@ -93,34 +88,29 @@ class GeneralInvite(BaseTask, GeneralInviteAssets):
                 logger.info('Start challenge and this room can only invite one friend')
                 fire = True
             # 如果这个房间最多容纳三个人（意思是可以邀请两个人），且设定邀请一个就开启挑战，那就开启挑战
-            elif self.room_type == RoomType.NORMAL_3 and config.invite_number == InviteNumber.ONE and not self.appear(self.I_ADD_1):
+            elif self.room_type == RoomType.NORMAL_3 and len(config.friend_list_v) == 1 and not self.appear(self.I_ADD_1):
                 logger.info('Start challenge and user only invite one friend')
                 fire = True
             # 如果这个房间最多容纳三个人（意思是可以邀请两个人），且设定邀请两个就开启挑战，那就开启挑战
-            elif self.room_type == RoomType.NORMAL_3 \
-                    and config.invite_number == InviteNumber.TWO and not self.appear(self.I_ADD_2):
+            elif self.room_type == RoomType.NORMAL_3 and len(config.friend_list_v) == 2 and not self.appear(self.I_ADD_2):
                 logger.info('Start challenge and user invite two friends')
                 fire = True
             # 如果这个房间是五人的，且设定邀请一个就开启挑战，那就开启挑战
-            elif self.room_type == RoomType.NORMAL_5 \
-                    and config.invite_number == InviteNumber.ONE and not self.appear(self.I_ADD_5_1):
+            elif self.room_type == RoomType.NORMAL_5 and len(config.friend_list_v) == 1 and not self.appear(self.I_ADD_5_1):
                 logger.info('Start challenge and user only invite one friend')
                 fire = True
             # 如果这个房间是五人的，且设定邀请两个就开启挑战，那就开启挑战
-            elif self.room_type == RoomType.NORMAL_5 \
-                    and config.invite_number == InviteNumber.TWO and not self.appear(self.I_ADD_5_2):
+            elif self.room_type == RoomType.NORMAL_5 and len(config.friend_list_v) == 2 and not self.appear(self.I_ADD_5_2):
                 logger.info('Start challenge and user invite two friends')
                 fire = True
             # 如果是永生之海
             elif self.room_type == RoomType.ETERNITY_SEA and not self.appear(self.I_ADD_SEA):
                 logger.info('Start challenge and this is lock sea')
                 fire = True
-
             # 点击挑战
             if fire:
                 self.click_fire()
                 return True
-
             if self.timer_invite and self.timer_invite.reached():
                 if is_first:
                     logger.info('Invitation is triggered every 20s')
@@ -129,6 +119,30 @@ class GeneralInvite(BaseTask, GeneralInviteAssets):
                     logger.info('Wait for 30s and invite again')
                     self.timer_invite = None
                 self.invite_friends(config)
+
+    def invite_friends(self, config: InviteConfig, open_invite: bool = True) -> bool:
+        """
+        邀请多个好友
+        :param config: 邀请配置
+        :param open_invite: 是否需要在本方法内打开邀请界面
+        :return: 邀请是否成功
+        """
+        logger.hr('Invite friends', 2)
+        if not config.friend_list_v:
+            logger.warning('No friend to invite')
+            return False
+        logger.info(f'Need invite friend list: {config.friend_list_v}')
+        if not self._open_invite_panel_if_needed(open_invite):
+            return True
+        friend_class = self._read_friend_classes()
+        selected_set: set[str] = set()
+        if config.find_mode == FindMode.RECENT_FRIEND:
+            if not self._select_recent_mode_friends(friend_class, config.friend_list_v, selected_set):
+                return False
+        if config.find_mode != FindMode.AUTO_FIND:
+            return len(selected_set) == len(config.friend_list_v)
+        self._select_auto_mode_friends(friend_class, config.friend_list_v, selected_set)
+        return self._confirm_invite_and_validate(selected_set, config.friend_list_v)
 
     def ensure_enter(self) -> bool:
         """
@@ -281,12 +295,6 @@ class GeneralInvite(BaseTask, GeneralInviteAssets):
         :param friend_number: 这个输入的是用户选项中的invite_number
         :return:  如果超出了，就返回False
         """
-        if isinstance(friend_number, InviteNumber):
-            if friend_number == InviteNumber.ONE:
-                friend_number = 1
-            elif friend_number == InviteNumber.TWO:
-                friend_number = 2
-
         if friend_number == 2:
             if self.room_type == RoomType.NORMAL_2:
                 # 整个房间就可以两个人，还邀请两个 这个是报错的
@@ -303,182 +311,236 @@ class GeneralInvite(BaseTask, GeneralInviteAssets):
     def friend_class(self) -> list[str]:
         return ['好友', '最近', '跨区', '寮友', '蔡友', '路区', '察友', '区']
 
-    def detect_select(self, name: str = None) -> bool:
+    @staticmethod
+    def _normalize_friend_name_text(text: str) -> str:
+        if text is None:
+            return ''
+        return str(text).replace(' ', '').replace('　', '').strip()
+
+    def _find_exact_friend_area(self, rule, name: str) -> tuple[int, int, int, int] | None:
+        target_name = self._normalize_friend_name_text(name)
+        if not target_name:
+            return None
+
+        boxed_results = rule.detect_and_ocr(self.device.image)
+        if not boxed_results:
+            return None
+
+        for result in boxed_results:
+            ocr_text = self._normalize_friend_name_text(result.ocr_text)
+            if ocr_text != target_name:
+                continue
+            box = result.box
+            rec_x = box[0, 0]
+            rec_y = box[0, 1]
+            rec_w = box[1, 0] - box[0, 0]
+            rec_h = box[2, 1] - box[0, 1]
+            area = (
+                int(rec_x + rule.roi[0]),
+                int(rec_y + rule.roi[1]),
+                int(rec_w),
+                int(rec_h)
+            )
+            logger.info(f'Exact match friend "{name}" in {rule.name} at {area}')
+            return area
+        return None
+
+    @staticmethod
+    def _random_point_in_area(area: tuple[int, int, int, int]) -> tuple[int, int]:
+        x, y, w, h = area
+        w = max(1, int(w))
+        h = max(1, int(h))
+        if w == 1:
+            click_x = x
+        else:
+            click_x = int(np.random.randint(x, x + w))
+        if h == 1:
+            click_y = y
+        else:
+            click_y = int(np.random.randint(y, y + h))
+        return click_x, click_y
+
+    def _wait_selected_appear(self, pre_cnt: int, timeout: float = 2) -> bool:
+        """
+        点击后等待选中动画结束。要求连续两帧都识别到选中，避免单帧滞后误判。
+        """
+        timer = Timer(timeout).start()
+        selected_count = 0
+        while not timer.reached():
+            self.screenshot()
+            if len(self.I_SELECTED.match_all_any(self.device.image)) >= pre_cnt + 1:
+                selected_count += 1
+                if selected_count >= 2:
+                    return True
+            else:
+                selected_count = 0
+        return False
+
+    def _detect_select(self, name: str = None) -> bool:
         """
         在当前的页面检测是否有好友， 如果有就选中这个好友
-        :return:
+        :return: 是否成功选中好友
         """
         if not name:
             return False
-
+        max_retry = 3
         self.screenshot()
-        self.O_FRIEND_NAME_1.keyword = name
-        self.O_FRIEND_NAME_2.keyword = name
-        appear_1 = self.ocr_appear_click(self.O_FRIEND_NAME_1, interval=2)
-        appear_2 = self.ocr_appear_click(self.O_FRIEND_NAME_2, interval=2)
-        if not appear_1 and not appear_2:
-            logger.info('Current page no friend')
-            return False
-
-        while appear_1 or appear_2:
+        pre_cnt = len(self.I_SELECTED.match_all_any(self.device.image))
+        for _ in range(max_retry):
             self.screenshot()
-            if self.appear(self.I_SELECTED):
-                break
-            appear_1 = self.ocr_appear_click(self.O_FRIEND_NAME_1, interval=2)
-            appear_2 = self.ocr_appear_click(self.O_FRIEND_NAME_2, interval=2)
+            if len(self.I_SELECTED.match_all_any(self.device.image)) >= pre_cnt + 1:
+                return True
+            rule = self.O_FRIEND_NAME_1
+            select_area = self._find_exact_friend_area(rule, name)
+            if select_area is None:
+                rule = self.O_FRIEND_NAME_2
+                select_area = self._find_exact_friend_area(rule, name)
+            if select_area is None:
+                logger.info('Current page no exact friend')
+                return False
+            click_x, click_y = self._random_point_in_area(select_area)
+            self.device.click(x=click_x, y=click_y, control_name=rule.name)
+            if self._wait_selected_appear(pre_cnt):
+                return True
+        logger.warning(f'Find friend "{name}" but failed to select')
+        return False
 
-        return True
-
-    def invite_friend(self, name: str = None, find_mode: FindMode = FindMode.AUTO_FIND) -> bool:
+    def _get_invite_friend_list(self, config: InviteConfig) -> list[str]:
         """
-        邀请好友
-        :param find_mode: 寻找的方式
-        :param name:
+        获取邀请名单。
+        :param config: 邀请配置
+        :return: 由配置拆分得到的好友名称列表
+        """
+        return config.friend_list.split('\n')
+
+    def _open_invite_panel_if_needed(self, open_invite: bool) -> bool:
+        """
+        按需打开邀请面板。
+        :param open_invite: 是否需要在当前流程中主动打开邀请面板
+        :return: True 表示继续邀请流程，False 表示直接提前结束（保持当前兼容语义）
+        """
+        if not open_invite:
+            return True
+        logger.info('Click add to invite friend')
+        no_click_timeout = Timer(5).start()
+        while True:
+            self.screenshot()
+            if no_click_timeout.started() and no_click_timeout.reached():
+                logger.warning('Cannot invite friend, maybe already existing')
+                return False
+            if self.appear(self.I_LOAD_FRIEND) or self.appear(self.I_INVITE_ENSURE):
+                return True
+            clicked = self.appear_then_click(self.I_ADD_1, interval=1) or \
+                self.appear_then_click(self.I_ADD_2, interval=1) or \
+                self.appear_then_click(self.I_ADD_5_4, interval=1)
+            if clicked:
+                no_click_timeout.reset()
+
+    @staticmethod
+    def _normalize_friend_class_name(friend_class: str) -> str:
+        """
+        归一化好友分类文字，消除 OCR 近形字干扰。
+        :param friend_class: OCR 识别到的分类文本
+        :return: 归一化后的分类文本
+        """
+        mapping = {'蔡友': '寮友', '路区': '跨区', '察友': '寮友', '区': '跨区'}
+        return mapping.get(friend_class, friend_class)
+
+    def _read_friend_classes(self) -> list[str]:
+        """
+        识别当前可用的好友分类页签。
+        :return: 分类列表，顺序与页签顺序一致
+        """
+        raw_list = [
+            self.O_F_LIST_1.ocr(self.device.image).replace(' ', '').replace('、', ''),
+            self.O_F_LIST_2.ocr(self.device.image).replace(' ', '').replace('、', ''),
+            self.O_F_LIST_3.ocr(self.device.image).replace(' ', '').replace('、', ''),
+            self.O_F_LIST_4.ocr(self.device.image).replace(' ', '').replace('、', '')
+        ]
+        friend_class = []
+        for item in raw_list:
+            if item is not None and item != '' and item in self.friend_class:
+                friend_class.append(self._normalize_friend_class_name(item))
+        logger.info(f'Friend class: {friend_class}')
+        return friend_class
+
+    def _switch_friend_class(self, index: int) -> None:
+        """
+        切换到指定索引的好友分类标签。
+        :param index: 分类索引，0~3
         :return:
         """
-        logger.info('Click add to invite friend')
-        # 点击＋号
-        while 1:
-            self.screenshot()
-            if self.appear(self.I_LOAD_FRIEND):
-                break
-            if self.appear(self.I_INVITE_ENSURE):
-                break
-            if self.appear_then_click(self.I_ADD_2, interval=1):
-                continue
-            if self.appear_then_click(self.I_ADD_5_4, interval=1):
-                continue
-            if self.appear_then_click(self.I_ADD_SEA, interval=1):
-                continue
+        match index:
+            case 0:
+                self.ui_click(self.I_FLAG_1_OFF, self.I_FLAG_1_ON, interval=1.2)
+            case 1:
+                self.ui_click(self.I_FLAG_2_OFF, self.I_FLAG_2_ON, interval=1.2)
+            case 2:
+                self.ui_click(self.I_FLAG_3_OFF, self.I_FLAG_3_ON, interval=1.2)
+            case 3:
+                self.ui_click(self.I_FLAG_4_OFF, self.I_FLAG_4_ON, interval=1.2)
 
-        friend_class = []
-        class_ocr = [self.O_F_LIST_1, self.O_F_LIST_2, self.O_F_LIST_3, self.O_F_LIST_4]
-        class_index = 0
-        list_1 = self.O_F_LIST_1.ocr(self.device.image)
-        list_2 = self.O_F_LIST_2.ocr(self.device.image)
-        list_3 = self.O_F_LIST_3.ocr(self.device.image)
-        list_4 = self.O_F_LIST_4.ocr(self.device.image)
-        list_1 = list_1.replace(' ', '').replace('、', '')
-        list_2 = list_2.replace(' ', '').replace('、', '')
-        list_3 = list_3.replace(' ', '').replace('、', '')
-        if list_1 is not None and list_1 != '' and list_1 in self.friend_class:
-            friend_class.append(list_1)
-        if list_2 is not None and list_2 != '' and list_2 in self.friend_class:
-            friend_class.append(list_2)
-        if list_3 is not None and list_3 != '' and list_3 in self.friend_class:
-            friend_class.append(list_3)
-        if list_4 is not None and list_4 != '' and list_4 in self.friend_class:
-            friend_class.append(list_4)
-        for i in range(len(friend_class)):
-            if friend_class[i] == '蔡友':
-                friend_class[i] = '寮友'
-            elif friend_class[i] == '路区':
-                friend_class[i] = '跨区'
-            elif friend_class[i] == '察友':
-                friend_class[i] = '寮友'
-            elif friend_class[i] == '区':
-                friend_class[i] = '跨区'
-        logger.info(f'Friend class: {friend_class}')
+    def _select_current_page_friends(self, friend_list: list[str], selected_set: set[str]) -> None:
+        """
+        在当前分类页中尝试选择多个好友。
+        :param friend_list: 目标好友名称列表
+        :param selected_set: 已成功选中的好友集合（原地更新）
+        :return:
+        """
+        for name in friend_list:
+            if name not in selected_set and self._detect_select(name):
+                selected_set.add(name)
 
-        is_select: bool = False  # 是否选中了好友
-        if find_mode == FindMode.RECENT_FRIEND:
-            logger.info('Find recent friend')
-            # 获取’最近‘在friend_class中的index
-            if '最近' not in friend_class:
-                logger.warning('No recent friend')
-                return False
-            recent_index = friend_class.index('最近')
-            while recent_index == 1:
-                self.screenshot()
-                if self.appear(self.I_FLAG_2_ON):
-                    break
-                if self.appear_then_click(self.I_FLAG_2_OFF, interval=1):
-                    continue
+    def _select_recent_mode_friends(self, friend_class: list[str], friend_list: list[str], selected_set: set[str]) -> bool:
+        """
+        在“最近”分类下执行好友选择。
+        :param friend_class: 当前可用分类列表
+        :param friend_list: 目标好友名称列表
+        :param selected_set: 已成功选中的好友集合（原地更新）
+        :return: True 表示流程可继续，False 表示失败
+        """
+        logger.info('Find recent friend')
+        if '最近' not in friend_class:
+            logger.warning('No recent friend')
+            return False
+        recent_index = friend_class.index('最近')
+        self._switch_friend_class(recent_index)
+        sleep(0.5)
+        logger.info('Now find friend in ”最近“')
+        self._select_current_page_friends(friend_list, selected_set)
+        return True
 
-            logger.info(f'Now find friend in ”最近“')
-            sleep(1)
-            if not is_select:
-                if self.detect_select(name):
-                    is_select = True
-            sleep(1)
-            if not is_select:
-                if self.detect_select(name):
-                    is_select = True
-
+    def _select_auto_mode_friends(self, friend_class: list[str], friend_list: list[str], selected_set: set[str]) -> None:
+        """
+        自动遍历所有分类并尝试选择目标好友。
+        :param friend_class: 当前可用分类列表
+        :param friend_list: 目标好友名称列表
+        :param selected_set: 已成功选中的好友集合（原地更新）
+        :return:
+        """
         for index in range(len(friend_class)):
-            # 如果不是自动寻找，就跳过
-            if find_mode != FindMode.AUTO_FIND:
-                continue
-            # 如果已经选中了好友，就不需要再选中了
-            if is_select:
-                continue
-            # 首先切换到不同的好友列表
-            while index == 0:
-                self.screenshot()
-                if self.appear(self.I_FLAG_1_ON):
-                    break
-                if self.appear_then_click(self.I_FLAG_1_OFF, interval=1):
-                    continue
-            while index == 1:
-                self.screenshot()
-                if self.appear(self.I_FLAG_2_ON):
-                    break
-                if self.appear_then_click(self.I_FLAG_2_OFF, interval=1):
-                    continue
-            while index == 2:
-                self.screenshot()
-                if self.appear(self.I_FLAG_3_ON):
-                    break
-                if self.appear_then_click(self.I_FLAG_3_OFF, interval=1):
-                    continue
-            while index == 3:
-                self.screenshot()
-                if self.appear(self.I_FLAG_4_ON):
-                    break
-                if self.appear_then_click(self.I_FLAG_4_OFF, interval=1):
-                    continue
-
-            # 选中好友， 在这里游戏获取在线的好友并不是很快，根据不同的设备会有不同的时间，而且没有什么元素提供我们来判断
-            # 所以这里就直接等待一段时间
+            if len(selected_set) == len(friend_list):
+                break
+            self._switch_friend_class(index)
+            sleep(0.5)
             logger.info(f'Now find friend in {friend_class[index]}')
-            sleep(1)
-            if not is_select:
-                if self.detect_select(name):
-                    is_select = True
-            sleep(1)
-            if not is_select:
-                if self.detect_select(name):
-                    is_select = True
+            self._select_current_page_friends(friend_list, selected_set)
 
-        # 点击确定
+    def _confirm_invite_and_validate(self, selected_set: set[str], friend_list: list[str]) -> bool:
+        """
+        点击邀请确认并校验最终结果。
+        :param selected_set: 已成功选中的好友集合
+        :param friend_list: 目标好友名称列表
+        :return: 全部选中返回 True，否则 False
+        """
         logger.info('Click invite ensure')
         if not self.appear(self.I_INVITE_ENSURE):
             logger.warning('No appear invite ensure while invite friend')
         self.ui_click_until_disappear(self.I_INVITE_ENSURE)
-        # 哪怕没有找到好友也有点击 确认 以退出好友列表
-        if not is_select:
-            logger.warning('No find friend')
-            # 这个时候任务运行失败
-            logger.info('Task failed')
+        if len(selected_set) != len(friend_list):
+            logger.warning('Cannot find friend')
             return False
-
         return True
-
-    def invite_friends(self, config: InviteConfig) -> bool:
-        """
-        看情况邀请两个好友
-        :return:
-        """
-        success = self.invite_friend(config.friend_1, config.find_mode)
-        if not success:
-            logger.warning('Invite friend 1 failed')
-        # 如果是邀请第二个人
-        if config.invite_number == InviteNumber.TWO:
-            success = self.invite_friend(config.friend_2, config.find_mode)
-            if not success:
-                logger.warning('Invite friend 2 failed')
-        sleep(0.5)
-        return success
 
     def invite_again(self, default_invite: bool=True) -> bool:
         """
@@ -598,7 +660,6 @@ class GeneralInvite(BaseTask, GeneralInviteAssets):
                 success = False
                 break
 
-
             if self.timer_wait.reached():
                 logger.warning('Wait battle time out')
                 success = False
@@ -619,7 +680,6 @@ class GeneralInvite(BaseTask, GeneralInviteAssets):
             else:
                 break
 
-
         # 调出循环只有这些可能性：
         # 1. 进入战斗（ui是战斗）
         # 2. 队长跑路（自己还是在房间里面）
@@ -632,19 +692,13 @@ class GeneralInvite(BaseTask, GeneralInviteAssets):
         return success
 
 
-
-
 if __name__ == '__main__':
     from module.config.config import Config
     from module.device.device import Device
     import cv2
 
-    c = Config('oas1')
+    c = Config('oas3')
     d = Device(c)
     t = GeneralInvite(c, d)
 
-    # t.run_invite(c.orochi.invite_config, is_first=True)
-    t.screenshot()
-    print(t.appear(t.I_FIRE, threshold=0.8))
-
-
+    t.run_invite(c.orochi.invite_config, is_first=True)

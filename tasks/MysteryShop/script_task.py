@@ -30,7 +30,7 @@ class ScriptTask(FriendshipPoints, MysteryShopAssets, GeneralInvite):
         self.ui_click(self.I_ME_ENTER, self.I_MS_SHARE)
         logger.info('Enter MysteryShop')
         con = self.config.mystery_shop
-        self.share(con.share_config)
+        self.share(con.invite_config)
         while 1:
             self.run_shop(con.shop_config)
             if not self.next_one():
@@ -104,75 +104,13 @@ class ScriptTask(FriendshipPoints, MysteryShopAssets, GeneralInvite):
                                     money_ocr=self.O_MALL_RESOURCE_5, buy_money=80):
                 pass
 
-    def share(self, share_config: ShareConfig = None):
+    def share(self, invite_config: InviteConfig = None):
         logger.hr('Share', 3)
-        if not share_config.enable:
+        if len(invite_config.friend_list_v) == 0:
             logger.info('Share is disabled')
             return
-
-        if share_config.share_friend_1 == '':
-            logger.info('Share friend is empty')
-            return
         self.ui_click(self.I_MS_SHARE, self.I_INVITE_ENSURE)
-        if not self.invite_friend(share_config.share_friend_1):
-            logger.warning(f'Share friend 1 {share_config.share_friend_1} is not exist')
-
-        if share_config.share_friend_2 != '':
-            self.ui_click(self.I_MS_SHARE, self.I_INVITE_ENSURE)
-            if not self.invite_friend(share_config.share_friend_2):
-                logger.warning(f'Share friend 2 {share_config.share_friend_2} is not exist')
-
-        if share_config.share_friend_3 != '':
-            self.ui_click(self.I_MS_SHARE, self.I_INVITE_ENSURE)
-            if not self.invite_friend(share_config.share_friend_3):
-                logger.warning(f'Share friend 3 {share_config.share_friend_3} is not exist')
-
-        if share_config.share_friend_4 != '':
-            self.ui_click(self.I_MS_SHARE, self.I_INVITE_ENSURE)
-            if not self.invite_friend(share_config.share_friend_4):
-                logger.warning(f'Share friend 4 {share_config.share_friend_4} is not exist')
-
-        if share_config.share_friend_5 != '':
-            self.ui_click(self.I_MS_SHARE, self.I_INVITE_ENSURE)
-            if not self.invite_friend(share_config.share_friend_5):
-                logger.warning(f'Share friend 5 {share_config.share_friend_5} is not exist')
-
-    def invite_friend(self, name: str = None, find_mode: FindMode = FindMode.AUTO_FIND) -> bool:
-        """
-        重写
-        :param find_mode:
-        :param name:
-        :return:
-        """
-        def select(name: str) -> bool:
-            selected = False
-            sleep(1)
-            if not selected:
-                if self.detect_select(name):
-                    selected = True
-            sleep(1)
-            if not selected:
-                if self.detect_select(name):
-                    selected = True
-            return selected
-
-        selected = False
-        self.ui_click_until_disappear(self.I_FLAG_1_OFF)
-        logger.info(f'Now find friend in same server')
-        selected = select(name)
-
-        if not selected:
-            self.ui_click_until_disappear(self.I_FLAG_2_OFF)
-            logger.info(f'Now find friend in different server')
-            selected = select(name)
-
-        self.ui_click_until_disappear(self.I_INVITE_ENSURE)
-        if selected:
-            logger.info('Click invite ensure')
-            return True
-        else:
-            logger.warning('Friend not found')
-            return False
+        self.invite_friends(invite_config, False)
 
     def shop_reward(self):
         logger.info('Shop reward')

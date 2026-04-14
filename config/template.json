@@ -484,7 +484,7 @@
       "buff_exp_100_click": false,
       "user_status": "alone",
       "limit_time": "00:30:00",
-      "minions_cnt": "30",
+      "minions_cnt": 30,
       "exploration_level": "第二十八章",
       "auto_rotate": "不",
       "choose_rarity": "N卡",
@@ -493,12 +493,13 @@
     "scrolls": {
       "scrolls_enable": false,
       "scrolls_cd": "00 00:30:00",
-      "scrolls_threshold": "25"
+      "scrolls_threshold": 25
     },
     "invite_config": {
-      "friend_1": "",
+      "friend_list": "",
       "find_mode": "auto_find",
-      "wait_time": "00:02:00"
+      "wait_time": "00:02:00",
+      "default_invite": true
     },
     "general_battle_config": {
       "lock_team_enable": false,
@@ -604,9 +605,7 @@
       "soul_buff_enable": false
     },
     "invite_config": {
-      "invite_number": "one",
-      "friend_1": "",
-      "friend_2": "",
+      "friend_list": "",
       "find_mode": "auto_find",
       "wait_time": "00:02:00",
       "default_invite": true
@@ -701,9 +700,7 @@
       "limit_count": 50
     },
     "invite_config": {
-      "invite_number": "one",
-      "friend_1": "",
-      "friend_2": "",
+      "friend_list": "",
       "find_mode": "auto_find",
       "wait_time": "00:02:00",
       "default_invite": true
@@ -766,9 +763,7 @@
       "team_name": ""
     },
     "invite_config": {
-      "invite_number": "one",
-      "friend_1": "",
-      "friend_2": "",
+      "friend_list": "",
       "find_mode": "auto_find",
       "wait_time": "00:02:00",
       "default_invite": true
@@ -1029,9 +1024,7 @@
       "limit_num": 2000
     },
     "invite_config": {
-      "invite_number": "one",
-      "friend_1": "",
-      "friend_2": "",
+      "friend_list": "",
       "find_mode": "auto_find",
       "wait_time": "00:02:00",
       "default_invite": true
@@ -1078,9 +1071,7 @@
       "soul_buff_enable": false
     },
     "invite_config": {
-      "invite_number": "one",
-      "friend_1": "",
-      "friend_2": "",
+      "friend_list": "",
       "find_mode": "auto_find",
       "wait_time": "00:02:00",
       "default_invite": true
@@ -1443,13 +1434,11 @@
       "shop_kaiko_3": false,
       "shop_kaiko_4": false
     },
-    "share_config": {
-      "enable": false,
-      "share_friend_1": "",
-      "share_friend_2": "",
-      "share_friend_3": "",
-      "share_friend_4": "",
-      "share_friend_5": ""
+    "invite_config": {
+      "friend_list": "",
+      "find_mode": "auto_find",
+      "wait_time": "00:02:00",
+      "default_invite": true
     }
   },
   "duel": {
@@ -1551,6 +1540,7 @@
       "float_time": "00:00:00"
     },
     "dokan_config": {
+      "dokan_run_time": "20:00:00",
       "dokan_attack_priority": 0,
       "dokan_auto_cheering_while_cd": false,
       "random_delay": false,
@@ -1608,16 +1598,17 @@
     "process_manage": {
       "attack_order": "A-1;B-1;B;A-2;A-3;A-4;A-5;A-6",
       "mark_main": "BOSS_ONLY",
-      "enable_switch_soul_in_as": false,
-      "preset_boss": "6,1",
-      "preset_general": "6,2",
-      "preset_elite": "6,3",
       "strategy_boss": "FALSE",
       "strategy_general": "30",
       "strategy_elite": "4380000",
+      "enable_switch_soul_in_as": false,
+      "enable_switch_preset_in_as": false,
+      "preset_boss": "6,1",
+      "preset_general": "6,2",
+      "preset_elite": "6,3",
+      "try_complete_enemy_count": false,
       "try_start_abyss_shadows": false,
-      "difficulty": "EASY",
-      "try_complete_enemy_count": false
+      "difficulty": "EASY"
     },
     "saved_params": {
       "save_date": "",
@@ -1638,9 +1629,9 @@
     },
     "guild_banquet_time": {
       "day_1": "星期三",
-      "run_time_1": "19:00:00",
+      "run_time_1": "20:00:00",
       "day_2": "星期六",
-      "run_time_2": "19:00:00"
+      "run_time_2": "20:00:00"
     }
   },
   "demon_retreat": {
