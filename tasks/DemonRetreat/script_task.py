@@ -32,12 +32,10 @@ class ScriptTask(GameUi, GeneralBattle, SwitchSoul, DemonRetreatAssets, AbyssSha
             self.set_next_run(task='DemonRetreat', server=False, target=self.get_next_dt(datetime.now()))
             raise TaskEnd
         if cfg.switch_soul_config.enable:
-            self.ui_get_current_page()
-            self.ui_goto(page_shikigami_records)
+            self.goto_page(page_shikigami_records)
             self.run_switch_soul(cfg.switch_soul_config.switch_group_team)
         if cfg.switch_soul_config.enable_switch_by_name:
-            self.ui_get_current_page()
-            self.ui_goto(page_shikigami_records)
+            self.goto_page(page_shikigami_records)
             self.run_switch_soul_by_name(cfg.switch_soul_config.group_name, cfg.switch_soul_config.team_name)
 
         # 进入妖怪退治
@@ -45,7 +43,7 @@ class ScriptTask(GameUi, GeneralBattle, SwitchSoul, DemonRetreatAssets, AbyssSha
             logger.warning("Failed to enter demon retreat")
             if self.appear_then_click(self.I_DEMON_BACK_CHECK, interval=1):
                 pass
-            self.ui_goto_page(page_main)
+            self.goto_page(page_main)
             self.set_next_run(task='DemonRetreat', server=False, target=self.get_next_dt(datetime.now()))
             raise TaskEnd
 
@@ -69,7 +67,7 @@ class ScriptTask(GameUi, GeneralBattle, SwitchSoul, DemonRetreatAssets, AbyssSha
                 if self.appear_then_click(self.I_DEMON_BACK_CHECK, interval=1):
                     break
 
-        self.ui_goto_page(page_main)
+        self.goto_page(page_main)
         # 设置下次运行时间
         self.set_next_run(task='DemonRetreat', server=False, target=self.get_next_dt(datetime.now(), success))
         raise TaskEnd
@@ -80,7 +78,7 @@ class ScriptTask(GameUi, GeneralBattle, SwitchSoul, DemonRetreatAssets, AbyssSha
         """
         cfg: DemonRetreat = self.config.demon_retreat
         logger.info("Entering demon_retreat")
-        self.ui_goto_page(page_guild)
+        self.goto_page(page_guild)
 
         goto_demon_retreat_num = 0
         while 1:
@@ -249,3 +247,4 @@ if __name__ == '__main__':
     t.screenshot()
 
     t.run()
+

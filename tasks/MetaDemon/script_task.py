@@ -36,28 +36,42 @@ class ScriptTask(GeneralBattle, SwitchSoul, GameUi, MetaDemonAssets):
         return self.cur_boss_type is not None and self.cur_boss_type in powerful_list
 
     def before_run(self):
-        self.ui_close.append(self.I_MD_GET_YESTERDAY_REWARD)
+        self.navigator.add_unknown_closer(self.I_MD_GET_YESTERDAY_REWARD)
         self.conf = self.config.meta_demon
         self.limit_time = self.conf.meta_demon_config.limit_time_v
         self.limit_count = self.conf.meta_demon_config.limit_count
-        # 更改式神录跳转
-        ipages.page_shikigami_records.links.clear()
-        ipages.page_shikigami_records.link(button=self.I_BACK_Y, destination=ipages.page_meta_demon_boss)
-        ipages.page_meta_demon_boss.link(button=MetaDemonAssets.I_MD_SHIKIGAMI, destination=ipages.page_shikigami_records)
-        del ipages.page_main.links[ipages.page_shikigami_records]
+        page_shikigami_records = self.navigator.resolve_page(ipages.page_shikigami_records)
+        page_meta_demon_boss = self.navigator.resolve_page(ipages.page_meta_demon_boss)
+        page_main = self.navigator.resolve_page(ipages.page_main)
+        if page_shikigami_records is None or page_meta_demon_boss is None or page_main is None:
+            raise RuntimeError("MetaDemon 页面 session 初始化失败")
+
+        # 仅修改当前任务 session 内的跳转图，不污染全局页面定义
+        page_shikigami_records.clear_transitions()
+        page_shikigami_records.connect(
+            page_meta_demon_boss,
+            self.I_BACK_Y,
+            key="page_shikigami_records->page_meta_demon_boss",
+        )
+        page_meta_demon_boss.connect(
+            page_shikigami_records,
+            MetaDemonAssets.I_MD_SHIKIGAMI,
+            key="page_meta_demon_boss->page_shikigami_records",
+        )
+        page_main.remove_transition(key="page_main->page_shikigami_records")
 
     def run(self):
         self.before_run()
-        self.ui_goto_page(ipages.page_meta_demon_boss)
+        self.goto_page(ipages.page_meta_demon_boss)
         while True:
             self.update_global_state()
             if self.State.done:
                 break
             self.screenshot()
-            current_page = self.ui_get_current_page()
+            current_page = self.get_current_page()
             match current_page:
                 case ipages.page_meta_demon:
-                    self.ui_goto_page(ipages.page_meta_demon_boss)
+                    self.goto_page(ipages.page_meta_demon_boss)
                 case ipages.page_meta_demon_boss:
                     if self.check_and_prepare_battle():
                         self.start_battle()
@@ -262,7 +276,7 @@ class ScriptTask(GeneralBattle, SwitchSoul, GameUi, MetaDemonAssets):
         """检查并切换是否开启强力"""
         logger.hr('process power fire')
         if not self.appear(self.I_MD_FIRE):
-            self.ui_goto_page(ipages.page_meta_demon_boss)
+            self.goto_page(ipages.page_meta_demon_boss)
             self.screenshot()
             if not self.appear(self.I_MD_FIRE):  # 处于boss界面但是没有挑战按钮
                 return False
@@ -281,7 +295,7 @@ class ScriptTask(GeneralBattle, SwitchSoul, GameUi, MetaDemonAssets):
             return True
         logger.hr('Switch soul')
         self.State.switch_soul_done = True
-        self.ui_goto_page(ipages.page_shikigami_records)
+        self.goto_page(ipages.page_shikigami_records)
         if self.conf.switch_soul.switch_once:  # 只切换一次则将配置的鬼王御魂全部切换
             for boss_type in self.conf.meta_demon_config.fire_sequence_v:
                 switch_type, (group, team) = self.conf.switch_soul.get_switch_by_enum(boss_type)
@@ -291,31 +305,27 @@ class ScriptTask(GeneralBattle, SwitchSoul, GameUi, MetaDemonAssets):
                     self.run_switch_soul((group, team))
                 if switch_type == 'str':
                     self.run_switch_soul_by_name(group, team)
-            self.ui_goto_page(ipages.page_meta_demon_boss)
+            self.goto_page(ipages.page_meta_demon_boss)
             return True
         # 当前鬼王类型未知, 无法切换御魂
         if self.cur_boss_type is None:
             logger.error(f'cur_boss_type is None')
-            self.ui_goto_page(ipages.page_meta_demon_boss)
+            self.goto_page(ipages.page_meta_demon_boss)
             return False
         switch_type, (group, team) = self.conf.switch_soul.get_switch_by_enum(self.cur_boss_type)
         if switch_type is None:
             logger.error(f'Switch soul format is invalid on {self.cur_boss_type.name.lower()}')
-            self.ui_goto_page(ipages.page_meta_demon_boss)
+            self.goto_page(ipages.page_meta_demon_boss)
             return False
         if switch_type == 'int':
             self.run_switch_soul((group, team))
         if switch_type == 'str':
             self.run_switch_soul_by_name(group, team)
-        self.ui_goto_page(ipages.page_meta_demon_boss)
+        self.goto_page(ipages.page_meta_demon_boss)
         return True
 
     def finish_task(self):
-        # 恢复式神录跳转
-        del ipages.page_meta_demon_boss.links[ipages.page_shikigami_records]
-        ipages.page_main.link(button=self.I_MAIN_GOTO_SHIKIGAMI_RECORDS, destination=ipages.page_shikigami_records)
-        ipages.page_shikigami_records.link(button=self.I_BACK_Y, destination=ipages.page_main)
-        self.ui_goto_page(ipages.page_main)
+        self.goto_page(ipages.page_main)
         raise TaskEnd
 
 
@@ -328,3 +338,4 @@ if __name__ == '__main__':
     t = ScriptTask(c, d)
 
     t.run()
+

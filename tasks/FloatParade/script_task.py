@@ -16,8 +16,7 @@ from module.base.timer import Timer
 class ScriptTask(GameUi, FloatParadeAssets, TalismanPassAssets):
 
     def run(self):
-        self.ui_get_current_page()
-        self.ui_goto(page_main)
+        self.goto_page(page_main)
         con: FloatParadeConfig = self.config.float_parade.float_parade
 
         # 收取全部奖励
@@ -33,8 +32,7 @@ class ScriptTask(GameUi, FloatParadeAssets, TalismanPassAssets):
         # 收取花车等级奖励
         self.get_flower(con.level_reward1, con.level_reward2) # 第一种
         # main page
-        self.ui_get_current_page()
-        self.ui_goto(page_main)
+        self.goto_page(page_main)
 
         self.set_next_run(task='FloatParade', success=True, finish=True)
         raise TaskEnd('FloatParade')
@@ -130,3 +128,4 @@ if __name__ == '__main__':
     t.screenshot()
 
     t.run()
+

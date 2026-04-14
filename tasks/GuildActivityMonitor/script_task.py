@@ -17,8 +17,7 @@ class ScriptTask(GameUi):
         """
         # 构建关键字映射
         self.set_next_run(task='GuildActivityMonitor', success=True, finish=True)
-        self.ui_get_current_page()
-        self.ui_goto(page_main)
+        self.goto_page(page_main)
         guild_config = self.config.guild_activity_monitor.guild_activity
         KEYWORD_MAP = {
             '道馆': 'Dokan' if guild_config.Dokan else None,
@@ -127,3 +126,4 @@ if __name__ == '__main__':
     d = Device(c)
     t = ScriptTask(c, d)
     t.run()
+

@@ -1,24 +1,21 @@
 from tasks.GameUi.assets import GameUiAssets
-from tasks.GameUi.page import Page, page_act_list, page_main, page_shikigami_records, page_reward, random_click, \
-    page_failed, page_battle
+from tasks.GameUi.page import Page, page_act_list, page_battle, page_failed, page_main, page_reward, page_shikigami_records, random_click
 from tasks.GlobalGame.assets import GlobalGameAssets
 from tasks.MetaDemon.assets import MetaDemonAssets
 
-# 活动列表页超鬼王活动
 page_act_list_meta_demon = Page(MetaDemonAssets.I_CHECK_ACT_LIST_METADEMON_ACT)
-page_act_list.link(button=MetaDemonAssets.L_GOTO_METADEMON_LIST, destination=page_act_list_meta_demon)
-page_act_list_meta_demon.link(button=GlobalGameAssets.I_UI_BACK_YELLOW, destination=page_main)
-# 超鬼王主界面
-page_meta_demon = Page(MetaDemonAssets.I_MD_CHECK_MAIN_PAGE)
-page_meta_demon.additional = [MetaDemonAssets.I_MD_GET_YESTERDAY_REWARD, MetaDemonAssets.I_MD_CLOSE_POPUP]
-page_meta_demon.link(button=GlobalGameAssets.I_UI_BACK_YELLOW, destination=page_act_list_meta_demon)
-page_act_list_meta_demon.link(button=GameUiAssets.I_ACT_LIST_GOTO_ACT, destination=page_meta_demon)
-# 超鬼王boss界面
-page_meta_demon_boss = Page(MetaDemonAssets.I_CHECK_BOSS_PAGE)
-page_meta_demon_boss.additional = [MetaDemonAssets.I_MD_CLOSE_POPUP]
-page_meta_demon_boss.link(button=GlobalGameAssets.I_UI_BACK_YELLOW, destination=page_meta_demon)
-page_meta_demon.link(button=MetaDemonAssets.I_MD_CHECK_MAIN_PAGE, destination=page_meta_demon_boss)
+page_act_list.connect(page_act_list_meta_demon, MetaDemonAssets.L_GOTO_METADEMON_LIST, key="page_act_list->page_act_list_meta_demon")
+page_act_list_meta_demon.connect(page_main, GlobalGameAssets.I_UI_BACK_YELLOW, key="page_act_list_meta_demon->page_main")
 
-# 更改战斗结算界面
-page_reward.link(button=random_click(), destination=page_meta_demon_boss)
-page_failed.link(button=random_click(), destination=page_meta_demon_boss)
+page_meta_demon = Page(MetaDemonAssets.I_MD_CHECK_MAIN_PAGE)
+page_meta_demon.add_enter_success_hooks(MetaDemonAssets.I_MD_GET_YESTERDAY_REWARD, MetaDemonAssets.I_MD_CLOSE_POPUP)
+page_meta_demon.connect(page_act_list_meta_demon, GlobalGameAssets.I_UI_BACK_YELLOW, key="page_meta_demon->page_act_list_meta_demon")
+page_act_list_meta_demon.connect(page_meta_demon, GameUiAssets.I_ACT_LIST_GOTO_ACT, key="page_act_list_meta_demon->page_meta_demon")
+
+page_meta_demon_boss = Page(MetaDemonAssets.I_CHECK_BOSS_PAGE)
+page_meta_demon_boss.add_enter_success_hooks(MetaDemonAssets.I_MD_CLOSE_POPUP)
+page_meta_demon_boss.connect(page_meta_demon, GlobalGameAssets.I_UI_BACK_YELLOW, key="page_meta_demon_boss->page_meta_demon")
+page_meta_demon.connect(page_meta_demon_boss, MetaDemonAssets.I_MD_CHECK_MAIN_PAGE, key="page_meta_demon->page_meta_demon_boss")
+
+page_reward.connect(page_meta_demon_boss, random_click(), key="page_reward->page_meta_demon_boss")
+page_failed.connect(page_meta_demon_boss, random_click(), key="page_failed->page_meta_demon_boss")

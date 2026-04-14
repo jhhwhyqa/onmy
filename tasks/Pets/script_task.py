@@ -12,8 +12,7 @@ from tasks.Pets.config import PetsConfig
 class ScriptTask(GameUi, PetsAssets):
 
     def run(self):
-        self.ui_get_current_page()
-        self.ui_goto(page_main)
+        self.goto_page(page_main)
         con: PetsConfig = self.config.pets.pets_config
         # 进入
         while 1:
@@ -86,3 +85,4 @@ if __name__ == '__main__':
     t.screenshot()
 
     t.run()
+

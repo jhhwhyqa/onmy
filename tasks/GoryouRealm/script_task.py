@@ -24,11 +24,9 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, GoryouRealmAssets):
         self.limit_time: timedelta = timedelta(hours=limit_time.hour, minutes=limit_time.minute,
                                                seconds=limit_time.second)
         if con.switch_soul_config.enable:
-            self.ui_get_current_page()
-            self.ui_goto(page_shikigami_records)
+            self.goto_page(page_shikigami_records)
             self.run_switch_soul(con.switch_soul_config.switch_group_team)
-        self.ui_get_current_page()
-        self.ui_goto(page_goryou_realm)
+        self.goto_page(page_goryou_realm)
 
         match_click = {
             GoryouClass.Dark_Divine_Dragon: self.C_GR_C_1,
@@ -70,7 +68,7 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, GoryouRealmAssets):
                     self.run_general_battle(config=con.general_battle_config)
                     break
 
-        self.ui_goto_page(page_main)
+        self.goto_page(page_main)
         self.set_next_run(task='GoryouRealm', success=True, finish=True)
         raise TaskEnd
 
@@ -115,3 +113,4 @@ if __name__ == '__main__':
     t.screenshot()
 
     t.run()
+

@@ -63,7 +63,7 @@ class ScriptTask(GameUi, WeeklyTriflesAssets):
         :return:
         """
         logger.hr('Share collect')
-        self.ui_goto_page(page_collection)
+        self.goto_page(page_collection)
         # 一路进去
         while 1:
             self.screenshot()
@@ -100,7 +100,7 @@ class ScriptTask(GameUi, WeeklyTriflesAssets):
             if get_timer.reached():
                 logger.warning('Share timeout. The reward may have been obtained')
                 break
-        self.ui_goto_page(page_main)
+        self.goto_page(page_main)
 
     def _share_area_boss(self):
         """
@@ -108,7 +108,7 @@ class ScriptTask(GameUi, WeeklyTriflesAssets):
         :return:
         """
         logger.hr('Share area boss')
-        self.ui_goto_page(page_area_boss)
+        self.goto_page(page_area_boss)
 
         # 一路进去
         obtained = False
@@ -134,7 +134,7 @@ class ScriptTask(GameUi, WeeklyTriflesAssets):
         if not obtained:
             # 点击分享
             self.click_share(self.I_WT_AB_WECHAT)
-        self.ui_goto_page(page_main)
+        self.goto_page(page_main)
 
     def _share_secret(self):
         """
@@ -142,7 +142,7 @@ class ScriptTask(GameUi, WeeklyTriflesAssets):
         :return:
         """
         logger.hr('Share secret')
-        self.ui_goto_page(page_secret_zones)
+        self.goto_page(page_secret_zones)
         # 一路进去
         valid = False
         while 1:
@@ -161,7 +161,7 @@ class ScriptTask(GameUi, WeeklyTriflesAssets):
                 if self.appear(self.I_WT_SE_SHARE):
                     continue
                 logger.warning('This week has not been obtained')
-                self.ui_goto_page(page_main)
+                self.goto_page(page_main)
                 return
         logger.info('Enter secret')
         # 判断是否已经领取
@@ -174,7 +174,7 @@ class ScriptTask(GameUi, WeeklyTriflesAssets):
         if not obtained:
             self.click_share(self.I_WT_SE_WECHAT)
         # 返回
-        self.ui_goto_page(page_main)
+        self.goto_page(page_main)
 
     def _broken_amulet(self, dest_num: int):
         """
@@ -194,7 +194,7 @@ class ScriptTask(GameUi, WeeklyTriflesAssets):
             logger.info('Exit broken amulet')
 
         logger.hr('Broken amulet')
-        self.ui_goto_page(page_summon)
+        self.goto_page(page_summon)
         self.screenshot()
         real_num = self.O_BA_AMOUNT_1.ocr(self.device.image)
         if real_num <= 0:
@@ -258,3 +258,4 @@ if __name__ == '__main__':
     t = ScriptTask(c, d)
     t.screenshot()
     t.run()
+

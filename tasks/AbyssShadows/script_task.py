@@ -65,7 +65,7 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, AbyssShadowsAssets):
         # 切换御魂
         self.switch_soul_in_as()
         # 进入狭间
-        self.ui_goto_page(page_abyss)
+        self.goto_page(page_abyss)
 
         # 尝试开启狭间
         if cfg.process_manage.try_start_abyss_shadows:
@@ -89,7 +89,7 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, AbyssShadowsAssets):
             # 通过能否进入，检测狭间是否开启
             if not self.select_boss(area_enter):
                 logger.warning("Failed to enter abyss shadows")
-                self.ui_goto_page(page_main)
+                self.goto_page(page_main)
                 self.set_next_run(task='AbyssShadows', server=False, target=self.get_next_dt(datetime.now()))
                 raise TaskEnd
 
@@ -112,7 +112,7 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, AbyssShadowsAssets):
         logger.info("Abyss shadows process done")
 
         # 保持好习惯，一个任务结束了就返回到庭院，方便下一任务的开始
-        self.ui_goto_page(page_main)
+        self.goto_page(page_main)
 
         # 设置下次运行时间
         self.set_next_run(task='AbyssShadows', server=False, target=self.get_next_dt(datetime.now(), success=True))
@@ -248,9 +248,8 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, AbyssShadowsAssets):
         """ 进入狭间
         :return bool
         """
-        self.ui_get_current_page()
         logger.info("Entering abyss_shadows")
-        self.ui_goto(page_guild)
+        self.goto_page(page_guild)
 
         while 1:
             self.screenshot()
@@ -667,7 +666,7 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, AbyssShadowsAssets):
                 raise RequestHumanTakeover
             self.run_switch_soul((int(l[0]), int(l[1])))
 
-        self.ui_goto_page(page_shikigami_records)
+        self.goto_page(page_shikigami_records)
         soul_set: set[str] = set()
         soul_set.add(self.config.model.abyss_shadows.process_manage.preset_boss)
         soul_set.add(self.config.model.abyss_shadows.process_manage.preset_general)
@@ -677,7 +676,7 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, AbyssShadowsAssets):
             switch_soul(v)
 
         self.switch_soul_done = True
-        self.ui_goto_page(page_main)
+        self.goto_page(page_main)
 
     def check_available(self, item_code: Code):
         # 判断该怪物是否可用
@@ -787,3 +786,4 @@ if __name__ == "__main__":
     t = ScriptTask(config, device)
 
     print(t.get_next_dt(datetime(2026, 4, 5, 21, 20, 0)))
+

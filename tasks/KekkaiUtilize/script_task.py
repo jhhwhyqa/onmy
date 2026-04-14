@@ -35,7 +35,7 @@ class ScriptTask(GameUi, ReplaceShikigami, KekkaiUtilizeAssets):
     def run(self):
         con = self.config.kekkai_utilize.utilize_config
         # 进入寮结界
-        self.ui_goto_page(page_guild_realm)
+        self.goto_page(page_guild_realm)
         # 育成界面去蹭卡
         if con.utilize_enable:
             self.check_utilize_add()
@@ -55,16 +55,15 @@ class ScriptTask(GameUi, ReplaceShikigami, KekkaiUtilizeAssets):
 
     def recive_guild_ap_or_assets(self, max_tries: int = 3):
         for i in range(1, max_tries+1):
-            self.ui_get_current_page()
-            self.ui_goto(page_guild)
+            self.goto_page(page_guild)
             # 在寮的主界面 检查是否有收取体力或者是收取寮资金
             if self.check_guild_ap_or_assets():
                 logger.warning(f'第[{i}]次检查寮收获,成功')
-                self.ui_goto(page_main)
+                self.goto_page(page_main)
                 break
             else:
                 logger.warning(f'第[{i}]次检查寮收获寮收获,失败')
-            self.ui_goto(page_main)
+            self.goto_page(page_main)
 
     def check_utilize_add(self):
         con = self.config.kekkai_utilize.utilize_config
@@ -79,7 +78,7 @@ class ScriptTask(GameUi, ReplaceShikigami, KekkaiUtilizeAssets):
             # 无论收不收到菜，都会进入看看至少看一眼时间还剩多少
             time.sleep(0.5)
             # 进入育成界面
-            self.ui_goto_page(page_guild_realm_growth)
+            self.goto_page(page_guild_realm_growth)
             self.screenshot()
 
             if not self.appear(self.I_UTILIZE_ADD):
@@ -92,11 +91,11 @@ class ScriptTask(GameUi, ReplaceShikigami, KekkaiUtilizeAssets):
                 next_time = datetime.now() + remaining_time
                 self.set_next_run(task='KekkaiUtilize', target=next_time)
                 return
-            if not self.ui_goto_page(page_guild_realm_utilize):
+            if not self.goto_page(page_guild_realm_utilize):
                 logger.info('Utilize failed, exit')
             # 开始执行寄养
             self.run_utilize(con.select_friend_list, con.shikigami_class, con.shikigami_order)
-            self.ui_goto_page(page_guild_realm)
+            self.goto_page(page_guild_realm)
 
     def check_max_lv(self, shikigami_class: ShikigamiClass = ShikigamiClass.N):
         """
@@ -104,7 +103,7 @@ class ScriptTask(GameUi, ReplaceShikigami, KekkaiUtilizeAssets):
         退出的时候还是结界界面
         :return:
         """
-        self.ui_goto_page(page_guild_realm_growth)
+        self.goto_page(page_guild_realm_growth)
         if self.appear(self.I_RS_LEVEL_MAX):
             # 存在满级的式神
             logger.info('Exist max level shikigami and replace it')
@@ -119,7 +118,7 @@ class ScriptTask(GameUi, ReplaceShikigami, KekkaiUtilizeAssets):
             self.set_shikigami(shikigami_order=7, stop_image=self.I_RS_NO_ADD)
 
         # 回到结界界面
-        self.ui_goto_page(dest_page=page_guild_realm)
+        self.goto_page(page_guild_realm)
 
     def check_guild_ap_or_assets(self, ap_enable: bool = True, assets_enable: bool = True) -> bool:
         """
@@ -239,14 +238,14 @@ class ScriptTask(GameUi, ReplaceShikigami, KekkaiUtilizeAssets):
                         logger.info('No cancel button')
                         continue
                     if exp_waste:
-                        check_button = self.I_UI_CONFIRM
+                        target_button = self.I_UI_CONFIRM
                     else:
-                        check_button = self.I_UI_CANCEL
+                        target_button = self.I_UI_CANCEL
                     while 1:
                         self.screenshot()
-                        if not self.appear(check_button):
+                        if not self.appear(target_button):
                             break
-                        if self.appear_then_click(check_button, interval=1):
+                        if self.appear_then_click(target_button, interval=1):
                             continue
                     break
 
@@ -656,3 +655,4 @@ if __name__ == "__main__":
     # t.screenshot()
     # print(t.appear(t.I_BOX_EXP, threshold=0.6))
     # print(t.appear(t.I_BOX_EXP_MAX, threshold=0.6))
+

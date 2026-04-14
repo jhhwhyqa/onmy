@@ -88,7 +88,7 @@ class ScriptTask(ExtendGreenMark, GameUi, SwitchSoul, DokanSceneDetector):
         while is_dokan_activated:
             self.screenshot()
 
-            # 检测当前界面的场景（时间关系，暂时没有做庭院、町中等主界面的场景检测, 应考虑在GameUI.game_ui.ui_get_current_page()里实现）
+            # 检测当前界面的场景（时间关系，暂时没有做庭院、町中等主界面的场景检测, 应考虑在GameUI.game_ui.get_current_page()里实现）
             in_dokan, current_scene = self.get_current_scene(True)
             logger.info(f"in_dokan={in_dokan}, current_scene={current_scene}")
 
@@ -522,8 +522,7 @@ class ScriptTask(ExtendGreenMark, GameUi, SwitchSoul, DokanSceneDetector):
                 self.ui_click_until_disappear(self.I_RYOU_DOKAN, interval=1)
                 continue
             if not in_dokan:
-                self.ui_get_current_page()
-                self.ui_goto(page_guild)
+                self.goto_page(page_guild)
                 continue
         self.device.screenshot_interval_set()
         return True
@@ -1153,3 +1152,4 @@ if __name__ == "__main__":
     img = cv2.imread(r'E:\1.png')
     res = t.I_RYOU_DOKAN_START_CHALLENGE.match(img, threshold=0.8)
     print(res)
+

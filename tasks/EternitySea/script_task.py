@@ -28,13 +28,11 @@ class ScriptTask(
 
     def _two_teams_switch_sous(self, config):
         if config.enable:
-            self.ui_get_current_page()
-            self.ui_goto(page_shikigami_records)
+            self.goto_page(page_shikigami_records)
             self.run_switch_soul(config.switch_group_team)
 
         if config.enable_switch_by_name:
-            self.ui_get_current_page()
-            self.ui_goto(page_shikigami_records)
+            self.goto_page(page_shikigami_records)
             self.run_switch_soul_by_name(config.group_name, config.team_name)
 
     def run(self) -> None:
@@ -129,8 +127,7 @@ class ScriptTask(
         if self.exit_team():
             pass
 
-        self.ui_get_current_page()
-        self.ui_goto(page_main)
+        self.goto_page(page_main)
 
         if not success:
             return False
@@ -139,8 +136,7 @@ class ScriptTask(
 
     def run_member(self):
         logger.info('Start run member')
-        self.ui_get_current_page()
-        # self.ui_goto(page_soul_zones)
+        # self.goto_page(page_soul_zones)
         # self.orochi_enter()
         # self.check_lock(self.config.orochi.general_battle_config.lock_team_enable)
 
@@ -181,8 +177,7 @@ class ScriptTask(
             if self.exit_battle():
                 pass
 
-        self.ui_get_current_page()
-        self.ui_goto(page_main)
+        self.goto_page(page_main)
         return True
 
 
@@ -264,12 +259,10 @@ class ScriptTask(
                 continue
 
     def _navigate_to_soul_zones(self) -> None:
-        self.ui_get_current_page()
-        self.ui_goto(page_soul_zones)
+        self.goto_page(page_soul_zones)
 
     def _navigate_to_game_page(self, destination: Page) -> None:
-        self.ui_get_current_page()
-        self.ui_goto(destination)
+        self.goto_page(destination)
 
     @property
     def _task_config(self) -> EternitySea:

@@ -13,8 +13,7 @@ from tasks.Component.Costume.config import BattleType
 class ScriptTask(ScriptTaskBase):
 
     def run(self):
-        self.ui_get_current_page()
-        self.ui_goto(page_kekkai_toppa)
+        self.goto_page(page_kekkai_toppa)
 
         self.attack()
 
@@ -76,3 +75,4 @@ if __name__ == '__main__':
     t = ScriptTask(c, d)
     t.set_costume(BattleType.COSTUME_BATTLE_9)
     t.run()
+

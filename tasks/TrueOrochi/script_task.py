@@ -32,18 +32,15 @@ class ScriptTask(OrochiScriptTask, TrueOrochiAssets):
 
         # 御魂切换方式一
         if self.config.true_orochi.switch_soul.enable:
-            self.ui_get_current_page()
-            self.ui_goto(page_shikigami_records)
+            self.goto_page(page_shikigami_records)
             self.run_switch_soul(self.config.true_orochi.switch_soul.switch_group_team)
         # 御魂切换方式二
         if self.config.true_orochi.switch_soul.enable_switch_by_name:
-            self.ui_get_current_page()
-            self.ui_goto(page_shikigami_records)
+            self.goto_page(page_shikigami_records)
             self.run_switch_soul_by_name(self.config.true_orochi.switch_soul.group_name,
                                          self.config.true_orochi.switch_soul.team_name)
 
-        self.ui_get_current_page()
-        self.ui_goto(page_soul_zones)
+        self.goto_page(page_soul_zones)
         self.orochi_enter()
         sleep(0.5)
         battle = self.check_true_orochi(True)
@@ -219,4 +216,5 @@ if __name__ == '__main__':
     t.screenshot()
 
     t.run()
+
 

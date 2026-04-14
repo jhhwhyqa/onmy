@@ -51,7 +51,7 @@ class ScriptTask(GameUi, Summon, DailyTriflesAssets):
         if self.config.daily_trifles.today_is_done('summon'):
             logger.info('Today is done, skip')
             return
-        self.ui_goto_page(page_summon)
+        self.goto_page(page_summon)
         config = self.config.daily_trifles.trifles_config
         if config.summon_type == SummonType.default:
             self.summon_one(draw_mystery_pattern=config.draw_mystery_pattern)
@@ -90,10 +90,7 @@ class ScriptTask(GameUi, Summon, DailyTriflesAssets):
 
             for i in range(len(list)):
                 sleep(1)
-                self.ui_get_current_page()
-                self.ui_goto(page_main)
-                self.ui_get_current_page()
-                self.ui_goto(page_summon)
+                self.goto_page(page_summon)
                 self.appear_then_click(self.I_UI_BACK_RED, interval=1)
                 x, y = list[i].coord()
                 self.device.click(x, y)
@@ -166,7 +163,7 @@ class ScriptTask(GameUi, Summon, DailyTriflesAssets):
         if self.config.daily_trifles.today_is_done('luck_msg'):
             logger.info('Today is done, skip')
             return
-        self.ui_goto_page(page_friends)
+        self.goto_page(page_friends)
         while 1:
             self.screenshot()
             if self.appear(self.I_LUCK_TITLE):
@@ -196,12 +193,12 @@ class ScriptTask(GameUi, Summon, DailyTriflesAssets):
         self.config.daily_trifles.done_record.luck_msg_dt = datetime.now()
 
     def run_store(self):
-        self.ui_goto_page(page_mall, confirm_wait=3)
+        self.goto_page(page_mall, confirm_wait=3)
         if self.config.daily_trifles.trifles_config.store_sign:
             self.run_store_sign()
         if self.config.daily_trifles.trifles_config.buy_sushi_count > 0:
             self.run_buy_sushi()
-        self.ui_goto_page(page_main)
+        self.goto_page(page_main)
 
     def run_store_sign(self):
         logger.hr('store sign', 2)
@@ -209,7 +206,7 @@ class ScriptTask(GameUi, Summon, DailyTriflesAssets):
             logger.info('Today is done, skip')
             return
         self.config.daily_trifles.done_record.store_sign_dt = datetime.now()
-        self.ui_goto_page(page_store_gift_room)
+        self.goto_page(page_store_gift_room)
         self.screenshot()
         self.appear_then_click(self.I_GIFT_RECOMMEND, interval=1)
         logger.info('Enter store sign')
@@ -287,12 +284,12 @@ class ScriptTask(GameUi, Summon, DailyTriflesAssets):
     def run_courtyard_affairs(self):
         """庭院事务"""
         logger.hr('courtyard affairs', 2)
-        self.ui_goto_page(page_main)
+        self.goto_page(page_main)
         timeout_timer = Timer(3).start()
         while not timeout_timer.reached():
             self.screenshot()
             if self.appear(self.I_ENTER_COURTYARD_AFFAIRS, interval=1.2):
-                self.ui_goto_page(page_courtyard_affairs)
+                self.goto_page(page_courtyard_affairs)
                 timeout_timer.reset()
                 break
         if timeout_timer.reached():
@@ -305,13 +302,13 @@ class ScriptTask(GameUi, Summon, DailyTriflesAssets):
             if self.appear_then_click(self.I_ENTER_DAILY, interval=1):
                 continue
         self.appear_then_click(self.I_ONE_COMPLETE, interval=1)
-        self.ui_goto_page(page_main)
+        self.goto_page(page_main)
         self.config.daily_trifles.done_record.courtyard_affairs_dt = datetime.now()
 
     def run_pickup_email(self):
         """领取邮件"""
         logger.hr('pick up email', 2)
-        self.ui_goto_page(page_main)
+        self.goto_page(page_main)
         timeout_timer = Timer(3).start()
         while not timeout_timer.reached():
             self.screenshot()
@@ -325,7 +322,7 @@ class ScriptTask(GameUi, Summon, DailyTriflesAssets):
                 continue
             if self.appear_then_click(self.I_READ_ALL_MAIL, interval=1.6):
                 continue
-        self.ui_goto_page(page_main)
+        self.goto_page(page_main)
         self.config.daily_trifles.done_record.pickup_email_dt = datetime.now()
 
     def plan_next_dt(self):
@@ -351,3 +348,4 @@ if __name__ == '__main__':
     t = ScriptTask(c, d)
 
     t.run_courtyard_affairs()
+

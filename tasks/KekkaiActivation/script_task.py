@@ -32,7 +32,7 @@ class ScriptTask(KU, KekkaiActivationAssets):
     def run(self):
         con = self.config.kekkai_activation.activation_config
         # 进入寮结界
-        self.ui_goto_page(page_guild_realm)
+        self.goto_page(page_guild_realm)
 
         if con.exchange_before:
             self.check_max_lv(con.shikigami_class)
@@ -53,8 +53,7 @@ class ScriptTask(KU, KekkaiActivationAssets):
         if con.exchange_max:
             self.check_max_lv(con.shikigami_class)
         # self.back_guild()
-        self.ui_get_current_page()
-        self.ui_goto(page_main)
+        self.goto_page(page_main)
 
         raise TaskEnd('KekkaiActivation')
 
@@ -362,7 +361,7 @@ class ScriptTask(KU, KekkaiActivationAssets):
         退出的时候还是结界界面
         :return:
         """
-        self.ui_goto_page(page_guild_realm_growth)
+        self.goto_page(page_guild_realm_growth)
         if self.appear(self.I_RS_LEVEL_MAX):
             # 存在满级的式神
             logger.info('Exist max level shikigami and replace it')
@@ -377,7 +376,7 @@ class ScriptTask(KU, KekkaiActivationAssets):
             self.set_shikigami(shikigami_order=7, stop_image=self.I_RS_NO_ADD)
 
         # 回到结界界面
-        self.ui_goto_page(page_guild_realm)
+        self.goto_page(page_guild_realm)
 
     def harvest_card(self):
         """
@@ -405,3 +404,4 @@ if __name__ == "__main__":
     t = ScriptTask(c, d)
     t.check_card_num()
     # t.run_activation(t.config.kekkai_activation.activation_config)
+

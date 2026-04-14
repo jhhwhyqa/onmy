@@ -80,21 +80,18 @@ class BaseExploration(GameUi, GeneralBattle, GeneralRoom, GeneralInvite, Replace
     def pre_process(self):
         explorationConfig = self._config
         if explorationConfig.switch_soul_config.enable:
-            self.ui_get_current_page()
-            self.ui_goto(page_shikigami_records)
+            self.goto_page(page_shikigami_records)
             self.run_switch_soul(explorationConfig.switch_soul_config.switch_group_team)
 
         if explorationConfig.switch_soul_config.enable_switch_by_name:
-            self.ui_get_current_page()
-            self.ui_goto(page_shikigami_records)
+            self.goto_page(page_shikigami_records)
             self.run_switch_soul_by_name(explorationConfig.switch_soul_config.group_name,
                                          explorationConfig.switch_soul_config.team_name)
 
         # 开启加成
         con = self.config.exploration.exploration_config
         if con.buff_gold_50_click or con.buff_gold_100_click or con.buff_exp_50_click or con.buff_exp_100_click:
-            self.ui_get_current_page()
-            self.ui_goto(page_main)
+            self.goto_page(page_main)
             self.open_buff()
             if con.buff_gold_50_click:
                 self.gold_50()
@@ -106,12 +103,11 @@ class BaseExploration(GameUi, GeneralBattle, GeneralRoom, GeneralInvite, Replace
                 self.exp_100()
             self.close_buff()
 
-        self.ui_get_current_page()
         # 探索页面
-        self.ui_goto(page_exploration)
+        self.goto_page(page_exploration)
 
     def post_process(self):
-        self.ui_goto_page(page_main)
+        self.goto_page(page_main)
         con = self._config.exploration_config
         if con.buff_gold_50_click or con.buff_gold_100_click or con.buff_exp_50_click or con.buff_exp_100_click:
             self.open_buff()
@@ -305,7 +301,7 @@ class BaseExploration(GameUi, GeneralBattle, GeneralRoom, GeneralInvite, Replace
             return
 
         # 关闭加成
-        self.ui_goto_page(page_main)
+        self.goto_page(page_main)
         if con.buff_gold_50_click or con.buff_gold_100_click or con.buff_exp_50_click or con.buff_exp_100_click:
             self.open_buff()
             self.gold_50(is_open=False)
@@ -385,4 +381,5 @@ if __name__ == "__main__":
         time.sleep(0.2)
     from PIL import Image
     # Image.fromarray(t.device.image.astype(np.uint8)).show()
+
 
