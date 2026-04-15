@@ -8,11 +8,6 @@ from pydantic import BaseModel, ValidationError, validator, Field
 from tasks.Component.config_base import Time, MultiLine
 
 
-class InviteNumber(str, Enum):
-    ONE = 'one'
-    TWO = 'two'
-
-
 class FindMode(str, Enum):
     AUTO_FIND = 'auto_find'
     RECENT_FRIEND = 'recent_friend'

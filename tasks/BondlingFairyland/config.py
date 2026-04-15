@@ -8,7 +8,22 @@ from datetime import datetime, time
 from tasks.Component.config_scheduler import Scheduler
 from tasks.Component.config_base import ConfigBase, DateTime, TimeDelta, Time
 from tasks.BondlingFairyland.config_battle import BattleConfig
-from tasks.Component.GeneralInvite.config_invite import InviteConfig
+from tasks.Component.GeneralInvite.config_invite import FindMode
+
+
+class InviteNumber(str, Enum):
+    ONE = 'one'
+    TWO = 'two'
+
+
+class InviteConfig(BaseModel):
+
+    invite_number: InviteNumber = Field(default=InviteNumber.ONE, description='invite_number_help')
+    friend_1: str = Field(default='', description='friend_name_help')
+    friend_2: str = Field(default='', description='friend_2_name_help')
+    find_mode: FindMode = Field(default=FindMode.AUTO_FIND, description='find_mode_help')
+    wait_time: Time = Field(default=Time(minute=2), description='wait_time_help')
+    default_invite: bool = Field(default=True, description='default_invite_help')
 
 
 class BondlingMode(str, Enum):

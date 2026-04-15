@@ -7,11 +7,12 @@ import numpy as np
 from enum import Enum
 from cached_property import cached_property
 from datetime import timedelta, time
+from module.atom.image import RuleImage
 
 from module.base.timer import Timer
 from tasks.base_task import BaseTask
 from tasks.Component.GeneralInvite.assets import GeneralInviteAssets
-from tasks.Component.GeneralInvite.config_invite import InviteConfig, InviteNumber, FindMode
+from tasks.Component.GeneralInvite.config_invite import InviteConfig, FindMode
 from tasks.Component.GeneralBattle.assets import GeneralBattleAssets
 from module.logger import logger
 
@@ -120,9 +121,10 @@ class GeneralInvite(BaseTask, GeneralInviteAssets):
                     self.timer_invite = None
                 self.invite_friends(config)
 
-    def invite_friends(self, config: InviteConfig, open_invite: bool = True) -> bool:
+    def invite_friends(self, config: InviteConfig, open_invite: bool = True, confirm_rule: RuleImage = None) -> bool:
         """
         邀请多个好友
+        :param confirm_rule: 确认规则(邀请时的点击按钮：邀请/分享/...)
         :param config: 邀请配置
         :param open_invite: 是否需要在本方法内打开邀请界面
         :return: 邀请是否成功
@@ -142,7 +144,7 @@ class GeneralInvite(BaseTask, GeneralInviteAssets):
         if config.find_mode != FindMode.AUTO_FIND:
             return len(selected_set) == len(config.friend_list_v)
         self._select_auto_mode_friends(friend_class, config.friend_list_v, selected_set)
-        return self._confirm_invite_and_validate(selected_set, config.friend_list_v)
+        return self._confirm_invite_and_validate(selected_set, config.friend_list_v, confirm_rule)
 
     def ensure_enter(self) -> bool:
         """
@@ -526,7 +528,7 @@ class GeneralInvite(BaseTask, GeneralInviteAssets):
             logger.info(f'Now find friend in {friend_class[index]}')
             self._select_current_page_friends(friend_list, selected_set)
 
-    def _confirm_invite_and_validate(self, selected_set: set[str], friend_list: list[str]) -> bool:
+    def _confirm_invite_and_validate(self, selected_set: set[str], friend_list: list[str], confirm_rule: RuleImage = None) -> bool:
         """
         点击邀请确认并校验最终结果。
         :param selected_set: 已成功选中的好友集合
@@ -534,9 +536,11 @@ class GeneralInvite(BaseTask, GeneralInviteAssets):
         :return: 全部选中返回 True，否则 False
         """
         logger.info('Click invite ensure')
-        if not self.appear(self.I_INVITE_ENSURE):
+        if not confirm_rule:
+            confirm_rule = self.I_INVITE_ENSURE
+        if not self.appear(confirm_rule):
             logger.warning('No appear invite ensure while invite friend')
-        self.ui_click_until_disappear(self.I_INVITE_ENSURE)
+        self.ui_click_until_disappear(confirm_rule)
         if len(selected_set) != len(friend_list):
             logger.warning('Cannot find friend')
             return False
