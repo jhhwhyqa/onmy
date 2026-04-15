@@ -7,10 +7,7 @@ from typing import Union
 from module.atom.click import RuleClick
 from module.atom.long_click import RuleLongClick
 from module.atom.ocr import RuleOcr
-from module.base.timer import Timer
 from tasks.base_task import BaseTask
-from tasks.Component.GeneralInvite.assets import GeneralInviteAssets
-from tasks.Component.GeneralInvite.config_invite import InviteConfig, InviteNumber, FindMode
 from tasks.Component.SwitchSoul.assets import SwitchSoulAssets
 from module.logger import logger
 

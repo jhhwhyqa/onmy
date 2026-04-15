@@ -1,16 +1,12 @@
 # This Python file uses the following encoding: utf-8
 # @author runhey
 # github https://github.com/runhey
-from time import sleep
-from cached_property import cached_property
 
 from module.logger import logger
 from module.base.timer import Timer
 
-from tasks.Component.GeneralInvite.config_invite import InviteConfig, InviteNumber, FindMode
-from tasks.Exploration.base import BaseExploration, UpType, Scene
-from tasks.Exploration.config import ChooseRarity, AutoRotate, UserStatus, ExplorationLevel
-from tasks.GameUi.page import page_exploration
+from tasks.Exploration.base import BaseExploration, Scene
+from tasks.Exploration.config import AutoRotate, UserStatus, ExplorationLevel
 
 
 class SoloExploration(BaseExploration):
