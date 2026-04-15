@@ -13,10 +13,10 @@ from module.base.timer import Timer
 from tasks.GameUi.page import page_main, page_mall
 from tasks.GameUi.game_ui import GameUi
 from tasks.RichMan.mall.friendship_points import FriendshipPoints
-from tasks.MysteryShop.config import MysteryShop, ShopConfig, ShareConfig
+from tasks.MysteryShop.config import MysteryShop, ShopConfig
 from tasks.MysteryShop.assets import MysteryShopAssets
 from tasks.Component.GeneralInvite.general_invite import GeneralInvite
-from tasks.Component.GeneralInvite.config_invite import InviteConfig, InviteNumber, FindMode
+from tasks.Component.GeneralInvite.config_invite import InviteConfig
 
 class ScriptTask(FriendshipPoints, MysteryShopAssets, GeneralInvite):
 
@@ -110,7 +110,7 @@ class ScriptTask(FriendshipPoints, MysteryShopAssets, GeneralInvite):
             logger.info('Share is disabled')
             return
         self.ui_click(self.I_MS_SHARE, self.I_INVITE_ENSURE)
-        self.invite_friends(invite_config, False)
+        self.invite_friends(invite_config, False, self.I_INVITE_ENSURE)
 
     def shop_reward(self):
         logger.info('Shop reward')
