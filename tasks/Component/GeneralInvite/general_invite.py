@@ -138,12 +138,11 @@ class GeneralInvite(BaseTask, GeneralInviteAssets):
             return True
         friend_class = self._read_friend_classes()
         selected_set: set[str] = set()
-        if config.find_mode == FindMode.RECENT_FRIEND:
-            if not self._select_recent_mode_friends(friend_class, config.friend_list_v, selected_set):
-                return False
-        if config.find_mode != FindMode.AUTO_FIND:
-            return len(selected_set) == len(config.friend_list_v)
-        self._select_auto_mode_friends(friend_class, config.friend_list_v, selected_set)
+        match config.find_mode:
+            case FindMode.RECENT_FRIEND:
+                self._select_recent_mode_friends(friend_class, config.friend_list_v, selected_set)
+            case FindMode.AUTO_FIND:
+                self._select_auto_mode_friends(friend_class, config.friend_list_v, selected_set)
         return self._confirm_invite_and_validate(selected_set, config.friend_list_v, confirm_rule)
 
     def ensure_enter(self) -> bool:
