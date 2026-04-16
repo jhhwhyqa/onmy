@@ -3,17 +3,13 @@
 # github https://github.com/runhey
 from datetime import datetime
 
-from tasks.Restart.config_scheduler import Scheduler
-from tasks.Restart.login import LoginHandler
-from tasks.Restart.assets import RestartAssets
-from tasks.base_task import BaseTask, Time
-from datetime import datetime, time
-
+from module.exception import TaskEnd
 from module.logger import logger
-from module.exception import TaskEnd, RequestHumanTakeover
+from tasks.Component.Login.service import LoginService
+from tasks.base_task import BaseTask
 
 
-class ScriptTask(LoginHandler):
+class ScriptTask(BaseTask):
 
     def run(self) -> None:
         """
@@ -33,13 +29,13 @@ class ScriptTask(LoginHandler):
     def app_start(self):
         logger.hr('App start')
         self.device.app_start()
-        self.app_handle_login()
+        LoginService(config=self.config, device=self.device).app_handle_login()
 
     def app_restart(self):
         logger.hr('App restart')
         self.device.app_stop()
         self.device.app_start()
-        self.app_handle_login()
+        LoginService(config=self.config, device=self.device).app_handle_login()
         self.set_next_run(task='Restart', success=True, finish=True, server=True)
 
     def delay_pending_tasks(self) -> bool:

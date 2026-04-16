@@ -6,10 +6,9 @@ from tasks.Component.SwitchAccount.assets import SwitchAccountAssets
 from tasks.Component.SwitchAccount.exit_game import ExitGame
 from tasks.Component.SwitchAccount.login_account import LoginAccount
 from tasks.Component.SwitchAccount.switch_account_config import AccountInfo
+from tasks.Component.Login.service import LoginService
 from tasks.GameUi.game_ui import GameUi
 from tasks.GameUi.page import page_main, page_login
-from tasks.base_task import BaseTask
-from tasks.Restart.login import LoginHandler
 
 from module.logger import logger
 
@@ -48,7 +47,7 @@ class SwitchAccount(LoginAccount, ExitGame, GameUi, SwitchAccountAssets):
             return False
         logger.info("%s login suc", self.to_account_info.character)
         # 处理位于登录界面各种奇葩弹窗
-        login_handler = LoginHandler(config=self.config, device=self.device)
+        login_handler = LoginService(config=self.config, device=self.device)
         login_handler.set_specific_usr(self.to_account_info.svr)
         login_handler.app_handle_login()
 

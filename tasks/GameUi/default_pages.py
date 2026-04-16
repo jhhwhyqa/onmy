@@ -9,6 +9,7 @@ import random
 
 from module.atom.click import RuleClick
 from tasks.Component.GeneralBattle.assets import GeneralBattleAssets
+from tasks.Component.Login.service import LoginService
 from tasks.DailyTrifles.assets import DailyTriflesAssets
 from tasks.Dokan.assets import DokanAssets
 from tasks.GlobalGame.assets import GlobalGameAssets
@@ -45,8 +46,13 @@ def random_click(
     return [click for _ in range(random.randint(low, high))]
 
 
+def handle_login_page(task) -> bool:
+    return LoginService(config=task.config, device=task.device).app_handle_login()
+
+
 # 登录页。
 page_login = Page(GameUiAssets.I_CHECK_LOGIN_FORM, category="global")
+page_login.add_enter_success_hooks(handle_login_page)
 
 # 庭院主页。
 page_main = Page(GameUiAssets.I_CHECK_MAIN, category="global")
