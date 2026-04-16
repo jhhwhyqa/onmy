@@ -100,11 +100,11 @@ Deploy:
     # [Default] 200
     ImageTemplateCacheMaxCount: 200
     # Frame cache expire seconds
-    # [Default] 3.0
-    ImageFrameCacheExpireSeconds: 3.0
+    # [Default] 10.0
+    ImageFrameCacheExpireSeconds: 10.0
     # Frame cache max item count
-    # [Default] 24
-    ImageFrameCacheMaxCount: 24
+    # [Default] 66
+    ImageFrameCacheMaxCount: 66
     # Image server worker count, 0 means auto detect
     # [Default] 0
     ImageServerWorkerCount: 0

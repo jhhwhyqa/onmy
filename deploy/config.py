@@ -45,8 +45,8 @@ class ConfigModel:
     ImageClientAddress: str = "127.0.0.1:22269"
     ImageTemplateCacheExpireSeconds: int = 3600
     ImageTemplateCacheMaxCount: int = 200
-    ImageFrameCacheExpireSeconds: float = 3.0
-    ImageFrameCacheMaxCount: int = 24
+    ImageFrameCacheExpireSeconds: float = 10.0
+    ImageFrameCacheMaxCount: int = 66
     ImageServerWorkerCount: int = 0
 
     # Update
