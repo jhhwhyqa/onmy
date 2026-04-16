@@ -8,7 +8,7 @@ from pathlib import Path
 from module.config.utils import write_file
 from module.image.rpc import ensure_image_server_ready, get_image_client, shutdown_image_server
 from module.logger import logger
-from module.ocr.rpc import shutdown_ocr_server
+from module.ocr.rpc import ensure_ocr_server_ready, get_ocr_client, shutdown_ocr_server
 from module.server.main_manager import MainManager
 from module.server.updater import Updater
 from module.server.i18n import I18n
@@ -34,6 +34,12 @@ async def home_menu():
 async def image_server_info():
     ensure_image_server_ready()
     return get_image_client(refresh=True).get_server_info()
+
+
+@home_app.get('/ocr_server_info')
+async def ocr_server_info():
+    ensure_ocr_server_ready()
+    return get_ocr_client(refresh=True).get_server_info()
 
 
 @home_app.post('/notify_test')

@@ -34,10 +34,10 @@ class ConfigModel:
     InstallUiautomator2: bool = True
 
     # Ocr
-    UseOcrServer: bool = False
-    StartOcrServer: bool = False
+    StartOcrServer: bool = True
     OcrServerPort: int = 22268
     OcrClientAddress: str = "127.0.0.1:22268"
+    OcrServerWorkerCount: int = 0
 
     # Image
     StartImageServer: bool = True
@@ -105,6 +105,10 @@ class DeployConfig(ConfigModel):
             self.config["Repository"] = "https://gitcode.com/OnmyojiAutoScript/OnmyojiAutoScript.git"
         self.config_template = copy.deepcopy(self.config)
         self.config.update(poor_yaml_read(self.file))
+        unknown_keys = [key for key in list(self.config.keys()) if not hasattr(self, key)]
+        for key in unknown_keys:
+            logger.warning(f"Ignore deprecated deploy config key: {key}")
+            self.config.pop(key, None)
 
         for key, value in self.config.items():
             if hasattr(self, key):

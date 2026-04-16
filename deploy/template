@@ -66,20 +66,20 @@ Deploy:
     InstallUiautomator2: true
 
   Ocr:
-    # Run Ocr as a service, can reduce memory usage by not import mxnet everytime you start an alas instance
+    # Run OCR as a mandatory service. All OCR recognition goes through RPC.
 
-    # Whether to use ocr server
-    # [Default] false
-    UseOcrServer: false
     # Whether to start ocr server when start GUI
-    # [Default] false
-    StartOcrServer: false
+    # [Default] true
+    StartOcrServer: true
     # Port of ocr server runs by GUI
     # [Default] 22268
     OcrServerPort: 22268
     # Address of ocr server for alas instance to connect
     # [Default] 127.0.0.1:22268
     OcrClientAddress: 127.0.0.1:22268
+    # OCR server worker count, 0 means auto detect
+    # [Default] 0
+    OcrServerWorkerCount: 0
 
   Image:
     # Run image recognition as a service. This service is mandatory and all image rules use it.

@@ -101,7 +101,7 @@ class ExtendGreenMark(GeneralBattle):
         name_list = names.split(',')
         for name in name_list:
             # 此处为了获取到OCR模型，随机选择一个了RuleOcr对象，可以使用任意的RuleOcr对象
-            res_list = self.O_EXP_50.model.detect_and_ocr(img, 0.7)
+            res_list = self.O_EXP_50.detect_and_ocr(img, logDisplay=False, drop_score=0.7)
             # 增加日志输出，方便纠错
             output = [item.ocr_text for item in res_list]
             logger.info(f"detect res_list:{output}")
