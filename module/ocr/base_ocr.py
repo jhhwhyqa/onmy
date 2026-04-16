@@ -211,7 +211,7 @@ class BaseCor:
                     text=f'[{result}]')
         return result
 
-    def detect_and_ocr(self, image, logDisplay: bool = True) -> list[BoxedResult]:
+    def detect_and_ocr(self, image, logDisplay: bool = True, **kwargs) -> list[BoxedResult]:
         """
         注意：这里使用了预处理和后处理
         :param image:
@@ -224,7 +224,7 @@ class BaseCor:
         image = enlarge_canvas(image)
 
         # ocr
-        boxed_results: list[BoxedResult] = self.model.detect_and_ocr(image)
+        boxed_results: list[BoxedResult] = self.model.detect_and_ocr(image, **kwargs)
         results = []
         # after proces
         for result in boxed_results:

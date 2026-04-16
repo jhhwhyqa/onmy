@@ -51,10 +51,8 @@ class ScriptTask(GameUi, GeneralBattle, SwitchSoul, DuelAssets, SwitchOnmyoji):
                 break
             self.start_duel()
         logger.info('Duel battle end')
-        self.set_next_run(task='Duel', success=True, finish=True)
         self.goto_page(page_main)
-        # 调起花合战
-        self.set_next_run(task='TalismanPass', target=datetime.now())
+        self.set_next_run(task='Duel', success=True, finish=True)
         raise TaskEnd('Duel')
 
     def prepare_duel(self):

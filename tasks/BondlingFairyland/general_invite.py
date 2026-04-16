@@ -6,13 +6,12 @@ import numpy as np
 
 from enum import Enum
 from cached_property import cached_property
-from datetime import timedelta, time
 
 from module.base.timer import Timer
+from tasks.BondlingFairyland.config import InviteConfig, InviteNumber
+from tasks.Component.GeneralInvite.config_invite import FindMode
 from tasks.base_task import BaseTask
 from tasks.Component.GeneralInvite.assets import GeneralInviteAssets
-from tasks.Component.GeneralInvite.config_invite import InviteConfig, InviteNumber, FindMode
-from tasks.Component.GeneralBattle.assets import GeneralBattleAssets
 from tasks.BondlingFairyland.assets import BondlingFairylandAssets
 
 from module.logger import logger
@@ -458,19 +457,4 @@ class GeneralInvite(BaseTask, BondlingFairylandAssets, GeneralInviteAssets):
                 continue
 
         return True
-
-
-if __name__ == '__main__':
-    from module.config.config import Config
-    from module.device.device import Device
-    import cv2
-
-    c = Config('du')
-    d = Device(c)
-    t = GeneralInvite(c, d)
-
-    # t.run_invite(c.orochi.invite_config, is_first=True)
-    t.screenshot()
-    print(t.appear(t.I_FIRE, threshold=0.8))
-
 

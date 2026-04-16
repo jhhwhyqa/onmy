@@ -5,34 +5,24 @@ from enum import Enum
 from datetime import datetime, time
 from pydantic import BaseModel, ValidationError, validator, Field
 
-from tasks.Component.config_base import Time
+from tasks.Component.config_base import Time, MultiLine
 
-class InviteNumber(str, Enum):
-    ONE = 'one'
-    TWO = 'two'
 
 class FindMode(str, Enum):
     AUTO_FIND = 'auto_find'
     RECENT_FRIEND = 'recent_friend'
 
-class InviteConfig(BaseModel):
 
-    invite_number: InviteNumber = Field(default=InviteNumber.ONE, description='invite_number_help')
-    friend_1: str = Field(default='', description='friend_name_help')
-    friend_2: str = Field(default='', description='friend_2_name_help')
+class InviteConfig(BaseModel):
+    friend_list: MultiLine = Field(default='', description='invite_friend_list_help')
     find_mode: FindMode = Field(default=FindMode.AUTO_FIND, description='find_mode_help')
     wait_time: Time = Field(default=Time(minute=2), description='wait_time_help')
     default_invite: bool = Field(default=True, description='default_invite_help')
 
-    # @validator('wait_time', pre=False, always=False)
-    # def parse_time(cls, value):
-    #     print('parse_time', value)
-    #     if isinstance(value, str):
-    #         try:
-    #             return datetime.strptime(value, '%H:%M:%S').time()
-    #         except ValueError:
-    #             raise ValueError('Invalid time value. Expected format: HH:MM:SS')
-    #     return value
+    @property
+    def friend_list_v(self) -> list[str]:
+        return [line.strip() for line in self.friend_list.split('\n') if line.strip()]
+
 
 if __name__ == "__main__":
     i = InviteConfig()
