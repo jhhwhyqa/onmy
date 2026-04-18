@@ -83,8 +83,8 @@
   {
     "itemName": "check_guild_card",
     "imageName": "realm_check_guild_card.png",
-    "roiFront": "67,93,50,86",
-    "roiBack": "28,61,149,209",
+    "roiFront": "66,93,49,85",
+    "roiBack": "29,61,150,210",
     "method": "Template matching",
     "threshold": 0.8,
     "description": "寮结界卡界面"

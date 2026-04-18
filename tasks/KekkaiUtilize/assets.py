@@ -56,7 +56,7 @@ class KekkaiUtilizeAssets:
 	# 种树活动关闭标识 
 	I_PLANT_TREE_CLOSE = RuleImage(roi_front=(777,91,36,34), roi_back=(711,52,169,125), threshold=0.8, method="Template matching", file="./tasks/KekkaiUtilize/realm/realm_plant_tree_close.png")
 	# 寮结界卡界面 
-	I_CHECK_GUILD_CARD = RuleImage(roi_front=(67,93,50,86), roi_back=(28,61,149,209), threshold=0.8, method="Template matching", file="./tasks/KekkaiUtilize/realm/realm_check_guild_card.png")
+	I_CHECK_GUILD_CARD = RuleImage(roi_front=(66,93,49,85), roi_back=(29,61,150,210), threshold=0.8, method="Template matching", file="./tasks/KekkaiUtilize/realm/realm_check_guild_card.png")
 
 
 	# Ocr Rule Assets
@@ -64,6 +64,8 @@ class KekkaiUtilizeAssets:
 	O_R_SHIKIGAMI = RuleOcr(roi=(556,174,191,437), area=(556,174,191,437), mode="Full", method="Default", keyword="式神", name="r_shikigami")
 	# 结界卡 
 	O_R_REALM = RuleOcr(roi=(802,158,291,442), area=(802,158,291,442), mode="Full", method="Default", keyword="结界", name="r_realm")
+	# 好友结界标识 
+	O_R_FRIEND_REALM = RuleOcr(roi=(443,14,426,55), area=(443,14,426,55), mode="Full", method="Default", keyword="结界", name="r_friend_realm")
 
 
 	# Click Rule Assets
