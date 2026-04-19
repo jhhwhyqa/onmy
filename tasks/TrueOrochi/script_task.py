@@ -192,9 +192,9 @@ class ScriptTask(OrochiScriptTask, TrueOrochiAssets):
             logger.info('Reset current_success')
             self.config.true_orochi.true_orochi_config.current_success = 0
         else:
-            # 如果不是下一周，那么就加一
+            # 如果不是下一周且战斗成功那么就加一
             logger.info('Add current_success by 1')
-            self.config.true_orochi.true_orochi_config.current_success += 1
+            self.config.true_orochi.true_orochi_config.current_success += 1 if battle else 0
             self.config.true_orochi.true_orochi_config.current_success = min(2, self.config.true_orochi.true_orochi_config.current_success)
         self.config.save()
         self.set_next_run(task='TrueOrochi', target=next_run)
