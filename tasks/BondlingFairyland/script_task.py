@@ -14,9 +14,7 @@ from module.logger import logger
 from tasks.BondlingFairyland.assets import BondlingFairylandAssets
 from tasks.BondlingFairyland.config import BondlingMode, BondlingClass, BondlingSwitchSoul, BondlingConfig, UserStatus
 from tasks.Component.GeneralBattle.config_general_battle import GeneralBattleConfig
-from tasks.Component.GeneralBattle.general_battle import GeneralBattle, BattleRuntime, OnceFlags, BattleAction, \
-    ExitMatcher
-from tasks.Component.GeneralBuff.config_buff import BuffClass
+from tasks.Component.GeneralBattle.general_battle import BattleAction, BattleContext, ExitMatcher, GeneralBattle
 from tasks.Component.GeneralInvite.general_invite import GeneralInvite
 from tasks.Component.GeneralRoom.general_room import GeneralRoom
 from tasks.Component.SwitchSoul.switch_soul import SwitchSoul, switch_parser
@@ -24,7 +22,6 @@ from tasks.GameUi.default_pages import page_battle_result, random_click
 from tasks.GameUi.game_ui import GameUi
 from tasks.GameUi.matcher import any_of
 from tasks.GameUi.page import page_main, page_bondling_fairyland, page_shikigami_records, page_mall
-from typing import Union
 
 
 class BondlingNumberMax(Exception):
@@ -50,9 +47,8 @@ class ScriptTask(GameUi, GeneralInvite, GeneralRoom, GeneralBattle, SwitchSoul, 
         # 契灵结算弹窗会叠在战斗页面上，需要更高优先级避免被底层战斗页抢先识别。
         page_result.priority = 50
 
-    def _handle_result(self, runtime: BattleRuntime, once: OnceFlags, cfg: GeneralBattleConfig,
-                       buff: Union[BuffClass | list[BuffClass] | None]) -> BattleAction:
-        runtime.reward_no_battle_ts = None
+    def _handle_result(self, context: BattleContext, cfg: GeneralBattleConfig) -> BattleAction:
+        context.reward_no_battle_ts = None
         bondling_mode = self.config.bondling_fairyland.bondling_config.bondling_mode
         cap_again = bondling_mode in [BondlingMode.MODE3, BondlingMode.MODE4]
         if cap_again:
@@ -61,8 +57,8 @@ class ScriptTask(GameUi, GeneralInvite, GeneralRoom, GeneralBattle, SwitchSoul, 
             self.device.click_record_clear()
         else:
             self.appear_then_click(self.I_BATTLE_FAIL_ABANDON, interval=1)
-        runtime.is_win = self.appear(self.I_CAP_SUCCESS) or self.appear(self.I_BATTLE_SUCCESS)
-        if runtime.is_win:
+        context.is_win = self.appear(self.I_CAP_SUCCESS) or self.appear(self.I_BATTLE_SUCCESS)
+        if context.is_win:
             if self.appear_then_click(self.I_CAP_SUCCESS, action=random_click(), interval=0.5) or \
                     self.appear_then_click(self.I_BATTLE_SUCCESS, interval=0.5) or \
                     self.appear_then_click(self.I_WIN, action=random_click(), interval=0.5):

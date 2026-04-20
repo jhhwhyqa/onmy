@@ -5,10 +5,10 @@ from __future__ import annotations
 
 import random
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 from tasks.GameUi.default_pages import random_click
-from typing import Union
+from typing import Callable, Union
 
 from module.atom.gif import RuleGif
 from module.atom.image import RuleImage
@@ -33,21 +33,50 @@ ExitMatcher = Union[Matcher | RecognizerLike | Page]
 
 
 @dataclass
-class OnceFlags:
-    preset_done: bool = False
-    buff_done: bool = False
-    green_done: bool = False
+class BattleBehaviorState:
+    """记录一组一次性行为在某个生命周期内的执行状态。"""
+
+    # 已执行行为名集合；共享状态与调用级状态都通过该集合判断是否需要再次执行。
+    done: set[str] = field(default_factory=set)
 
 
 @dataclass
-class BattleRuntime:
+class BattleContext:
+    """保存单次 `run_general_battle()` 调用期内的战斗上下文字段。"""
+
+    # 当前调用使用的战斗硬超时计时器；每次进入 `run_general_battle()` 时重建。
     battle_timer: Timer
+    # 长战斗卡死保护刷新计时器；每次进入 `run_general_battle()` 时重建。
     long_refresh_timer: Timer
+    # 当前调用使用的战斗类型分组键；决定共享行为状态的归属。
+    battle_key: str
+    # 当前 `battle_key` 共享的一次性行为状态。
+    shared_behavior_state: BattleBehaviorState
+    # 当前 `run_general_battle()` 调用级的一次性行为状态。
+    call_behavior_state: BattleBehaviorState
+    # 当前调用各行为默认使用的作用域映射。
+    behavior_scopes: dict[str, "BattleBehaviorScope"]
+    # 当前调用需要开启的 buff 配置；供 handler 和子类覆写逻辑直接读取。
+    buff: Union[BuffClass | list[BuffClass] | None] = None
+    # 最近一次稳定识别到的战斗页面；用于驱动连战和超时逻辑。
     last_page: Page | None = None
+    # 单次调用内的连战轮次计数；首轮从 1 开始。
     continuous_count: int = 1
+    # 结算结束后暂时识别不到战斗页面时的首个时间戳；用于 2 秒兜底。
     reward_no_battle_ts: float | None = None
+    # 当前调用是否已进入快速退出路径；该状态只在本次调用内有效。
     quick_exit: bool = False
+    # 最近一次结算页解析出的胜负结果；用于退出时返回最终布尔值。
     is_win: bool = False
+
+
+class BattleBehaviorScope(str, Enum):
+    """声明一次性行为应在哪个生命周期内只执行一次。"""
+
+    # 同一 `battle_key` 下跨多次 `run_general_battle()` 调用只执行一次。
+    BATTLE_KEY = "battle_key"
+    # 单次 `run_general_battle()` 调用中只执行一次；连战会继续复用该状态。
+    CALL = "call"
 
 
 class BattleAction(str, Enum):
@@ -70,7 +99,11 @@ class GeneralBattle(GeneralBuff, GeneralBattleAssets):
             device: 当前设备对象。
         """
         super().__init__(config, device)
-        self._battle_once_flags: dict[str, OnceFlags] = {}
+        # 以 `battle_key` 为键保存共享行为状态；同战斗类型的多次调用会复用这里的状态。
+        self._battle_shared_state: dict[str, BattleBehaviorState] = {}
+        # 当前 `run_general_battle()` 调用使用的战斗上下文；仅在通用战斗主循环中有效。
+        self._battle_context: BattleContext | None = None
+        # 标记当前任务 session 内的战斗页面覆写是否已注册，避免重复污染 session 副本。
         self._custom_pages_registered: bool = False
 
     def _register_custom_pages(self) -> None:
@@ -196,21 +229,112 @@ class GeneralBattle(GeneralBuff, GeneralBattleAssets):
         global_battle = getattr(getattr(self.config, "global_game", None), "battle", None)
         return getattr(global_battle, "battle_timeout", 420)
 
-    def _build_runtime(self, config: GeneralBattleConfig) -> BattleRuntime:
-        """构建一次战斗调用期使用的运行时状态。
+    def _build_context(
+        self,
+        config: GeneralBattleConfig,
+        buff: Union[BuffClass | list[BuffClass] | None],
+        battle_key: str,
+    ) -> BattleContext:
+        """构建一次战斗调用期使用的战斗上下文。
 
         Args:
             config: 当前通用战斗配置。
+            buff: 当前调用需要开启的 buff 配置。
+            battle_key: 当前战斗类型分组键。
 
         Returns:
-            BattleRuntime: 初始化后的战斗运行时对象。
+            BattleContext: 初始化后的战斗上下文对象。
         """
         timeout = self._resolve_battle_timeout(config)
-        return BattleRuntime(
+        return BattleContext(
             battle_timer=Timer(timeout).start(),
             long_refresh_timer=Timer(180).start(),
+            battle_key=battle_key,
+            shared_behavior_state=self._battle_shared_state.setdefault(battle_key, BattleBehaviorState()),
+            call_behavior_state=BattleBehaviorState(),
+            behavior_scopes=self._get_battle_behavior_scopes(config, battle_key),
+            buff=buff,
             quick_exit=bool(config.quick_exit),
         )
+
+    def _get_battle_behavior_scopes(self, config: GeneralBattleConfig, battle_key: str) -> dict[str, BattleBehaviorScope]:
+        """返回本次通用战斗中各一次性行为的默认执行作用域。
+
+        子任务可覆写此方法，按战斗类型调整某个行为的生命周期，而不必重写整段
+        `_handle_prepare()` / `_handle_in_battle()` 主流程。
+
+        Args:
+            config: 当前通用战斗配置。
+            battle_key: 当前战斗类型分组键，用于声明共享状态归属。
+
+        Returns:
+            dict[str, BattleBehaviorScope]: 行为名到作用域的映射。
+        """
+        return {
+            "preset": BattleBehaviorScope.BATTLE_KEY,
+            "buff": BattleBehaviorScope.BATTLE_KEY,
+            "green": BattleBehaviorScope.CALL,
+        }
+
+    def _get_battle_context(self) -> BattleContext:
+        """返回当前通用战斗调用的战斗上下文。
+
+        Returns:
+            BattleContext: 当前 `run_general_battle()` 调用使用的战斗上下文。
+
+        Raises:
+            RuntimeError: 当前不在 `run_general_battle()` 主循环中，无法访问战斗上下文。
+        """
+
+        if self._battle_context is None:
+            raise RuntimeError("Battle context is only available during run_general_battle()")
+        return self._battle_context
+
+    def _get_behavior_scope(self, behavior_name: str) -> BattleBehaviorScope:
+        """解析某个行为本次调用应使用的作用域。
+
+        Args:
+            behavior_name: 待解析的行为名。
+
+        Returns:
+            BattleBehaviorScope: 该行为应使用的作用域。
+        """
+
+        context = self._get_battle_context()
+        return context.behavior_scopes.get(behavior_name, BattleBehaviorScope.CALL)
+
+    def _get_behavior_state(self, scope: BattleBehaviorScope) -> BattleBehaviorState:
+        """根据作用域选择状态容器。
+
+        Args:
+            scope: 当前行为的执行作用域。
+
+        Returns:
+            BattleBehaviorState: 本次行为应读写的状态容器。
+        """
+
+        context = self._get_battle_context()
+        if scope == BattleBehaviorScope.BATTLE_KEY:
+            return context.shared_behavior_state
+        return context.call_behavior_state
+
+    def _run_battle_behavior_once(self, behavior_name: str, action: Callable[[], None]) -> bool:
+        """按作用域保证某个行为在对应生命周期内只执行一次。
+
+        Args:
+            behavior_name: 行为名；用于在状态容器中记录执行结果。
+            action: 需要在首次执行时触发的行为函数。
+
+        Returns:
+            bool: `True` 表示本次实际执行了行为，`False` 表示已执行过而跳过。
+        """
+
+        state = self._get_behavior_state(self._get_behavior_scope(behavior_name))
+        if behavior_name in state.done:
+            return False
+        action()
+        state.done.add(behavior_name)
+        return True
 
     @staticmethod
     def build_quick_exit_config(config: GeneralBattleConfig | None = None) -> GeneralBattleConfig:
@@ -225,44 +349,44 @@ class GeneralBattle(GeneralBuff, GeneralBattleAssets):
         base_config = config if config is not None else GeneralBattleConfig()
         return base_config.model_copy(update={"quick_exit": True})
 
-    def _reset_round_runtime(self, runtime: BattleRuntime, config: GeneralBattleConfig, *, continuous_count: int) -> None:
+    def _reset_round_context(self, context: BattleContext, config: GeneralBattleConfig, *, continuous_count: int) -> None:
         """在连战开启时重置下一轮战斗的运行时字段。
 
         Args:
-            runtime: 当前战斗运行时对象。
+            context: 当前战斗上下文对象。
             config: 当前通用战斗配置。
             continuous_count: 下一轮连战计数。
 
         Returns:
-            None: 直接原地修改 `runtime`。
+            None: 直接原地修改 `context`。
         """
-        runtime.battle_timer = Timer(self._resolve_battle_timeout(config)).start()
-        runtime.long_refresh_timer = Timer(180).start()
-        runtime.last_page = None
-        runtime.reward_no_battle_ts = None
-        runtime.quick_exit = bool(config.quick_exit)
-        runtime.continuous_count = continuous_count
+        context.battle_timer = Timer(self._resolve_battle_timeout(config)).start()
+        context.long_refresh_timer = Timer(180).start()
+        context.last_page = None
+        context.reward_no_battle_ts = None
+        context.quick_exit = bool(config.quick_exit)
+        context.continuous_count = continuous_count
 
-    def _tick_long_battle(self, runtime: BattleRuntime) -> None:
+    def _tick_long_battle(self, context: BattleContext) -> None:
         """按固定周期刷新长战斗卡死保护标记。
 
         Args:
-            runtime: 当前战斗运行时对象。
+            context: 当前战斗上下文对象。
 
         Returns:
             None: 需要刷新时原地重置底层长等待状态。
         """
-        if runtime.long_refresh_timer.reached():
+        if context.long_refresh_timer.reached():
             logger.info("Refresh long battle stuck timer")
             self.device.stuck_record_clear()
             self.device.stuck_record_add("BATTLE_STATUS_S")
-            runtime.long_refresh_timer.reset()
+            context.long_refresh_timer.reset()
 
-    def _ensure_battle_stuck_guard(self, runtime: BattleRuntime, page: Page) -> None:
+    def _ensure_battle_stuck_guard(self, context: BattleContext, page: Page) -> None:
         """在准备/战斗中阶段确保底层长等待标记始终存在。
 
         Args:
-            runtime: 当前战斗运行时对象。
+            context: 当前战斗上下文对象。
             page: 当前识别到的战斗页面。
 
         Returns:
@@ -271,163 +395,131 @@ class GeneralBattle(GeneralBuff, GeneralBattleAssets):
 
         if page not in {page_battle_prepare, page_battle}:
             return
-        if runtime.last_page not in {page_battle_prepare, page_battle}:
+        if context.last_page not in {page_battle_prepare, page_battle}:
             logger.info("Arm battle stuck guard")
             if "BATTLE_STATUS_S" not in self.device.detect_record:
                 self.device.stuck_record_add("BATTLE_STATUS_S")
-            runtime.battle_timer.reset()
-            runtime.long_refresh_timer.reset()
+            context.battle_timer.reset()
+            context.long_refresh_timer.reset()
             return
         if "BATTLE_STATUS_S" in self.device.detect_record:
             return
 
         self.device.stuck_record_add("BATTLE_STATUS_S")
-        runtime.long_refresh_timer.reset()
+        context.long_refresh_timer.reset()
 
-    def _tick_timeout(self, runtime: BattleRuntime) -> None:
+    def _tick_timeout(self, context: BattleContext) -> None:
         """推进战斗超时检测。
 
         Args:
-            runtime: 当前战斗运行时对象。
+            context: 当前战斗上下文对象。
 
         Returns:
-            None: 超时时将 `runtime.quick_exit` 置为 `True`。
+            None: 超时时将 `context.quick_exit` 置为 `True`。
         """
-        if runtime.quick_exit:
+        if context.quick_exit:
             return
-        if runtime.last_page not in {page_battle_prepare, page_battle}:
+        if context.last_page not in {page_battle_prepare, page_battle}:
             return
-        if runtime.battle_timer.reached():
-            logger.warning(f"Battle timeout reached: {runtime.battle_timer.limit}s")
-            runtime.quick_exit = True
+        if context.battle_timer.reached():
+            logger.warning(f"Battle timeout reached: {context.battle_timer.limit}s")
+            context.quick_exit = True
 
-    def _handle_prepare(
-        self,
-        runtime: BattleRuntime,
-        once: OnceFlags,
-        config: GeneralBattleConfig,
-        buff: Union[BuffClass | list[BuffClass] | None],
-    ) -> BattleAction:
+    def _handle_prepare(self, context: BattleContext, config: GeneralBattleConfig) -> BattleAction:
         """处理准备页逻辑。
 
         Args:
-            runtime: 当前战斗运行时对象。
-            once: 当前 `battle_key` 对应的一次性标志。
+            context: 当前战斗上下文对象。
             config: 当前通用战斗配置。
-            buff: 需要开启的 buff 配置。
 
         Returns:
             BattleAction: 当前轮准备页处理后的动作决策。
         """
-        if runtime.last_page in {page_battle_result, page_reward}:
-            action = self._handle_continuous_prepare(runtime, config)
+        if context.last_page in {page_battle_result, page_reward}:
+            action = self._handle_continuous_prepare(context, config)
             if action != BattleAction.CONTINUE:
                 return action
             if not config.continuous_battle:
-                return BattleAction.EXIT_WIN if runtime.is_win else BattleAction.EXIT_LOSE
+                return BattleAction.EXIT_WIN if context.is_win else BattleAction.EXIT_LOSE
 
         if self.appear_then_click(self.I_DISABLE_7DAYS_DIFF_SOUL, interval=0.6):
             return BattleAction.CONTINUE
         if self.appear_then_click(self.I_CONFIRM_CLOSE_DIFF_SOUL, interval=0.6):
             return BattleAction.CONTINUE
 
-        if not once.preset_done:
-            self.switch_preset_team(config.preset_enable, config.preset_group, config.preset_team)
-            once.preset_done = True
-        if not once.buff_done:
-            self.check_and_open_buff(buff)
-            once.buff_done = True
+        self._run_battle_behavior_once(
+            behavior_name="preset",
+            action=lambda: self.switch_preset_team(config.preset_enable, config.preset_group, config.preset_team),
+        )
+        self._run_battle_behavior_once(
+            behavior_name="buff",
+            action=lambda: self.check_and_open_buff(context.buff),
+        )
 
         self.appear_then_click(self.I_PREPARE_HIGHLIGHT, interval=0.8)
         return BattleAction.CONTINUE
 
-    def _handle_in_battle(
-        self,
-        runtime: BattleRuntime,
-        once: OnceFlags,
-        config: GeneralBattleConfig,
-        buff: Union[BuffClass | list[BuffClass] | None],
-    ) -> BattleAction:
+    def _handle_in_battle(self, context: BattleContext, config: GeneralBattleConfig) -> BattleAction:
         """处理战斗中页面逻辑。
 
         Args:
-            runtime: 当前战斗运行时对象。
-            once: 当前 `battle_key` 对应的一次性标志。
+            context: 当前战斗上下文对象。
             config: 当前通用战斗配置。
-            buff: 保留的 buff 参数，供覆写方法复用。
 
         Returns:
             BattleAction: 当前轮战斗中处理后的动作决策。
         """
-        if not once.green_done:
-            self.green_mark(config.green_enable, config.green_mark)
-            once.green_done = True
+        self._run_battle_behavior_once(
+            behavior_name="green",
+            action=lambda: self.green_mark(config.green_enable, config.green_mark),
+        )
         if config.random_click_swipt_enable:
             self.random_click_swipt()
-        if runtime.quick_exit:
+        if context.quick_exit:
             return BattleAction.QUICK_EXIT
         return BattleAction.CONTINUE
 
-    def _handle_result(
-        self,
-        runtime: BattleRuntime,
-        once: OnceFlags,
-        config: GeneralBattleConfig,
-        buff: Union[BuffClass | list[BuffClass] | None],
-    ) -> BattleAction:
+    def _handle_result(self, context: BattleContext, config: GeneralBattleConfig) -> BattleAction:
         """处理结算页面逻辑。
 
         Args:
-            runtime: 当前战斗运行时对象。
-            once: 当前 `battle_key` 对应的一次性标志。
+            context: 当前战斗上下文对象。
             config: 当前通用战斗配置。
-            buff: 保留的 buff 参数，供覆写方法复用。
 
         Returns:
             BattleAction: 当前轮结算页处理后的动作决策。
         """
-        runtime.reward_no_battle_ts = None
-        runtime.is_win = not self.appear(self.I_FALSE, threshold=0.8)
-        logger.info(f"Battle result is {'win' if runtime.is_win else 'false'}")
-        if runtime.is_win:
-            self.appear_then_click(self.I_WIN, action=random_click(), interval=0.5)
-            self.appear_then_click(self.I_DE_WIN, action=random_click(), interval=0.5)
+        context.reward_no_battle_ts = None
+        context.is_win = not self.appear(self.I_FALSE, threshold=0.8)
+        logger.info(f"Battle result is {'win' if context.is_win else 'false'}")
+        if context.is_win:
+            if self.appear_then_click(self.I_WIN, action=random_click(), interval=0.5) or \
+                    self.appear_then_click(self.I_DE_WIN, action=random_click(), interval=0.5):
+                pass
         else:
             self.appear_then_click(self.I_FALSE, threshold=0.6, interval=0.5)
         return BattleAction.CONTINUE
 
-    def _handle_reward(
-        self,
-        runtime: BattleRuntime,
-        once: OnceFlags,
-        config: GeneralBattleConfig,
-        buff: Union[BuffClass | list[BuffClass] | None],
-    ) -> BattleAction:
+    def _handle_reward(self, context: BattleContext, config: GeneralBattleConfig) -> BattleAction:
         """处理奖励页面逻辑。
 
         Args:
-            runtime: 当前战斗运行时对象。
-            once: 当前 `battle_key` 对应的一次性标志。
+            context: 当前战斗上下文对象。
             config: 当前通用战斗配置。
-            buff: 保留的 buff 参数，供覆写方法复用。
 
         Returns:
             BattleAction: 当前轮奖励页处理后的动作决策。
         """
-        runtime.reward_no_battle_ts = None
+        context.reward_no_battle_ts = None
         self.click(random_click(), interval=0.6)
         return BattleAction.CONTINUE
 
-    def _handle_missing_battle_page(
-        self,
-        runtime: BattleRuntime,
-        config: GeneralBattleConfig,
-        exit_matcher: ExitMatcher | None,
-    ) -> BattleAction:
+    def _handle_missing_battle_page(self, context: BattleContext, config: GeneralBattleConfig,
+                                    exit_matcher: ExitMatcher | None) -> BattleAction:
         """处理暂时未识别到任何战斗页面的过渡状态。
 
         Args:
-            runtime: 当前战斗运行时对象。
+            context: 当前战斗上下文对象。
             config: 当前通用战斗配置。
             exit_matcher: 战斗结束后的任务页面识别条件。
                 仅在最近一页是 `page_battle_result/page_reward` 且未开启连战时参与快速退出判定。
@@ -436,39 +528,39 @@ class GeneralBattle(GeneralBuff, GeneralBattleAssets):
             BattleAction: 根据结算收尾状态推导出的动作决策。
         """
         if (
-            runtime.last_page in {page_battle_result, page_reward}
+            context.last_page in {page_battle_result, page_reward}
             and not config.continuous_battle
             and exit_matcher is not None
             and self._evaluate_exit_matcher(exit_matcher)
         ):
             logger.info("Exit matcher hit, battle confirmed ended")
-            return BattleAction.EXIT_WIN if runtime.is_win else BattleAction.EXIT_LOSE
-        if runtime.last_page not in {page_battle_result, page_reward} and runtime.reward_no_battle_ts is None:
+            return BattleAction.EXIT_WIN if context.is_win else BattleAction.EXIT_LOSE
+        if context.last_page not in {page_battle_result, page_reward} and context.reward_no_battle_ts is None:
             return BattleAction.CONTINUE
-        if runtime.reward_no_battle_ts is None:
-            runtime.reward_no_battle_ts = time.time()
+        if context.reward_no_battle_ts is None:
+            context.reward_no_battle_ts = time.time()
             return BattleAction.CONTINUE
-        if time.time() - runtime.reward_no_battle_ts >= 2:
-            return BattleAction.EXIT_WIN if runtime.is_win else BattleAction.EXIT_LOSE
+        if time.time() - context.reward_no_battle_ts >= 2:
+            return BattleAction.EXIT_WIN if context.is_win else BattleAction.EXIT_LOSE
         return BattleAction.CONTINUE
 
-    def _handle_continuous_prepare(self, runtime: BattleRuntime, config: GeneralBattleConfig) -> BattleAction:
+    def _handle_continuous_prepare(self, context: BattleContext, config: GeneralBattleConfig) -> BattleAction:
         """处理结算后回到准备页时的连战分支。
 
         Args:
-            runtime: 当前战斗运行时对象。
+            context: 当前战斗上下文对象。
             config: 当前通用战斗配置。
 
         Returns:
             BattleAction: 连战继续、按结果退出等动作决策。
         """
-        if not config.continuous_battle or runtime.last_page not in {page_battle_result, page_reward}:
+        if not config.continuous_battle or context.last_page not in {page_battle_result, page_reward}:
             return BattleAction.CONTINUE
-        if 0 < config.max_continuous <= runtime.continuous_count:
-            return BattleAction.EXIT_WIN if runtime.is_win else BattleAction.EXIT_LOSE
-        next_count = runtime.continuous_count + 1
+        if 0 < config.max_continuous <= context.continuous_count:
+            return BattleAction.EXIT_WIN if context.is_win else BattleAction.EXIT_LOSE
+        next_count = context.continuous_count + 1
         logger.info(f"Continue battle round: {next_count}")
-        self._reset_round_runtime(runtime, config, continuous_count=next_count)
+        self._reset_round_context(context, config, continuous_count=next_count)
         return BattleAction.CONTINUE
 
     def _resolve_action(self, action: BattleAction) -> bool | None:
@@ -501,7 +593,7 @@ class GeneralBattle(GeneralBuff, GeneralBattleAssets):
         Args:
             config: 当前通用战斗配置；为空时使用默认配置。
             buff: 本轮战斗需要开启的 buff 配置。
-            battle_key: 一次性步骤缓存键；同 key 可复用预设、buff、绿标状态。
+            battle_key: 战斗类型分组键；同 key 共享 `BATTLE_KEY` 作用域行为状态。
             exit_matcher: 本次调用专用的结束识别条件。
                 优先级高于 `_exit_matcher()`；适合同一任务不同入口回不同页面的场景。
                 传 `None` 时会继续尝试任务级 `_exit_matcher()`，若仍为空则回退到 2 秒兜底。
@@ -512,62 +604,51 @@ class GeneralBattle(GeneralBuff, GeneralBattleAssets):
         logger.hr("General battle start", 2)
         if config is None:
             config = GeneralBattleConfig()
-
         if not self._custom_pages_registered:
             self._register_custom_pages()
             self._custom_pages_registered = True
-
         self.current_count += 1
         logger.info(f"Current count: {self.current_count}")
         self.device.stuck_record_add("BATTLE_STATUS_S")
         self.device.click_record_clear()
-
-        runtime = self._build_runtime(config)
-        once = self._battle_once_flags.setdefault(battle_key, OnceFlags())
+        context = self._build_context(config, buff, battle_key)
+        self._battle_context = context
         resolved_exit_matcher = exit_matcher if exit_matcher is not None else self._exit_matcher()
+        try:
+            while True:
+                self.screenshot()
+                self._tick_long_battle(context)
+                self._tick_timeout(context)
+                context.quick_exit = context.quick_exit or bool(config.quick_exit)
+                page = GameUi.detect_page_in(self, page_battle_prepare, page_battle, page_battle_result,
+                                             page_reward, include_global=False)
+                if page is None:
+                    action = self._handle_missing_battle_page(context, config, resolved_exit_matcher)
+                    resolved = self._resolve_action(action)
+                    if resolved is not None:
+                        return resolved
+                    time.sleep(0.3)
+                    continue
+                context.reward_no_battle_ts = None
+                self._ensure_battle_stuck_guard(context, page)
+                match page:
+                    case current if current == page_battle_prepare:
+                        action = self._handle_prepare(context, config)
+                    case current if current == page_battle:
+                        action = self._handle_in_battle(context, config)
+                    case current if current == page_battle_result:
+                        action = self._handle_result(context, config)
+                    case current if current == page_reward:
+                        action = self._handle_reward(context, config)
+                    case _:
+                        action = BattleAction.CONTINUE
 
-        while True:
-            self.screenshot()
-            self._tick_long_battle(runtime)
-            self._tick_timeout(runtime)
-            runtime.quick_exit = runtime.quick_exit or bool(config.quick_exit)
-
-            page = GameUi.detect_page_in(
-                self,
-                page_battle_prepare,
-                page_battle,
-                page_battle_result,
-                page_reward,
-                include_global=False,
-            )
-            if page is None:
-                action = self._handle_missing_battle_page(runtime, config, resolved_exit_matcher)
                 resolved = self._resolve_action(action)
                 if resolved is not None:
                     return resolved
-                time.sleep(0.3)
-                continue
-
-            runtime.reward_no_battle_ts = None
-            self._ensure_battle_stuck_guard(runtime, page)
-
-            match page:
-                case current if current == page_battle_prepare:
-                    action = self._handle_prepare(runtime, once, config, buff)
-                case current if current == page_battle:
-                    action = self._handle_in_battle(runtime, once, config, buff)
-                case current if current == page_battle_result:
-                    action = self._handle_result(runtime, once, config, buff)
-                case current if current == page_reward:
-                    action = self._handle_reward(runtime, once, config, buff)
-                case _:
-                    action = BattleAction.CONTINUE
-
-            resolved = self._resolve_action(action)
-            if resolved is not None:
-                return resolved
-
-            runtime.last_page = page
+                context.last_page = page
+        finally:
+            self._battle_context = None
         return False
 
     def exit_battle(self, skip_first: bool = False) -> bool:
@@ -686,32 +767,10 @@ class GeneralBattle(GeneralBuff, GeneralBattleAssets):
                 continue
         logger.info("Click preset button")
 
-        def get_unselect_color(tmp1, tmp2, tmp3, size):
-            color_1 = get_color(
-                self.device.image,
-                (tmp1.roi_back[0], tmp1.roi_back[1], tmp1.roi_back[0] + size[0], tmp1.roi_back[1] + size[1]),
-            )
-            color_2 = get_color(
-                self.device.image,
-                (tmp2.roi_back[0], tmp2.roi_back[1], tmp2.roi_back[0] + size[0], tmp2.roi_back[1] + size[1]),
-            )
-            color_3 = get_color(
-                self.device.image,
-                (tmp3.roi_back[0], tmp3.roi_back[1], tmp3.roi_back[0] + size[0], tmp3.roi_back[1] + size[1]),
-            )
-
-            if color_similar(color_1, color_2):
-                return color_1
-            if color_similar(color_2, color_3):
-                return color_2
-            return color_3
-
         tmp = self.__getattribute__("C_PRESET_GROUP_" + str(preset_group))
         if tmp is None:
             tmp = self.C_PRESET_GROUP_1
         color_size = [self.C_PRESET_GROUP_1.roi_back[2], self.C_PRESET_GROUP_1.roi_back[3]]
-        # 保留原颜色策略以兼容旧资源。
-        _ = get_unselect_color
         unselected_color = (224.9, 208.3, 187.4)
         choose_group_timer = Timer(4).start()
         while True:

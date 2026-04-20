@@ -2,10 +2,10 @@
 
 `GeneralBattle` 现在按 4 个战斗阶段驱动：
 
-- `_handle_prepare(runtime, once, config, buff)`
-- `_handle_in_battle(runtime, once, config, buff)`
-- `_handle_result(runtime, once, config, buff)`
-- `_handle_reward(runtime, once, config, buff)`
+- `_handle_prepare(context, config)`
+- `_handle_in_battle(context, config)`
+- `_handle_result(context, config)`
+- `_handle_reward(context, config)`
 
 `run_general_battle(config, buff, battle_key)` 会在单一循环里截图、识别 `page_battle_prepare` / `page_battle` / `page_battle_result` / `page_reward`，再把处理分派到对应 handler。
 
@@ -33,7 +33,7 @@
 ### 运行时行为
 
 - `exit_matcher` 命中时会打印 `Exit matcher hit, battle confirmed ended`。
-- 命中后直接返回最近一次结算得到的胜负，不会改写 `runtime.is_win`。
+- 命中后直接返回最近一次结算得到的胜负，不会改写 `context.is_win`。
 - `exit_matcher` 未命中时不会有额外副作用，仍按旧逻辑等待 2 秒兜底。
 
 ### 钩子示例
@@ -67,10 +67,21 @@ self.run_general_battle(
 
 ## `battle_key`
 
-- `battle_key` 用来缓存一次性步骤状态。
-- 同一个 `battle_key` 会复用 `OnceFlags`，因此切预设 / 开 buff / 绿标只做一次。
+- `battle_key` 用来标识“同一种战斗类型”的共享上下文。
+- 同一个 `battle_key` 会复用共享行为状态；默认情况下，切预设 / 开 buff 只做一次。
+- 绿标默认按单次 `run_general_battle()` 调用执行；同一 `battle_key` 下再次调用时会重新绿标。
+- 连战会复用同一次调用的 `call_behavior_state`，因此默认不会在下一轮连战中重复绿标。
 - 不同战斗类型应传不同 key，避免互相污染。
-- 全局接管固定使用 `__takeover__`。
+- 全局接管固定使用 `__legacy_takeover__`。
+
+## 行为作用域
+
+- `BATTLE_KEY`：同一 `battle_key` 下跨多次 `run_general_battle()` 调用只执行一次。
+- `CALL`：单次 `run_general_battle()` 调用中只执行一次；连战轮次继续复用该状态。
+- 基类默认策略是 `preset -> BATTLE_KEY`、`buff -> BATTLE_KEY`、`green -> CALL`。
+- 子任务可以覆写 `_get_battle_behavior_scopes(config, battle_key)` 调整某个行为的执行频率，而不必重写整个 prepare/battle handler。
+- 当前 `BattleContext` 同时保存运行时字段、共享行为状态、调用级行为状态与 `buff` 配置。
+- 在 handler 或子任务扩展逻辑里，直接调用 `_run_battle_behavior_once("green", lambda: ...)` 即可复用当前通用战斗调用的上下文，不需要再手动透传行为状态。
 
 ## 自定义页面识别
 
@@ -96,10 +107,14 @@ def _register_custom_pages(self) -> None:
     if reward_page is not None:
         reward_page.recognizer = any_of(self.I_GREED_GHOST, self.I_REWARD, self.I_REWARD_GOLD)
 
-def _handle_reward(self, runtime, once, config, buff) -> BattleAction:
+def _handle_reward(
+    self,
+    context,
+    config,
+) -> BattleAction:
     if self.appear(self.I_GREED_GHOST):
-        runtime.reward_no_battle_ts = None
+        context.reward_no_battle_ts = None
         self.click(random.choice([self.C_REWARD_1, self.C_REWARD_2, self.C_REWARD_3]), interval=1.0)
         return BattleAction.CONTINUE
-    return super()._handle_reward(runtime, once, config, buff)
+    return super()._handle_reward(context, config)
 ```

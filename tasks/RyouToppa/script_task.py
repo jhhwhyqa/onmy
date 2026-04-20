@@ -21,7 +21,6 @@ from module.base.timer import Timer
 from module.exception import GamePageUnknownError
 
 
-
 area_map = (
     {
         "fail_sign": (RyouToppaAssets.I_AREA_1_IS_FAILURE_NEW, RyouToppaAssets.I_AREA_1_IS_FAILURE),
@@ -72,6 +71,7 @@ def random_delay(min_value: float = 1.0, max_value: float = 2.0, decimal: int = 
     """
     random_float_in_range = random.uniform(min_value, max_value)
     return (round(random_float_in_range, decimal))
+
 
 class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RyouToppaAssets):
     medal_grid: ImageGrid = None
@@ -178,7 +178,6 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RyouToppaAssets):
                     area_index = 0
                     self.flush_area_cache()
                 continue
-
 
         if success:
             self.set_next_run(task='RyouToppa', finish=True, server=True, success=True)
@@ -290,7 +289,6 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RyouToppaAssets):
             delay = random_delay()
             time.sleep(delay)
 
-
         rcl = area_map[index].get("rule_click")
         # # 点击攻击区域，等待攻击按钮出现。
         # self.ui_click(rcl, stop=RealmRaidAssets.I_FIRE, interval=2)
@@ -325,4 +323,3 @@ if __name__ == "__main__":
     device = Device(config)
     t = ScriptTask(config, device)
     t.run()
-

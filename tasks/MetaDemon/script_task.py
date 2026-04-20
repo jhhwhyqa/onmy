@@ -30,6 +30,13 @@ class ScriptTask(GeneralBattle, SwitchSoul, GameUi, MetaDemonAssets):
     cur_boss_type: BossType = None
     total_count: int = 0
 
+    def _meta_demon_battle_key(self) -> str:
+        """返回当前鬼王类型对应的通用战斗分组键。"""
+
+        if self.cur_boss_type is None:
+            return "meta_demon_default"
+        return f"meta_demon_{self.cur_boss_type.name.lower()}"
+
     @property
     def enable_powerful_fire(self):
         powerful_list = self.conf.meta_demon_config.powerful_list_v
@@ -90,7 +97,10 @@ class ScriptTask(GeneralBattle, SwitchSoul, GameUi, MetaDemonAssets):
             self.screenshot()
             if self.is_in_battle(False):
                 self.total_count += 1
-                self.run_general_battle(self.conf.switch_soul.get_general_battle_conf(self.cur_boss_type))
+                self.run_general_battle(
+                    self.conf.switch_soul.get_general_battle_conf(self.cur_boss_type),
+                    battle_key=self._meta_demon_battle_key(),
+                )
                 break
             if self.appear(self.I_MD_DRINK_TEA, interval=1.2):  # 出现喝茶弹窗
                 if self.conf.meta_demon_config.auto_tea:

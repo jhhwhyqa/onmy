@@ -6,9 +6,7 @@ import random  # type: ignore
 from module.atom.image import RuleImage
 from tasks.Component.GeneralBattle.config_general_battle import GeneralBattleConfig
 
-from tasks.Component.GeneralBattle.general_battle import GeneralBattle, BattleRuntime, OnceFlags, BattleAction, \
-    ExitMatcher
-from tasks.Component.GeneralBuff.config_buff import BuffClass
+from tasks.Component.GeneralBattle.general_battle import BattleAction, BattleContext, ExitMatcher, GeneralBattle
 from tasks.GameUi.default_pages import page_battle_result
 from tasks.GameUi.matcher import any_of
 from tasks.HeroTest.assets import HeroTestAssets
@@ -18,7 +16,7 @@ from tasks.Component.SwitchSoul.switch_soul import SwitchSoul
 from module.logger import logger
 from module.exception import TaskEnd
 from tasks.HeroTest.config import Layer, HeroTest, SkillMode
-from typing import Callable, Union
+from typing import Callable
 
 import tasks.GameUi.page as pages
 
@@ -36,8 +34,7 @@ class ScriptTask(GameUi, GeneralBattle, HeroTestAssets, SwitchSoul):
         logger.info('Update page_battle_result')
         page_result.recognizer = any_of(self.I_BCMJ_SKILL_ADD_CONFIRM, page_result.recognizer)
 
-    def _handle_result(self, runtime: BattleRuntime, once: OnceFlags, config: GeneralBattleConfig,
-                       buff: Union[BuffClass | list[BuffClass] | None]) -> BattleAction:
+    def _handle_result(self, context: BattleContext, config: GeneralBattleConfig) -> BattleAction:
         if self.appear(self.I_BCMJ_SKILL_ADD_CONFIRM):
             mode_wait_dict: dict[Layer, Callable] = {
                 Layer.MIJING: self.hero1_skill_wait,
@@ -45,7 +42,7 @@ class ScriptTask(GameUi, GeneralBattle, HeroTestAssets, SwitchSoul):
             }
             if mode_wait_dict.get(self.conf.herotest.layer, None) is not None:
                 mode_wait_dict[self.conf.herotest.layer]()
-        return super()._handle_result(runtime, once, config, buff)
+        return super()._handle_result(context, config)
 
     def _exit_matcher(self) -> ExitMatcher | None:
         match self.conf.herotest.layer:

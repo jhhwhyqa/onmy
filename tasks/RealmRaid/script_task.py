@@ -227,22 +227,13 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RealmRaidAssets):
                 logger.info('Battle lost and exit')
                 break
 
-
         self.ui_click(self.I_BACK_RED, self.I_CHECK_EXPLORATION)
         self.goto_page(page_main)
         self.set_next_run(task='RealmRaid', success=success, finish=True)
         raise TaskEnd
 
-
-
-
-
-
-
-
     # ----------------------------------------------------------------------------------------------------------------------
     # 2023.7.21 改版个人突破
-
     def ensure_lock(self, lock_team_enable: bool):
         """
         确保锁定阵容
@@ -427,19 +418,6 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RealmRaidAssets):
                         return True
                     if self.appear_then_click(self.I_SOUL_RAID, interval=1.5):
                         continue
-
-        # if self.appear(self.I_SOUL_RAID):
-        #     self.screenshot()
-        #     # 稳定一次的截图时间
-        #     # 再次判断是否出现的
-        #     if not self.appear(self.I_SOUL_RAID):
-        #         return False
-        #     while 1:
-        #         self.screenshot()
-        #         if not self.appear(self.I_SOUL_RAID, threshold=0.7):
-        #             return True
-        #         if self.appear_then_click(self.I_SOUL_RAID, interval=1.5):
-        #             continue
 
     def check_refresh(self, screenshot: bool=True) -> bool:
         """

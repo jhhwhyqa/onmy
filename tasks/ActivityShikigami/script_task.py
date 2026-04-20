@@ -134,6 +134,11 @@ class ScriptTask(StateMachine, GameUi, BaseActivity, SwitchSoul, ActivityShikiga
         self.set_next_run(task="ActivityShikigami", success=True)
         raise TaskEnd
 
+    def _activity_battle_key(self) -> str:
+        """返回当前爬塔类型对应的通用战斗分组键。"""
+
+        return f"activity_shikigami_{self.climb_type}"
+
     def _run_pass(self):
         """
             更新前请先看 ./README.md
@@ -242,7 +247,10 @@ class ScriptTask(StateMachine, GameUi, BaseActivity, SwitchSoul, ActivityShikiga
                     random_sleep(probability=0.2)
                 self.click(self.I_RICH_MAN_FIRE)
                 click_fire += 1
-                self.run_general_battle(config=self.get_general_battle_conf())
+                self.run_general_battle(
+                    config=self.get_general_battle_conf(),
+                    battle_key=self._activity_battle_key(),
+                )
                 continue
             if self.appear(self.I_CHECK_BATTLE_MAIN, interval=3.5):  # 扔门票骰子
                 self.click(self.I_CHECK_BATTLE_MAIN)
@@ -366,7 +374,10 @@ class ScriptTask(StateMachine, GameUi, BaseActivity, SwitchSoul, ActivityShikiga
             if self.conf.general_climb.random_sleep:
                 random_sleep(probability=0.2)
             if self.appear_then_click(self.I_PASS_13, interval=2):
-                self.run_general_battle(config=self.get_general_battle_conf())
+                self.run_general_battle(
+                    config=self.get_general_battle_conf(),
+                    battle_key=self._activity_battle_key(),
+                )
                 continue
         self.goto_page(game.page_climb_act)
 
@@ -387,7 +398,10 @@ class ScriptTask(StateMachine, GameUi, BaseActivity, SwitchSoul, ActivityShikiga
                 logger.info(f'Try click fire, remain times[{max_times - click_times}]')
                 continue
         # 运行战斗
-        self.run_general_battle(config=self.get_general_battle_conf())
+        self.run_general_battle(
+            config=self.get_general_battle_conf(),
+            battle_key=self._activity_battle_key(),
+        )
 
     def battle_wait(self, random_click_swipt_enable: bool) -> bool:
         # 通用战斗结束判断
@@ -529,4 +543,3 @@ class ScriptTask(StateMachine, GameUi, BaseActivity, SwitchSoul, ActivityShikiga
 
 if __name__ == '__main__':
     print([1, 2, 3][2])
-
