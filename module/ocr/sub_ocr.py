@@ -8,7 +8,6 @@ import cn2an
 
 from datetime import timedelta
 
-from module.ocr.ppocr import TextSystem
 from module.exception import ScriptError
 from module.base.utils import area_pad, crop, float2str
 from module.ocr.base_ocr import BaseCor, OcrMode, OcrMethod
@@ -79,7 +78,6 @@ class Single(BaseCor):
                 return result
 
             # 如果没有识别到，这个时候考虑到可能是竖方向的文本, 使用detect_and_ocr来进行识别
-            logger.info(f"[{self.name}] Try to detect vertically")
             result = self.detect_and_ocr(image)
             if not result:
                 logger.info(f"[{self.name}]: No text detected in ROI")
@@ -260,4 +258,3 @@ class Quantity(BaseCor):
 if __name__ == '__main__':
     import cv2
     image = cv2.imread(r'E:\Project\OnmyojiAutoScript-assets\jade.png')
-

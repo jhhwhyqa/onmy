@@ -17,18 +17,44 @@ from tasks.GuguArtStudio.config import GuguArtStudio
 
 class ScriptTask(GeneralBattle, GameUi, SwitchSoul, GuguArtStudioAssets):
     conf: GuguArtStudio = None
+    page_act_list_gugu_act = None
+    page_gugu_act = None
 
     def before_run(self):
         self.conf = self.config.gugu_art_studio
         # 初始化页面, 下列页面只会在当前任务存在
-        pages.page_gugu_act = pages.Page(self.I_CHECK_GUGU_ACT)
-        pages.page_gugu_act.link(button=self.I_BACK_Y, destination=pages.page_main)
-        pages.page_act_list_gugu_act.link(button=self.I_ACT_LIST_GOTO_ACT, destination=pages.page_gugu_act)
+        page_main = self.navigator.resolve_page(pages.page_main)
+        page_act_list = self.navigator.resolve_page(pages.page_act_list)
+        if page_main is None or page_act_list is None:
+            raise RuntimeError("GuguArtStudio 页面 session 初始化失败")
+
+        self.page_act_list_gugu_act = self.navigator.add_page(
+            pages.Page(
+                self.I_CHECK_ACT_LIST_GUGU_ACT,
+                key="page_act_list_gugu_act",
+                name="page_act_list_gugu_act",
+                register=False,
+            )
+        )
+        self.page_gugu_act = self.navigator.add_page(
+            pages.Page(self.I_CHECK_GUGU_ACT, key="page_gugu_act", name="page_gugu_act", register=False)
+        )
+        page_act_list.connect(
+            self.page_act_list_gugu_act,
+            self.L_GOTO_GUGU_ACT,
+            key="page_act_list->page_act_list_gugu_act",
+        )
+        self.page_act_list_gugu_act.connect(
+            self.page_gugu_act,
+            self.I_ACT_LIST_GOTO_ACT,
+            key="page_act_list_gugu_act->page_gugu_act",
+        )
+        self.page_gugu_act.connect(page_main, self.I_BACK_Y, key="page_gugu_act->page_main")
 
     def run(self):
         self.before_run()
         self.switch_soul()
-        self.ui_goto_page(pages.page_gugu_act)
+        self.goto_page(self.page_gugu_act)
         self.get_paint()
         self.submit_paint()
         self.after_run()
@@ -36,10 +62,10 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, GuguArtStudioAssets):
     def switch_soul(self):
         """切换御魂"""
         if self.conf.switch_soul_config.enable:
-            self.ui_goto_page(pages.page_shikigami_records)
+            self.goto_page(pages.page_shikigami_records)
             self.run_switch_soul(self.conf.switch_soul_config.switch_group_team)
         if self.conf.switch_soul_config.enable_switch_by_name:
-            self.ui_goto_page(pages.page_shikigami_records)
+            self.goto_page(pages.page_shikigami_records)
             self.run_switch_soul_by_name(self.conf.switch_soul_config.group_name,
                                          self.conf.switch_soul_config.team_name)
 
@@ -72,7 +98,7 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, GuguArtStudioAssets):
                 self.run_general_battle()
 
     def submit_paint(self):
-        self.ui_goto_page(pages.page_gugu_act, skip_first_screenshot=False)
+        self.goto_page(self.page_gugu_act, skip_first_screenshot=False)
         cnt, submit_cnt = 0, random.randint(2, 3)
         while True:
             if cnt >= submit_cnt:
@@ -85,7 +111,7 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, GuguArtStudioAssets):
 
     def after_run(self):
         """运行结束之后的操作"""
-        self.ui_goto_page(pages.page_main)
+        self.goto_page(pages.page_main)
         self.set_next_run(task='GuguArtStudio', success=True, finish=True)
         raise TaskEnd('GuguArtStudio')
 
@@ -100,3 +126,4 @@ if __name__ == '__main__':
     t.screenshot()
 
     t.run()
+

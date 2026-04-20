@@ -1,11 +1,16 @@
 # This Python file uses the following encoding: utf-8
 # @author runhey
 # github https://github.com/runhey
+from __future__ import annotations
+
 import atexit
 import multiprocessing
 import pickle
 import socket
+import threading
 import time
+from concurrent.futures import ThreadPoolExecutor
+from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
 import numpy as np
@@ -16,6 +21,7 @@ from module.logger import logger
 from module.ocr.ppocr import TextSystem
 
 _OCR_SERVER_PROCESS: Optional[multiprocessing.Process] = None
+_OCR_CLIENT_CACHE: dict[str, "ModelProxy"] = {}
 
 
 def _normalize_address(address: str) -> str:
@@ -33,16 +39,226 @@ def _split_host_port(address: str) -> tuple[str, int]:
 
 
 def _is_port_in_use(host: str, port: int) -> bool:
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
-        s.settimeout(0.5)
-        s.connect((host, port))
-        s.shutdown(2)
+        sock.settimeout(0.5)
+        sock.connect((host, port))
+        sock.shutdown(2)
         return True
     except Exception:
         return False
     finally:
-        s.close()
+        sock.close()
+
+
+@dataclass(slots=True)
+class OcrServerSettings:
+    worker_count: int = 0
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any] | None) -> "OcrServerSettings":
+        if not data:
+            return cls()
+        return cls(worker_count=int(data.get("worker_count", 0)))
+
+
+class OcrTaskScheduler:
+    def __init__(self, worker_count: int = 0) -> None:
+        self.worker_count = max(1, worker_count or (multiprocessing.cpu_count() or 1))
+        self._executor = ThreadPoolExecutor(
+            max_workers=self.worker_count,
+            thread_name_prefix="ocr_worker",
+        )
+        self._pending_lock = threading.Lock()
+        self._pending = 0
+
+    def submit(self, func, *args, **kwargs):
+        with self._pending_lock:
+            self._pending += 1
+        future = self._executor.submit(func, *args, **kwargs)
+        future.add_done_callback(self._on_done)
+        return future
+
+    def stats(self) -> dict[str, int]:
+        with self._pending_lock:
+            pending = self._pending
+        return {
+            "worker_count": self.worker_count,
+            "pending": pending,
+        }
+
+    def shutdown(self) -> None:
+        self._executor.shutdown(wait=False, cancel_futures=True)
+
+    def _on_done(self, _future) -> None:
+        with self._pending_lock:
+            self._pending = max(0, self._pending - 1)
+
+
+class OcrRuntime:
+    def __init__(self, settings: dict[str, Any] | OcrServerSettings | None = None) -> None:
+        if isinstance(settings, OcrServerSettings):
+            self.settings = settings
+        else:
+            self.settings = OcrServerSettings.from_dict(settings)
+        self._scheduler = OcrTaskScheduler(self.settings.worker_count)
+        self._thread_local = threading.local()
+        self._lock = threading.Lock()
+        self._loaded_workers: set[str] = set()
+        self._request_stats = {
+            "requests_total": 0,
+            "requests_succeeded": 0,
+            "requests_failed": 0,
+        }
+        logger.info(f"OCR runtime initialized (workers={self._scheduler.worker_count})")
+
+    def ping(self) -> bool:
+        return True
+
+    def get_server_info(self) -> dict[str, Any]:
+        with self._lock:
+            request_stats = dict(self._request_stats)
+            loaded_worker_count = len(self._loaded_workers)
+        return {
+            "scheduler": self._scheduler.stats(),
+            "request_stats": request_stats,
+            "loaded_worker_count": loaded_worker_count,
+        }
+
+    def ocr_single_line(self, image_bytes: bytes):
+        image = self._decode_image(image_bytes)
+        return self._run_request(self._ocr_single_line, image)
+
+    def detect_and_ocr(
+        self,
+        image_bytes: bytes,
+        drop_score: float = 0.5,
+        unclip_ratio: Optional[float] = None,
+        box_thresh: Optional[float] = None,
+        vertical: bool = False,
+    ) -> List[Dict[str, Any]]:
+        image = self._decode_image(image_bytes)
+        return self._run_request(
+            self._detect_and_ocr,
+            image,
+            drop_score=drop_score,
+            unclip_ratio=unclip_ratio,
+            box_thresh=box_thresh,
+            vertical=vertical,
+        )
+
+    def shutdown(self) -> bool:
+        self._scheduler.shutdown()
+        return True
+
+    def _run_request(self, func, *args, **kwargs):
+        with self._lock:
+            self._request_stats["requests_total"] += 1
+        future = self._scheduler.submit(func, *args, **kwargs)
+        try:
+            result = future.result()
+        except Exception:
+            with self._lock:
+                self._request_stats["requests_failed"] += 1
+            raise
+        with self._lock:
+            self._request_stats["requests_succeeded"] += 1
+        return result
+
+    @staticmethod
+    def _decode_image(image_bytes: bytes) -> np.ndarray:
+        image = pickle.loads(image_bytes)
+        if not isinstance(image, np.ndarray):
+            raise TypeError("OCR payload must be numpy.ndarray")
+        return image
+
+    @staticmethod
+    def _rotate_vertical(image: np.ndarray) -> np.ndarray:
+        height, width = image.shape[0:2]
+        if width == 0:
+            return image
+        if height * 1.0 / width >= 1.5:
+            return np.rot90(image)
+        return image
+
+    def _get_model(self) -> TextSystem:
+        model = getattr(self._thread_local, "model", None)
+        if model is None:
+            model = TextSystem()
+            self._thread_local.model = model
+            worker_name = threading.current_thread().name
+            with self._lock:
+                self._loaded_workers.add(worker_name)
+            logger.info(f"OCR worker model loaded: {worker_name}")
+        return model
+
+    def _ocr_single_line(self, image: np.ndarray):
+        model = self._get_model()
+        result, score = model.ocr_single_line(image)
+        return result, float(score)
+
+    def _detect_and_ocr(
+        self,
+        image: np.ndarray,
+        drop_score: float = 0.5,
+        unclip_ratio: Optional[float] = None,
+        box_thresh: Optional[float] = None,
+        vertical: bool = False,
+    ) -> List[Dict[str, Any]]:
+        model = self._get_model()
+        if vertical:
+            results = self._detect_and_ocr_vertical(
+                model,
+                image,
+                drop_score=drop_score,
+                unclip_ratio=unclip_ratio,
+                box_thresh=box_thresh,
+            )
+        else:
+            results = model.detect_and_ocr(
+                image,
+                drop_score=drop_score,
+                unclip_ratio=unclip_ratio,
+                box_thresh=box_thresh,
+            )
+        return [
+            {"box": item.box.tolist(), "ocr_text": item.ocr_text, "score": float(item.score)}
+            for item in results
+        ]
+
+    def _detect_and_ocr_vertical(
+        self,
+        model: TextSystem,
+        image: np.ndarray,
+        drop_score: float = 0.5,
+        unclip_ratio: Optional[float] = None,
+        box_thresh: Optional[float] = None,
+    ) -> list[Any]:
+        text_recognizer = model.text_recognizer
+
+        def vertical_text_recognizer(img_crop_list):
+            img_crop_list = [self._rotate_vertical(item) for item in img_crop_list]
+            return text_recognizer(img_crop_list)
+
+        model.text_recognizer = vertical_text_recognizer
+        try:
+            return model.detect_and_ocr(
+                image,
+                drop_score=drop_score,
+                unclip_ratio=unclip_ratio,
+                box_thresh=box_thresh,
+            )
+        finally:
+            model.text_recognizer = text_recognizer
+
+
+def _build_server_settings() -> dict[str, Any]:
+    from module.server.setting import State
+
+    deploy_config = State.deploy_config
+    return {
+        "worker_count": int(deploy_config.OcrServerWorkerCount),
+    }
 
 
 def ensure_ocr_server_started() -> bool:
@@ -69,7 +285,7 @@ def ensure_ocr_server_started() -> bool:
 
     _OCR_SERVER_PROCESS = multiprocessing.Process(
         target=run_ocr_server,
-        args=(host, port),
+        args=(host, port, _build_server_settings()),
         name="ocr_server",
         daemon=True,
     )
@@ -81,6 +297,22 @@ def ensure_ocr_server_started() -> bool:
         time.sleep(0.1)
     logger.error(f"OCR server is not ready on port {port}")
     return False
+
+
+def ensure_ocr_server_ready() -> bool:
+    from module.server.setting import State
+
+    deploy_config = State.deploy_config
+    if deploy_config.StartOcrServer:
+        ensure_ocr_server_started()
+
+    address = deploy_config.OcrClientAddress or "127.0.0.1:22268"
+    try:
+        get_ocr_client(address=address, refresh=True)
+        logger.info(f"OCR server ready: {address}")
+        return True
+    except Exception as exc:
+        raise ScriptError(f"OCR server connection failed: {address}") from exc
 
 
 def shutdown_ocr_server(timeout: float = 2.0) -> bool:
@@ -109,82 +341,34 @@ def shutdown_ocr_server(timeout: float = 2.0) -> bool:
         return False
     finally:
         _OCR_SERVER_PROCESS = None
+        _OCR_CLIENT_CACHE.clear()
 
 
-def run_ocr_server(host: str, port: int) -> None:
-    server = zerorpc.Server(OcrServer())
-    server.bind(f"tcp://{host}:{port}")
-    server.run()
-
-
-class OcrServer:
-    def __init__(self) -> None:
-        self.model = TextSystem()
-
-    def ping(self) -> bool:
-        return True
-
-    @staticmethod
-    def _rotate_vertical(image: np.ndarray) -> np.ndarray:
-        height, width = image.shape[0:2]
-        if height * 1.0 / width >= 1.5:
-            return np.rot90(image)
-        return image
-
-    def ocr_single_line(self, image_bytes: bytes):
-        image = pickle.loads(image_bytes)
-        result, score = self.model.ocr_single_line(image)
-        return result, float(score)
-
-    def detect_and_ocr(
-        self,
-        image_bytes: bytes,
-        drop_score: float = 0.5,
-        unclip_ratio: Optional[float] = None,
-        box_thresh: Optional[float] = None,
-        vertical: bool = False,
-    ) -> List[Dict[str, Any]]:
-        image = pickle.loads(image_bytes)
-        if not vertical:
-            results = self.model.detect_and_ocr(image, drop_score=drop_score,
-                                                unclip_ratio=unclip_ratio,
-                                                box_thresh=box_thresh)
-            return [
-                {"box": r.box.tolist(), "ocr_text": r.ocr_text, "score": float(r.score)}
-                for r in results
-            ]
-
-        text_recognizer = self.model.text_recognizer
-
-        def vertical_text_recognizer(img_crop_list):
-            img_crop_list = [self._rotate_vertical(i) for i in img_crop_list]
-            return text_recognizer(img_crop_list)
-
-        self.model.text_recognizer = vertical_text_recognizer
-        try:
-            results = self.model.detect_and_ocr(image, drop_score=drop_score,
-                                                unclip_ratio=unclip_ratio,
-                                                box_thresh=box_thresh)
-        finally:
-            self.model.text_recognizer = text_recognizer
-
-        return [
-            {"box": r.box.tolist(), "ocr_text": r.ocr_text, "score": float(r.score)}
-            for r in results
-        ]
+def run_ocr_server(host: str, port: int, settings: dict[str, Any] | None = None) -> None:
+    runtime = OcrRuntime(settings=settings)
+    server = zerorpc.Server(runtime)
+    try:
+        server.bind(f"tcp://{host}:{port}")
+        server.run()
+    finally:
+        runtime.shutdown()
 
 
 class ModelProxy:
-    is_proxy = True
-
     def __init__(self, address: str) -> None:
         self.address = _normalize_address(address)
-        self.client = zerorpc.Client()
+        self.client = zerorpc.Client(timeout=10)
         try:
             self.client.connect(self.address)
             self.client.ping()
         except Exception as e:
             raise ScriptError(f"OCR server connection failed: {self.address}") from e
+
+    def ping(self) -> bool:
+        return bool(self.client.ping())
+
+    def get_server_info(self) -> dict[str, Any]:
+        return self.client.get_server_info()
 
     def ocr_single_line(self, image: np.ndarray):
         payload = pickle.dumps(image, protocol=4)
@@ -205,6 +389,15 @@ class ModelProxy:
             BoxedResult(np.array(item["box"]), None, item["ocr_text"], item["score"])
             for item in results
         ]
+
+
+def get_ocr_client(address: str | None = None, refresh: bool = False) -> ModelProxy:
+    from module.server.setting import State
+
+    resolved_address = address or State.deploy_config.OcrClientAddress or "127.0.0.1:22268"
+    if refresh or resolved_address not in _OCR_CLIENT_CACHE:
+        _OCR_CLIENT_CACHE[resolved_address] = ModelProxy(resolved_address)
+    return _OCR_CLIENT_CACHE[resolved_address]
 
 
 atexit.register(shutdown_ocr_server)

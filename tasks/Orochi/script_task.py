@@ -5,13 +5,13 @@ import random
 from time import sleep
 from datetime import time, datetime, timedelta
 
-from tasks.Component.GeneralBattle.general_battle import GeneralBattle
+from tasks.Component.GeneralBattle.general_battle import BattleAction, GeneralBattle
 from tasks.Component.GeneralInvite.general_invite import GeneralInvite
 from tasks.Component.GeneralBuff.general_buff import GeneralBuff
 from tasks.Component.GeneralRoom.general_room import GeneralRoom
 from tasks.Component.SwitchSoul.switch_soul import SwitchSoul
 from tasks.GameUi.game_ui import GameUi
-from tasks.GameUi.page import page_main, page_soul_zones, page_shikigami_records
+from tasks.GameUi.page import any_of, page_main, page_reward, page_shikigami_records, page_soul_zones
 from tasks.Orochi.assets import OrochiAssets
 from tasks.Orochi.config import Orochi, UserStatus, Layer
 from module.logger import logger
@@ -20,17 +20,24 @@ from module.exception import TaskEnd
 
 class ScriptTask(GeneralBattle, GeneralInvite, GeneralBuff, GeneralRoom, GameUi, SwitchSoul, OrochiAssets):
 
+    def _orochi_battle_key(self) -> str:
+        return f"orochi_{self.config.orochi.orochi_config.layer}"
+
+    def _register_custom_pages(self) -> None:
+        reward_page = self.navigator.resolve_page(page_reward)
+        if reward_page is None:
+            return
+        reward_page.recognizer = any_of(self.I_GREED_GHOST, self.I_REWARD, self.I_REWARD_GOLD)
+
     def run(self) -> bool:
         # 御魂切换方式一
         if self.config.orochi.switch_soul.enable:
-            self.ui_get_current_page()
-            self.ui_goto(page_shikigami_records)
+            self.goto_page(page_shikigami_records)
             self.run_switch_soul(self.config.orochi.switch_soul.switch_group_team)
 
         # 御魂切换方式二
         if self.config.orochi.switch_soul.enable_switch_by_name:
-            self.ui_get_current_page()
-            self.ui_goto(page_shikigami_records)
+            self.goto_page(page_shikigami_records)
             self.run_switch_soul_by_name(self.config.orochi.switch_soul.group_name,
                                          self.config.orochi.switch_soul.team_name)
         # 根据选层切换御魂
@@ -44,8 +51,7 @@ class ScriptTask(GeneralBattle, GeneralInvite, GeneralBuff, GeneralRoom, GameUi,
 
         config: Orochi = self.config.orochi
         if not self.is_in_battle(True):
-            self.ui_get_current_page()
-            self.ui_goto(page_main)
+            self.goto_page(page_main)
             if config.orochi_config.soul_buff_enable:
                 self.open_buff()
                 self.soul(is_open=True)
@@ -115,8 +121,7 @@ class ScriptTask(GeneralBattle, GeneralInvite, GeneralBuff, GeneralRoom, GameUi,
 
     def run_leader(self):
         logger.info('Start run leader')
-        self.ui_get_current_page()
-        self.ui_goto(page_soul_zones)
+        self.goto_page(page_soul_zones)
         self.orochi_enter()
         layer = self.config.orochi.orochi_config.layer
         self.check_layer(layer)
@@ -148,7 +153,7 @@ class ScriptTask(GeneralBattle, GeneralInvite, GeneralBuff, GeneralRoom, GameUi,
                 continue
 
             # 检查猫咪奖励
-            if self.appear_then_click(self.I_PET_PRESENT, action=self.C_WIN_3, interval=1):
+            if self.appear_then_click(self.I_PET_PRESENT, action=self.C_RANDOM_RIGHT, interval=1):
                 continue
 
             if self.current_count >= self.limit_count:
@@ -174,7 +179,11 @@ class ScriptTask(GeneralBattle, GeneralInvite, GeneralBuff, GeneralRoom, GameUi,
             # 点击挑战
             if not is_first:
                 if self.run_invite(config=self.config.orochi.invite_config):
-                    self.run_general_battle(config=self.config.orochi.general_battle_config)
+                    self.run_general_battle(
+                        config=self.config.orochi.general_battle_config,
+                        battle_key=self._orochi_battle_key(),
+                        exit_matcher=self.I_CHECK_TEAM,
+                    )
                 else:
                     # 邀请失败，退出任务
                     logger.warning('Invite failed and exit this orochi task')
@@ -189,7 +198,11 @@ class ScriptTask(GeneralBattle, GeneralInvite, GeneralBuff, GeneralRoom, GameUi,
                     break
                 else:
                     is_first = False
-                    self.run_general_battle(config=self.config.orochi.general_battle_config)
+                    self.run_general_battle(
+                        config=self.config.orochi.general_battle_config,
+                        battle_key=self._orochi_battle_key(),
+                        exit_matcher=self.I_CHECK_TEAM,
+                    )
 
         # 当结束或者是失败退出循环的时候只有两个UI的可能，在房间或者是在组队界面
         # 如果在房间就退出
@@ -199,8 +212,7 @@ class ScriptTask(GeneralBattle, GeneralInvite, GeneralBuff, GeneralRoom, GameUi,
         if self.exit_team():
             pass
 
-        self.ui_get_current_page()
-        self.ui_goto(page_main)
+        self.goto_page(page_main)
 
         if not success:
             return False
@@ -208,8 +220,7 @@ class ScriptTask(GeneralBattle, GeneralInvite, GeneralBuff, GeneralRoom, GameUi,
 
     def run_member(self):
         logger.info('Start run member')
-        self.ui_get_current_page()
-        # self.ui_goto(page_soul_zones)
+        # self.goto_page(page_soul_zones)
         # self.orochi_enter()
         # self.check_lock(self.config.orochi.general_battle_config.lock_team_enable)
 
@@ -219,9 +230,8 @@ class ScriptTask(GeneralBattle, GeneralInvite, GeneralBuff, GeneralRoom, GameUi,
             self.screenshot()
 
             # 检查猫咪奖励
-            if self.appear_then_click(self.I_PET_PRESENT, action=self.C_WIN_3, interval=1):
+            if self.appear_then_click(self.I_PET_PRESENT, action=self.C_RANDOM_RIGHT, interval=1):
                 continue
-
             if self.current_count >= self.limit_count:
                 logger.info('Orochi count limit out')
                 break
@@ -235,7 +245,11 @@ class ScriptTask(GeneralBattle, GeneralInvite, GeneralBuff, GeneralRoom, GameUi,
             if self.is_in_room():
                 self.device.stuck_record_clear()
                 if self.wait_battle(wait_time=self.config.orochi.invite_config.wait_time):
-                    self.run_general_battle(config=self.config.orochi.general_battle_config)
+                    self.run_general_battle(
+                        config=self.config.orochi.general_battle_config,
+                        battle_key=self._orochi_battle_key(),
+                        exit_matcher=self.I_CHECK_TEAM,
+                    )
                 else:
                     break
             # 队长秒开的时候，检测是否进入到战斗中
@@ -254,14 +268,12 @@ class ScriptTask(GeneralBattle, GeneralInvite, GeneralBuff, GeneralRoom, GameUi,
                 pass
 
 
-        self.ui_get_current_page()
-        self.ui_goto(page_main)
+        self.goto_page(page_main)
         return True
 
     def run_alone(self):
         logger.info('Start run alone')
-        self.ui_get_current_page()
-        self.ui_goto(page_soul_zones)
+        self.goto_page(page_soul_zones)
         self.orochi_enter()
         layer = self.config.orochi.orochi_config.layer
         self.check_layer(layer)
@@ -276,7 +288,7 @@ class ScriptTask(GeneralBattle, GeneralInvite, GeneralBuff, GeneralRoom, GameUi,
             self.screenshot()
 
             # 检查猫咪奖励
-            if self.appear_then_click(self.I_PET_PRESENT, action=self.C_WIN_3, interval=1):
+            if self.appear_then_click(self.I_PET_PRESENT, action=self.C_RANDOM_RIGHT, interval=1):
                 continue
 
             if not is_in_orochi():
@@ -296,18 +308,21 @@ class ScriptTask(GeneralBattle, GeneralInvite, GeneralBuff, GeneralRoom, GameUi,
                     pass
 
                 if not self.appear(self.I_OROCHI_FIRE):
-                    self.run_general_battle(config=self.config.orochi.general_battle_config)
+                    self.run_general_battle(
+                        config=self.config.orochi.general_battle_config,
+                        battle_key=self._orochi_battle_key(),
+                        exit_matcher=self.I_OROCHI_FIRE,
+                    )
                     break
 
-        self.ui_goto_page(page_main)
+        self.goto_page(page_main)
 
     def run_wild(self):
         logger.info('Start run wild')
 
         # 已经在战斗中不必初始化，保证已经组队开始战斗的情况下可以自动执行后续任务
         if not self.is_in_battle(True):
-            self.ui_get_current_page()
-            self.ui_goto(page_soul_zones)
+            self.goto_page(page_soul_zones)
             self.orochi_enter()
             layer = self.config.orochi.orochi_config.layer
             self.check_layer(layer)
@@ -334,7 +349,7 @@ class ScriptTask(GeneralBattle, GeneralInvite, GeneralBuff, GeneralRoom, GameUi,
                 continue
 
             # 检查猫咪奖励
-            if self.appear_then_click(self.I_PET_PRESENT, action=self.C_WIN_3, interval=1):
+            if self.appear_then_click(self.I_PET_PRESENT, action=self.C_RANDOM_RIGHT, interval=1):
                 continue
 
             if self.current_count >= self.limit_count:
@@ -369,7 +384,11 @@ class ScriptTask(GeneralBattle, GeneralInvite, GeneralBuff, GeneralRoom, GameUi,
 
                 self.screenshot()
                 if not self.appear(self.I_OROCHI_WILD_FIRE, threshold=0.8):
-                    self.run_general_battle(config=self.config.orochi.general_battle_config)
+                    self.run_general_battle(
+                        config=self.config.orochi.general_battle_config,
+                        battle_key=self._orochi_battle_key(),
+                        exit_matcher=any_of(self.I_OROCHI_WILD_FIRE, self.I_CHECK_TEAM),
+                    )
                     break
 
         # 当结束或者是失败退出循环的时候只有两个UI的可能，在房间或者是在组队界面
@@ -380,8 +399,7 @@ class ScriptTask(GeneralBattle, GeneralInvite, GeneralBuff, GeneralRoom, GameUi,
         if self.exit_team():
             pass
 
-        self.ui_get_current_page()
-        self.ui_goto(page_main)
+        self.goto_page(page_main)
 
         if not success:
             return False
@@ -395,65 +413,6 @@ class ScriptTask(GeneralBattle, GeneralInvite, GeneralBuff, GeneralRoom, GameUi,
             if self.appear(self.I_MATCHING) or self.appear(self.I_CHECK_EXPLORATION):
                 return True
         return False
-
-    def battle_wait(self, random_click_swipt_enable: bool) -> bool:
-        """
-        重写战斗等待
-        # https://github.com/runhey/OnmyojiAutoScript/issues/95
-        :param random_click_swipt_enable:
-        :return:
-        """
-        # 重写
-        self.device.stuck_record_add('BATTLE_STATUS_S')
-        self.device.click_record_clear()
-        self.C_REWARD_1.name = 'C_REWARD'
-        self.C_REWARD_2.name = 'C_REWARD'
-        self.C_REWARD_3.name = 'C_REWARD'
-        # 战斗过程 随机点击和滑动 防封
-        logger.info("Start battle process")
-        while 1:
-            self.screenshot()
-            action_click = random.choice([self.C_WIN_1, self.C_WIN_2, self.C_WIN_3])
-            if self.appear_then_click(self.I_WIN, action=action_click ,interval=0.8):
-                # 赢的那个鼓
-                continue
-            if self.appear(self.I_GREED_GHOST):
-                # 贪吃鬼
-                logger.info('Win battle')
-                self.wait_until_appear(self.I_REWARD, wait_time=1.5)
-                self.screenshot()
-                if not self.appear(self.I_GREED_GHOST):
-                    logger.warning('Greedy ghost disappear. Maybe it is a false battle')
-                    continue
-                while 1:
-                    self.screenshot()
-                    action_click = random.choice([self.C_REWARD_1, self.C_REWARD_2, self.C_REWARD_3])
-                    if not self.appear(self.I_GREED_GHOST):
-                        break
-                    if self.click(action_click, interval=1.5):
-                        continue
-                return True
-            if self.appear(self.I_REWARD):
-                # 魂
-                logger.info('Win battle')
-                appear_greed_ghost = self.appear(self.I_GREED_GHOST)
-                while 1:
-                    self.screenshot()
-                    action_click = random.choice([self.C_REWARD_1, self.C_REWARD_2, self.C_REWARD_3])
-                    if self.appear_then_click(self.I_REWARD, action=action_click, interval=1.5):
-                        continue
-                    if not self.appear(self.I_REWARD):
-                        break
-                return True
-
-            if self.appear(self.I_FALSE):
-                logger.warning('False battle')
-                self.ui_click_until_disappear(self.I_FALSE)
-                return False
-
-            # 如果开启战斗过程随机滑动
-            if random_click_swipt_enable:
-                self.random_click_swipt()
 
     def orochi_switch_soul(self) -> None:
         # 判断是否开启根据选层切换御魂
@@ -474,8 +433,7 @@ class ScriptTask(GeneralBattle, GeneralInvite, GeneralBuff, GeneralRoom, GameUi,
                 group_team = orochi_switch_soul.thirteen_switch
 
         if orochi_switch_soul.auto_switch_soul:
-            self.ui_get_current_page()
-            self.ui_goto(page_shikigami_records)
+            self.goto_page(page_shikigami_records)
             self.run_switch_soul(group_team)
 
 
@@ -487,11 +445,3 @@ if __name__ == '__main__':
     t = ScriptTask(c, d)
 
     t.run()
-
-
-
-
-
-
-
-

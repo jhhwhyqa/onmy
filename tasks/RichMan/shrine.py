@@ -18,8 +18,7 @@ class Shrine(GameUi, RichManAssets):
         if not con.enable:
             logger.info('Shrine is disabled')
             return
-        self.ui_get_current_page()
-        self.ui_goto(page_summon)
+        self.goto_page(page_summon)
 
         while 1:
             self.screenshot()
@@ -139,4 +138,5 @@ if __name__ == '__main__':
     t.execute_shrine(t.config.model.rich_man.shrine)
     # t.screenshot()
     # print(t.appear(t.I_S_BUY_WHITE_FIVE, threshold=0.9))
+
 

@@ -13,15 +13,9 @@ from tasks.Component.Costume.config import BattleType
 class ScriptTask(ScriptTaskBase):
 
     def run(self):
-        self.ui_get_current_page()
-        self.ui_goto(page_kekkai_toppa)
+        self.goto_page(page_kekkai_toppa)
 
         self.attack()
-
-        # self.fire(1)
-        # self.run_general_battle_back(con.general_battle_config)
-        # self.fire(1)
-        # self.run_general_battle_back(con.general_battle_config)
 
     @property
     def battle_config(self) -> GeneralBattleConfig:
@@ -53,7 +47,7 @@ class ScriptTask(ScriptTaskBase):
                 if self.appear(self.I_TOPPA_RECORD, threshold=0.85):
                     continue
                 logger.info("Start attach area [%s]" % str(index + 1))
-                return self.run_general_battle_back(config=self.battle_config)
+                return self.run_general_battle(config=self.build_quick_exit_config(self.battle_config))
 
             if self.appear_then_click(RealmRaidAssets.I_FIRE, interval=2, threshold=0.8):
                 click_failure_count += 1

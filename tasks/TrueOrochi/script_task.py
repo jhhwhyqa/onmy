@@ -7,6 +7,7 @@ from datetime import datetime, time
 from module.logger import logger
 from module.exception import TaskEnd, GameStuckError
 from module.base.timer import Timer
+from tasks.GameUi.default_pages import random_click
 
 from tasks.GameUi.game_ui import GameUi
 from tasks.Component.GeneralBattle.general_battle import GeneralBattle
@@ -32,18 +33,15 @@ class ScriptTask(OrochiScriptTask, TrueOrochiAssets):
 
         # 御魂切换方式一
         if self.config.true_orochi.switch_soul.enable:
-            self.ui_get_current_page()
-            self.ui_goto(page_shikigami_records)
+            self.goto_page(page_shikigami_records)
             self.run_switch_soul(self.config.true_orochi.switch_soul.switch_group_team)
         # 御魂切换方式二
         if self.config.true_orochi.switch_soul.enable_switch_by_name:
-            self.ui_get_current_page()
-            self.ui_goto(page_shikigami_records)
+            self.goto_page(page_shikigami_records)
             self.run_switch_soul_by_name(self.config.true_orochi.switch_soul.group_name,
                                          self.config.true_orochi.switch_soul.team_name)
 
-        self.ui_get_current_page()
-        self.ui_goto(page_soul_zones)
+        self.goto_page(page_soul_zones)
         self.orochi_enter()
         sleep(0.5)
         battle = self.check_true_orochi(True)
@@ -62,9 +60,6 @@ class ScriptTask(OrochiScriptTask, TrueOrochiAssets):
             count_orochi_ten = 0
             while 1:
                 self.screenshot()
-                # 检查猫咪奖励
-                if self.appear_then_click(self.I_PET_PRESENT, action=self.C_WIN_3, interval=1):
-                    continue
                 if not self.appear(self.I_OROCHI_FIRE):
                     continue
                 if self.check_true_orochi(False):
@@ -197,9 +192,9 @@ class ScriptTask(OrochiScriptTask, TrueOrochiAssets):
             logger.info('Reset current_success')
             self.config.true_orochi.true_orochi_config.current_success = 0
         else:
-            # 如果不是下一周，那么就加一
+            # 如果不是下一周且战斗成功那么就加一
             logger.info('Add current_success by 1')
-            self.config.true_orochi.true_orochi_config.current_success += 1
+            self.config.true_orochi.true_orochi_config.current_success += 1 if battle else 0
             self.config.true_orochi.true_orochi_config.current_success = min(2, self.config.true_orochi.true_orochi_config.current_success)
         self.config.save()
         self.set_next_run(task='TrueOrochi', target=next_run)
@@ -219,4 +214,5 @@ if __name__ == '__main__':
     t.screenshot()
 
     t.run()
+
 

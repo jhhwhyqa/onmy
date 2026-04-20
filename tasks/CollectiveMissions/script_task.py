@@ -28,7 +28,7 @@ class ScriptTask(GameUi, CollectiveMissionsAssets):
     current_mission: MC = None
 
     def run(self):
-        self.ui_goto_page(page_guild)
+        self.goto_page(page_guild)
         self.ui_click(self.I_CM_SHRINE, self.I_CM_CM)
         self.ui_click(self.I_CM_CM, self.I_CM_RECORDS)
         logger.info('Start to detect missions')
@@ -178,7 +178,7 @@ class ScriptTask(GameUi, CollectiveMissionsAssets):
         """退出到庭院"""
         self.ui_click(self.I_CM_CLOSE, self.I_CM_CM)
         self.ui_click(self.I_UI_BACK_YELLOW, self.I_CM_SHRINE)
-        self.ui_goto_page(page_main)
+        self.goto_page(page_main)
 
     def is_finish(self):
         """判断寮三十是否已经捐满"""
@@ -230,3 +230,4 @@ if __name__ == '__main__':
     t.screenshot()
 
     t.run()
+

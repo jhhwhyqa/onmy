@@ -5,10 +5,8 @@
 from module.atom.image import RuleImage
 from module.logger import logger
 
-from tasks.Component.Costume.config import (MainType, CostumeConfig, RealmType,
-                                            ThemeType, ShikigamiType, SignType, BattleType)
+from tasks.Component.Costume.config import (MainType, CostumeConfig, ShikigamiType, BattleType)
 from tasks.Component.Costume.assets import CostumeAssets
-from tasks.Component.CostumeRealm.assets import CostumeRealmAssets
 from tasks.Component.CostumeBattle.assets import CostumeBattleAssets
 from tasks.Component.CostumeShikigami.assets import CostumeShikigamiAssets
 
@@ -30,21 +28,9 @@ main_costume_model = {
     } for i in range(1, 14)
 }
 
-
-# 结界皮肤
-realm_costume_model = {
-    RealmType.COSTUME_REALM_1: {'I_SHI_CARD': 'I_SHI_CARD_1',
-                                'I_SHI_DEFENSE': 'I_SHI_DEFENSE_1',},
-    RealmType.COSTUME_REALM_2: {'I_SHI_CARD': 'I_SHI_CARD_2',
-                                'I_SHI_DEFENSE': 'I_SHI_DEFENSE_2',
-                                'I_SHI_GROWN': 'I_SHI_GROWN_2',
-                                'I_BOX_AP': 'I_BOX_AP_2',
-                                'I_BOX_EXP': 'I_BOX_EXP_2'},
-}
-
 # 战斗主题（使用循环处理常规情况 + 特例处理）
 battle_theme_model = {}
-for i in range(1, 11):
+for i in range(1, 13):
     entry = {
         'I_LOCAL': f'I_LOCAL_{i}',
         'I_EXIT': f'I_EXIT_{i}',
@@ -55,6 +41,12 @@ for i in range(1, 11):
             'I_WIN': 'I_WIN_8',
             'I_DE_WIN': 'I_DE_WIN_8',
             'I_FALSE': 'I_FALSE_8'
+        })
+    if i == 12:  # 特殊处理第12项
+        entry.update({
+            'I_WIN': 'I_WIN_12',
+            'I_DE_WIN': 'I_DE_WIN_12',
+            'I_FALSE': 'I_FALSE_12'
         })
     battle_theme_model[getattr(BattleType, f"COSTUME_BATTLE_{i}")] = entry
 
@@ -78,15 +70,15 @@ shikigami_costume_model = {
         'I_ST_SOULS': f'I_ST_SOULS_{i}',
         'I_ST_REPLACE': f'I_ST_REPLACE_{i}',
     }
-    for i in range(1, 8)  # 目前只有 COSTUME_SHIKIGAMI_1，如需扩展可改 range
+    for i in range(1, 9)  # 目前支持 COSTUME_SHIKIGAMI_1 到 COSTUME_SHIKIGAMI_8
 }
+
 
 class CostumeBase:
     def check_costume(self, config: CostumeConfig=None):
         if config is None:
             config: CostumeConfig = self.config.model.global_game.costume_config
         self.check_costume_main(config.costume_main_type)
-        self.check_costume_realm(config.costume_realm_type)
         self.check_costume_battle(config.costume_battle_type)
         self.check_costume_shikigami(config.costume_shikigami_type)
 
@@ -113,15 +105,6 @@ class CostumeBase:
             assert_value: RuleImage = getattr(costume_assets, value, None)
             if assert_value is None:
                 continue
-            self.replace_img(key, assert_value)
-
-    def check_costume_realm(self, realm_type: RealmType):
-        if realm_type == RealmType.COSTUME_REALM_DEFAULT:
-            return
-        logger.info(f'Switch realm theme {realm_type}')
-        costume_realm_assets = CostumeRealmAssets()
-        for key, value in realm_costume_model[realm_type].items():
-            assert_value: RuleImage = getattr(costume_realm_assets, value)
             self.replace_img(key, assert_value)
 
     def check_costume_battle(self, battle_type: BattleType):

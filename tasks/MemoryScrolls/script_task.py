@@ -17,8 +17,7 @@ from tasks.MemoryScrolls.config import ScrollNumber
 class ScriptTask(GameUi, MemoryScrollsAssets):
 
     def run(self):        
-        self.ui_get_current_page()
-        self.ui_goto(page_summon)
+        self.goto_page(page_summon)
         con = self.config.memory_scrolls.memory_scrolls_config
         # 进入绘卷主界面
         self.goto_memoryscrolls_main(con) 
@@ -61,7 +60,11 @@ class ScriptTask(GameUi, MemoryScrollsAssets):
                 logger.info('Small Memory Scrolls fragments reached 50, planning tomorrow exploration')
                 # 安排下次探索
                 self.custom_next_run(task='Exploration', custom_time=self.config.memory_scrolls.memory_scrolls_finish.next_exploration_time, time_delta=1)
-            self.ui_click_until_smt_disappear(self.I_MS_MAIN, stop=self.I_MS_FRAGMENT_S_VERIFICATION, interval=1.5)
+            else:
+                logger.warning('Small Memory Scrolls fragments not reached 50, task failed')
+                self.set_next_run(task='MemoryScrolls', success=False)
+                raise TaskEnd
+            self.ui_click_until_smt_disappear(self.I_MS_FRAGMENT_S, stop=self.I_MS_FRAGMENT_S_VERIFICATION, interval=1.5)
         # 进入指定分卷
         self.goto_scroll(con)
         # 返回召唤界面，目前只发现此种返回按键
@@ -160,6 +163,7 @@ if __name__ == '__main__':
     t.screenshot()
 
     t.run()
+
 
 
 

@@ -14,8 +14,9 @@ from tasks.Component.GeneralInvite.general_invite import GeneralInvite
 from tasks.Component.ReplaceShikigami.replace_shikigami import ReplaceShikigami
 from tasks.Exploration.assets import ExplorationAssets
 from tasks.Exploration.config import ChooseRarity, AutoRotate, AttackNumber, UpType
-from tasks.Component.GeneralBattle.general_battle import GeneralBattle
+from tasks.Component.GeneralBattle.general_battle import GeneralBattle, ExitMatcher
 from tasks.GameUi.game_ui import GameUi
+from tasks.GameUi.matcher import any_of
 from tasks.GameUi.page import page_exploration, page_shikigami_records, page_main
 from tasks.RealmRaid.script_task import ScriptTask as RealmRaidScriptTask
 from tasks.Utils.config_enum import ShikigamiClass
@@ -37,10 +38,11 @@ class Scene(Enum):
     TEAM = 6  # 组队
 
 
-
-
 class BaseExploration(GameUi, GeneralBattle, GeneralRoom, GeneralInvite, ReplaceShikigami, SwitchSoul, ExplorationAssets):
     minions_cnt = 0
+
+    def _exit_matcher(self) -> ExitMatcher:
+        return any_of(self.I_E_SETTINGS_BUTTON, self.I_E_AUTO_ROTATE_ON, self.I_E_AUTO_ROTATE_OFF)
 
     @cached_property
     def _config(self):
@@ -80,21 +82,18 @@ class BaseExploration(GameUi, GeneralBattle, GeneralRoom, GeneralInvite, Replace
     def pre_process(self):
         explorationConfig = self._config
         if explorationConfig.switch_soul_config.enable:
-            self.ui_get_current_page()
-            self.ui_goto(page_shikigami_records)
+            self.goto_page(page_shikigami_records)
             self.run_switch_soul(explorationConfig.switch_soul_config.switch_group_team)
 
         if explorationConfig.switch_soul_config.enable_switch_by_name:
-            self.ui_get_current_page()
-            self.ui_goto(page_shikigami_records)
+            self.goto_page(page_shikigami_records)
             self.run_switch_soul_by_name(explorationConfig.switch_soul_config.group_name,
                                          explorationConfig.switch_soul_config.team_name)
 
         # 开启加成
         con = self.config.exploration.exploration_config
         if con.buff_gold_50_click or con.buff_gold_100_click or con.buff_exp_50_click or con.buff_exp_100_click:
-            self.ui_get_current_page()
-            self.ui_goto(page_main)
+            self.goto_page(page_main)
             self.open_buff()
             if con.buff_gold_50_click:
                 self.gold_50()
@@ -106,12 +105,11 @@ class BaseExploration(GameUi, GeneralBattle, GeneralRoom, GeneralInvite, Replace
                 self.exp_100()
             self.close_buff()
 
-        self.ui_get_current_page()
         # 探索页面
-        self.ui_goto(page_exploration)
+        self.goto_page(page_exploration)
 
     def post_process(self):
-        self.ui_goto_page(page_main)
+        self.goto_page(page_main)
         con = self._config.exploration_config
         if con.buff_gold_50_click or con.buff_gold_100_click or con.buff_exp_50_click or con.buff_exp_100_click:
             self.open_buff()
@@ -271,7 +269,8 @@ class BaseExploration(GameUi, GeneralBattle, GeneralRoom, GeneralInvite, Replace
             matches = self.I_NORMAL_BATTLE_BUTTON.match_all(
                 image=self.device.image,
                 threshold=0.9,
-                roi=[roi_back_x, roi_back_y, roi_back_w, roi_back_h]
+                roi=[roi_back_x, roi_back_y, roi_back_w, roi_back_h],
+                frame_id=self.device.image_frame_id,
             )
             if not matches:
                 return None
@@ -305,7 +304,7 @@ class BaseExploration(GameUi, GeneralBattle, GeneralRoom, GeneralInvite, Replace
             return
 
         # 关闭加成
-        self.ui_goto_page(page_main)
+        self.goto_page(page_main)
         if con.buff_gold_50_click or con.buff_gold_100_click or con.buff_exp_50_click or con.buff_exp_100_click:
             self.open_buff()
             self.gold_50(is_open=False)
@@ -385,4 +384,3 @@ if __name__ == "__main__":
         time.sleep(0.2)
     from PIL import Image
     # Image.fromarray(t.device.image.astype(np.uint8)).show()
-

@@ -29,16 +29,13 @@ class ScriptTask(GeneralBattle, GeneralInvite, GeneralBuff, GeneralRoom, GameUi,
                                                seconds=limit_time.second)
         con = self.config.evo_zone
         if con.switch_soul_config.enable:
-            self.ui_get_current_page()
-            self.ui_goto(page_shikigami_records)
+            self.goto_page(page_shikigami_records)
             self.run_switch_soul(con.switch_soul_config.switch_group_team)
         if con.switch_soul_config.enable_switch_by_name:
-            self.ui_get_current_page()
-            self.ui_goto(page_shikigami_records)
+            self.goto_page(page_shikigami_records)
             self.run_switch_soul_by_name(con.switch_soul_config.group_name, con.switch_soul_config.team_name)
 
-        self.ui_get_current_page()
-        self.ui_goto(page_main)
+        self.goto_page(page_main)
         config: EvoZone = self.config.evo_zone
         if config.evo_zone_config.soul_buff_enable:
             self.open_buff()
@@ -124,9 +121,8 @@ class ScriptTask(GeneralBattle, GeneralInvite, GeneralBuff, GeneralRoom, GameUi,
 
     def run_leader(self):
         logger.info('Start run leader')
-        self.ui_get_current_page()
-        # self.ui_goto(page_soul_zones)
-        self.ui_goto(page_awake_zones)
+        # self.goto_page(page_soul_zones)
+        self.goto_page(page_awake_zones)
         self.evozone_enter()
         layer = self.config.evo_zone.evo_zone_config.layer
         logger.info("test0")
@@ -159,7 +155,7 @@ class ScriptTask(GeneralBattle, GeneralInvite, GeneralBuff, GeneralRoom, GameUi,
                 continue
 
             # 检查猫咪奖励
-            if self.appear_then_click(self.I_PET_PRESENT, action=self.C_WIN_3, interval=1):
+            if self.appear_then_click(self.I_PET_PRESENT, action=self.C_RANDOM_RIGHT, interval=1):
                 continue
 
             if self.current_count >= self.limit_count:
@@ -188,7 +184,10 @@ class ScriptTask(GeneralBattle, GeneralInvite, GeneralBuff, GeneralRoom, GameUi,
             # 点击挑战
             if not is_first:
                 if self.run_invite(config=self.config.evo_zone.invite_config):
-                    self.run_general_battle(config=self.config.evo_zone.general_battle_config)
+                    self.run_general_battle(
+                        config=self.config.evo_zone.general_battle_config,
+                        exit_matcher=self.I_CHECK_TEAM,
+                    )
                 else:
                     # 邀请失败，退出任务
                     logger.warning('Invite failed and exit this EvoZone task')
@@ -203,7 +202,10 @@ class ScriptTask(GeneralBattle, GeneralInvite, GeneralBuff, GeneralRoom, GameUi,
                     break
                 else:
                     is_first = False
-                    self.run_general_battle(config=self.config.evo_zone.general_battle_config)
+                    self.run_general_battle(
+                        config=self.config.evo_zone.general_battle_config,
+                        exit_matcher=self.I_CHECK_TEAM,
+                    )
 
         # 当结束或者是失败退出循环的时候只有两个UI的可能，在房间或者是在组队界面
         # 如果在房间就退出
@@ -213,8 +215,7 @@ class ScriptTask(GeneralBattle, GeneralInvite, GeneralBuff, GeneralRoom, GameUi,
         if self.exit_team():
             pass
 
-        self.ui_get_current_page()
-        self.ui_goto(page_main)
+        self.goto_page(page_main)
 
         if not success:
             return False
@@ -222,8 +223,7 @@ class ScriptTask(GeneralBattle, GeneralInvite, GeneralBuff, GeneralRoom, GameUi,
 
     def run_member(self):
         logger.info('Start run member')
-        self.ui_get_current_page()
-        # self.ui_goto(page_soul_zones)
+        # self.goto_page(page_soul_zones)
         # self.evozone_enter()
         # self.check_lock(self.config.evo_zone.general_battle_config.lock_team_enable)
 
@@ -233,7 +233,7 @@ class ScriptTask(GeneralBattle, GeneralInvite, GeneralBuff, GeneralRoom, GameUi,
             self.screenshot()
 
             # 检查猫咪奖励
-            if self.appear_then_click(self.I_PET_PRESENT, action=self.C_WIN_3, interval=1):
+            if self.appear_then_click(self.I_PET_PRESENT, action=self.C_RANDOM_RIGHT, interval=1):
                 continue
 
             if self.current_count >= self.limit_count:
@@ -249,7 +249,10 @@ class ScriptTask(GeneralBattle, GeneralInvite, GeneralBuff, GeneralRoom, GameUi,
             if self.is_in_room():
                 self.device.stuck_record_clear()
                 if self.wait_battle(wait_time=self.config.evo_zone.invite_config.wait_time):
-                    self.run_general_battle(config=self.config.evo_zone.general_battle_config)
+                    self.run_general_battle(
+                        config=self.config.evo_zone.general_battle_config,
+                        exit_matcher=self.I_CHECK_TEAM,
+                    )
                 else:
                     break
             # 队长秒开的时候，检测是否进入到战斗中
@@ -267,14 +270,12 @@ class ScriptTask(GeneralBattle, GeneralInvite, GeneralBuff, GeneralRoom, GameUi,
             if self.exit_battle():
                 pass
 
-        self.ui_get_current_page()
-        self.ui_goto(page_main)
+        self.goto_page(page_main)
         return True
 
     def run_alone(self):
         logger.info('Start run alone')
-        self.ui_get_current_page()
-        self.ui_goto(page_awake_zones)
+        self.goto_page(page_awake_zones)
         self.evozone_enter()
         layer = self.config.evo_zone.evo_zone_config.layer
         self.check_layer(layer)
@@ -289,7 +290,7 @@ class ScriptTask(GeneralBattle, GeneralInvite, GeneralBuff, GeneralRoom, GameUi,
             self.screenshot()
 
             # 检查猫咪奖励
-            if self.appear_then_click(self.I_PET_PRESENT, action=self.C_WIN_3, interval=1):
+            if self.appear_then_click(self.I_PET_PRESENT, action=self.C_RANDOM_RIGHT, interval=1):
                 continue
 
             if not is_in_evozone():
@@ -309,11 +310,14 @@ class ScriptTask(GeneralBattle, GeneralInvite, GeneralBuff, GeneralRoom, GameUi,
                     pass
 
                 if not self.appear(self.I_EVOZONE_FIRE):
-                    self.run_general_battle(config=self.config.evo_zone.general_battle_config)
+                    self.run_general_battle(
+                        config=self.config.evo_zone.general_battle_config,
+                        exit_matcher=self.I_EVOZONE_FIRE,
+                    )
                     break
 
         # 回去
-        self.ui_goto_page(page_main)
+        self.goto_page(page_main)
 
     def run_wild(self):
         logger.error('Wild mode is not implemented')

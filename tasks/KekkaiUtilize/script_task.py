@@ -9,10 +9,11 @@ from datetime import timedelta, datetime
 from module.base.timer import Timer
 from module.atom.image_grid import ImageGrid
 from module.logger import logger
-from module.exception import TaskEnd
+from module.exception import TaskEnd, GamePageUnknownError
 
 from tasks.GameUi.game_ui import GameUi
-from tasks.KekkaiUtilize.page import page_guild_realm, page_guild_realm_utilize, page_guild_realm_growth
+from tasks.KekkaiUtilize.page import page_guild_realm, page_guild_realm_utilize, page_guild_realm_growth, \
+    page_friend_utilize
 from tasks.Utils.config_enum import ShikigamiClass
 from tasks.KekkaiUtilize.assets import KekkaiUtilizeAssets
 from tasks.KekkaiUtilize.config import UtilizeRule, SelectFriendList
@@ -35,7 +36,7 @@ class ScriptTask(GameUi, ReplaceShikigami, KekkaiUtilizeAssets):
     def run(self):
         con = self.config.kekkai_utilize.utilize_config
         # 进入寮结界
-        self.ui_goto_page(page_guild_realm)
+        self.goto_page(page_guild_realm)
         # 育成界面去蹭卡
         if con.utilize_enable:
             self.check_utilize_add()
@@ -55,16 +56,15 @@ class ScriptTask(GameUi, ReplaceShikigami, KekkaiUtilizeAssets):
 
     def recive_guild_ap_or_assets(self, max_tries: int = 3):
         for i in range(1, max_tries+1):
-            self.ui_get_current_page()
-            self.ui_goto(page_guild)
+            self.goto_page(page_guild)
             # 在寮的主界面 检查是否有收取体力或者是收取寮资金
             if self.check_guild_ap_or_assets():
                 logger.warning(f'第[{i}]次检查寮收获,成功')
-                self.ui_goto(page_main)
+                self.goto_page(page_main)
                 break
             else:
                 logger.warning(f'第[{i}]次检查寮收获寮收获,失败')
-            self.ui_goto(page_main)
+            self.goto_page(page_main)
 
     def check_utilize_add(self):
         con = self.config.kekkai_utilize.utilize_config
@@ -79,9 +79,8 @@ class ScriptTask(GameUi, ReplaceShikigami, KekkaiUtilizeAssets):
             # 无论收不收到菜，都会进入看看至少看一眼时间还剩多少
             time.sleep(0.5)
             # 进入育成界面
-            self.ui_goto_page(page_guild_realm_growth)
+            self.goto_page(page_guild_realm_growth)
             self.screenshot()
-
             if not self.appear(self.I_UTILIZE_ADD):
                 remaining_time = self.O_UTILIZE_RES_TIME.ocr(self.device.image)
                 if not isinstance(remaining_time, timedelta):
@@ -92,11 +91,11 @@ class ScriptTask(GameUi, ReplaceShikigami, KekkaiUtilizeAssets):
                 next_time = datetime.now() + remaining_time
                 self.set_next_run(task='KekkaiUtilize', target=next_time)
                 return
-            if not self.ui_goto_page(page_guild_realm_utilize):
+            if not self.goto_page(page_guild_realm_utilize):
                 logger.info('Utilize failed, exit')
             # 开始执行寄养
             self.run_utilize(con.select_friend_list, con.shikigami_class, con.shikigami_order)
-            self.ui_goto_page(page_guild_realm)
+            self.goto_page(page_guild_realm)
 
     def check_max_lv(self, shikigami_class: ShikigamiClass = ShikigamiClass.N):
         """
@@ -104,7 +103,7 @@ class ScriptTask(GameUi, ReplaceShikigami, KekkaiUtilizeAssets):
         退出的时候还是结界界面
         :return:
         """
-        self.ui_goto_page(page_guild_realm_growth)
+        self.goto_page(page_guild_realm_growth)
         if self.appear(self.I_RS_LEVEL_MAX):
             # 存在满级的式神
             logger.info('Exist max level shikigami and replace it')
@@ -119,7 +118,7 @@ class ScriptTask(GameUi, ReplaceShikigami, KekkaiUtilizeAssets):
             self.set_shikigami(shikigami_order=7, stop_image=self.I_RS_NO_ADD)
 
         # 回到结界界面
-        self.ui_goto_page(dest_page=page_guild_realm)
+        self.goto_page(page_guild_realm)
 
     def check_guild_ap_or_assets(self, ap_enable: bool = True, assets_enable: bool = True) -> bool:
         """
@@ -179,16 +178,6 @@ class ScriptTask(GameUi, ReplaceShikigami, KekkaiUtilizeAssets):
         :return:
         """
 
-        # 退出到寮结界
-        def _exit_to_realm():
-            # 右上方关闭红色
-            while 1:
-                self.screenshot()
-                if self.appear(self.I_REALM_SHIN):
-                    break
-                if self.appear_then_click(self.I_UI_BACK_RED, interval=1):
-                    continue
-
         # 先是体力盒子
         def _check_ap_box(appear: bool = False):
             if not appear:
@@ -217,7 +206,7 @@ class ScriptTask(GameUi, ReplaceShikigami, KekkaiUtilizeAssets):
                     logger.warning('Extract ap box timeout')
                     break
             logger.info('Extract AP box finished')
-            _exit_to_realm()
+            return True
 
         # 经验盒子
         def _check_exp_box(appear: bool = False):
@@ -239,14 +228,14 @@ class ScriptTask(GameUi, ReplaceShikigami, KekkaiUtilizeAssets):
                         logger.info('No cancel button')
                         continue
                     if exp_waste:
-                        check_button = self.I_UI_CONFIRM
+                        target_button = self.I_UI_CONFIRM
                     else:
-                        check_button = self.I_UI_CANCEL
+                        target_button = self.I_UI_CANCEL
                     while 1:
                         self.screenshot()
-                        if not self.appear(check_button):
+                        if not self.appear(target_button):
                             break
-                        if self.appear_then_click(check_button, interval=1):
+                        if self.appear_then_click(target_button, interval=1):
                             continue
                     break
 
@@ -266,7 +255,7 @@ class ScriptTask(GameUi, ReplaceShikigami, KekkaiUtilizeAssets):
                 if time_exp.reached():
                     logger.warning('Extract exp box timeout')
                     break
-            _exit_to_realm()
+            return True
 
         self.screenshot()
         box_ap = self.appear(self.I_BOX_AP)
@@ -275,6 +264,7 @@ class ScriptTask(GameUi, ReplaceShikigami, KekkaiUtilizeAssets):
             _check_ap_box(box_ap)
         if exp_enable:
             _check_exp_box(box_exp)
+        self.goto_page(page_guild_realm)
 
     def check_utilize_harvest(self) -> bool:
         """
@@ -386,34 +376,12 @@ class ScriptTask(GameUi, ReplaceShikigami, KekkaiUtilizeAssets):
             logger.warning('Cannot find enter realm button')
             # 可能是滑动的时候出错
             logger.warning('The best reason is that the swipe is wrong')
-            return
-        wait_timer = Timer(20)
-        wait_timer.start()
-        while 1:
-            self.screenshot()
-            if self.appear(self.I_U_ADD_1) or self.appear(self.I_U_ADD_2):
-                logger.info('Appear enter friend realm button')
-                break
-            if self.appear(self.I_CHECK_FRIEND_REALM_1):
-                self.wait_until_stable(self.I_CHECK_FRIEND_REALM_1)
-                logger.info('Appear enter friend realm button')
-                break
-            if self.appear(self.I_CHECK_FRIEND_REALM_3):
-                self.wait_until_stable(self.I_CHECK_FRIEND_REALM_3)
-                logger.info('Appear enter friend realm button')
-                break
-            if wait_timer.reached():
-                self.save_image(wait_time=0, push_flag=False, content='进入好友结界超时', image_type='png')
-                logger.warning('Appear friend realm timeout')
-                return
-            if self.appear_then_click(self.I_CHECK_FRIEND_REALM_2, interval=1.5):
-                logger.info('Click too fast to enter the friend\'s realm pool')
-                continue
-            if self.appear_then_click(self.I_U_ENTER_REALM, interval=2.5):
-                time.sleep(0.5)
-                continue
-        logger.info('Enter friend realm')
-
+            return None
+        try:
+            self.goto_page(page_friend_utilize)
+        except GamePageUnknownError:
+            logger.warning('Appear friend realm failed')
+            return None
         # 判断好友的有两个位置还是一个坑位
         stop_image = None
         self.screenshot()
@@ -525,7 +493,7 @@ class ScriptTask(GameUi, ReplaceShikigami, KekkaiUtilizeAssets):
 
             # ------ 步骤1: 截图识别结界卡 ------#
             self.screenshot()
-            cards = self.order_targets.find_everyone(self.device.image)
+            cards = self.order_targets.find_everyone(self.device.image, frame_id=self.device.image_frame_id)
 
             # 处理无卡情况
             if not cards:
@@ -656,3 +624,4 @@ if __name__ == "__main__":
     # t.screenshot()
     # print(t.appear(t.I_BOX_EXP, threshold=0.6))
     # print(t.appear(t.I_BOX_EXP_MAX, threshold=0.6))
+

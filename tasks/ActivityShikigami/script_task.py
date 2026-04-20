@@ -5,8 +5,6 @@ from cryptography.x509 import OCSPNonce
 from enum import Enum, auto
 from time import sleep
 from datetime import datetime, timedelta
-import cv2
-import numpy as np
 import random
 from tasks.DemonEncounter.data.answer import remove_symbols, Answer
 from tasks.Quiz.debug import Debugger
@@ -116,8 +114,7 @@ class ScriptTask(StateMachine, GameUi, BaseActivity, SwitchSoul, ActivityShikiga
         #
         for climb_type in self.conf.general_climb.run_sequence_v:
             # 进入到活动的主页面，不是具体的战斗页面
-            self.ui_get_current_page()
-            self.ui_goto(game.page_climb_act)
+            self.goto_page(game.page_climb_act)
             try:
                 method_func = getattr(self, f'_run_{climb_type}')
                 method_func()
@@ -131,8 +128,7 @@ class ScriptTask(StateMachine, GameUi, BaseActivity, SwitchSoul, ActivityShikiga
 
         # 返回庭院
         logger.hr("Exit Shikigami", 2)
-        self.ui_get_current_page(False)
-        self.ui_goto(game.page_main)
+        self.goto_page(game.page_main)
         if self.conf.general_climb.active_souls_clean:
             self.set_next_run(task='SoulsTidy', success=False, finish=False, target=datetime.now())
         self.set_next_run(task="ActivityShikigami", success=True)
@@ -260,7 +256,7 @@ class ScriptTask(StateMachine, GameUi, BaseActivity, SwitchSoul, ActivityShikiga
                 break
             if self.appear_then_click(self.I_UI_CONFIRM, interval=1) or self.appear_then_click(self.I_UI_CONFIRM_SAMLL, interval=1):
                 continue
-            self.try_close_unknown_page()
+            self.close_unknown_pages()
 
     def detect_question_and_answers(self) -> tuple:
         self.screenshot()
@@ -372,7 +368,7 @@ class ScriptTask(StateMachine, GameUi, BaseActivity, SwitchSoul, ActivityShikiga
             if self.appear_then_click(self.I_PASS_13, interval=2):
                 self.run_general_battle(config=self.get_general_battle_conf())
                 continue
-        self.ui_goto_page(game.page_climb_act)
+        self.goto_page(game.page_climb_act)
 
     def start_battle(self):
         click_times, max_times = 0, random.randint(3, 4)
@@ -533,3 +529,4 @@ class ScriptTask(StateMachine, GameUi, BaseActivity, SwitchSoul, ActivityShikiga
 
 if __name__ == '__main__':
     print([1, 2, 3][2])
+

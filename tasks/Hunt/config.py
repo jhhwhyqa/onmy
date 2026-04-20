@@ -21,7 +21,8 @@ class HuntConfig(BaseModel):
 
 
 class HuntGeneralBattleConfig(GeneralBattleConfig):
-    hide_fields = dynamic_hide('lock_team_enable', 'green_enable', 'green_mark')
+    battle_timeout: int = Field(default=1200, description='battle_timeout_help')
+    hunt_hide_fields = dynamic_hide('lock_team_enable', 'green_enable', 'green_mark')
 
 
 class Hunt(ConfigBase):
@@ -29,4 +30,6 @@ class Hunt(ConfigBase):
     hunt_time: HuntTime = Field(default_factory=HuntTime)
     hunt_config: HuntConfig = Field(default_factory=HuntConfig)
     kirin_battle_config: HuntGeneralBattleConfig = Field(default_factory=HuntGeneralBattleConfig)
-    netherworld_battle_config: HuntGeneralBattleConfig = Field(default_factory=HuntGeneralBattleConfig)
+    netherworld_battle_config: HuntGeneralBattleConfig = Field(
+        default_factory=lambda: HuntGeneralBattleConfig(continuous_battle=True)
+    )

@@ -32,29 +32,24 @@ class ScriptTask(GameUi, SwitchSoul, MoonSea):
 
     def run(self):
         if self._config.switch_soul_config_1.enable:
-            self.ui_get_current_page()
-            self.ui_goto(page_shikigami_records)
+            self.goto_page(page_shikigami_records)
             self.run_switch_soul(self._config.switch_soul_config_1.switch_group_team)
         if self._config.switch_soul_config_1.enable_switch_by_name:
-            self.ui_get_current_page()
-            self.ui_goto(page_shikigami_records)
+            self.goto_page(page_shikigami_records)
             self.run_switch_soul_by_name(
                 self._config.switch_soul_config_1.group_name,
                 self._config.switch_soul_config_1.team_name
             )
         if self._config.switch_soul_config_2.enable:
-            self.ui_get_current_page()
-            self.ui_goto(page_shikigami_records)
+            self.goto_page(page_shikigami_records)
             self.run_switch_soul(self._config.switch_soul_config_2.switch_group_team)
         if self._config.switch_soul_config_2.enable_switch_by_name:
-            self.ui_get_current_page()
-            self.ui_goto(page_shikigami_records)
+            self.goto_page(page_shikigami_records)
             self.run_switch_soul_by_name(
                 self._config.switch_soul_config_2.group_name,
                 self._config.switch_soul_config_2.team_name
             )
-        self.ui_get_current_page()
-        self.ui_goto(page_six_gates)
+        self.goto_page(page_six_gates)
 
         self.run_moon_sea()
 
@@ -87,3 +82,4 @@ if __name__ == '__main__':
     t.screenshot()
 
     t.run()
+

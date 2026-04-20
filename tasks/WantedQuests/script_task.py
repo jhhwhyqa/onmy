@@ -6,13 +6,13 @@ from time import sleep
 from typing import List
 
 import re
-import cv2
 from cached_property import cached_property
 
 from module.atom.image import RuleImage
 from module.atom.ocr import RuleOcr
 from module.base.timer import Timer
 from module.exception import TaskEnd
+from module.image.recipes import match_highlight_rule
 from module.logger import logger
 from tasks.Component.Costume.config import MainType
 from tasks.Component.GeneralBattle.config_general_battle import GeneralBattleConfig
@@ -37,12 +37,10 @@ class ScriptTask(WQExplore, SecretScriptTask, WantedQuestsAssets):
 
         # 自动换御魂
         if con.switch_soul_config.enable:
-            self.ui_get_current_page()
-            self.ui_goto(page_shikigami_records)
+            self.goto_page(page_shikigami_records)
             self.run_switch_soul(con.switch_soul_config.switch_group_team)
         if con.switch_soul_config.enable_switch_by_name:
-            self.ui_get_current_page()
-            self.ui_goto(page_shikigami_records)
+            self.goto_page(page_shikigami_records)
             self.run_switch_soul_by_name(con.switch_soul_config.group_name, con.switch_soul_config.team_name)
 
         preSuc = False
@@ -194,8 +192,7 @@ class ScriptTask(WQExplore, SecretScriptTask, WantedQuestsAssets):
         前置工作，
         :return:
         """
-        self.ui_get_current_page()
-        self.ui_goto(page_main)
+        self.goto_page(page_main)
         done_timer = Timer(5)
         while 1:
             self.screenshot()
@@ -227,13 +224,13 @@ class ScriptTask(WQExplore, SecretScriptTask, WantedQuestsAssets):
             else:
                 self.invite_five()
         self.ui_click_until_disappear(self.I_UI_BACK_RED)
-        self.ui_goto(page_exploration)
+        self.goto_page(page_exploration)
         return True
 
     def pre_work_cooperation_only(self):
         #
-        if self.ui_get_current_page() != page_main:
-            self.ui_goto(page_main)
+        if self.get_current_page() != page_main:
+            self.goto_page(page_main)
         # 打开悬赏封印 界面
         done_timer = Timer(5)
         while 1:
@@ -269,7 +266,7 @@ class ScriptTask(WQExplore, SecretScriptTask, WantedQuestsAssets):
         self.all_cooperation_invite()
 
         self.ui_click_until_disappear(self.I_UI_BACK_RED)
-        self.ui_goto(page_exploration)
+        self.goto_page(page_exploration)
         return True
 
     def trace_one(self, btn: RuleImage):
@@ -405,7 +402,7 @@ class ScriptTask(WQExplore, SecretScriptTask, WantedQuestsAssets):
         self.ui_click_until_disappear(self.I_WQC_FIRE)
         # 锁定阵容进入战斗
         wq_config = GeneralBattleConfig(lock_team_enable=True)
-        self.run_general_battle(config=wq_config)
+        self.run_general_battle(config=wq_config, exit_matcher=self.I_WQC_FIRE)
         self.wait_until_appear(self.I_WQC_FIRE, wait_time=4)
         self.ui_click_until_disappear(self.I_UI_BACK_RED)
         # 我忘记了打完后是否需要关闭 挑战界面
@@ -431,7 +428,7 @@ class ScriptTask(WQExplore, SecretScriptTask, WantedQuestsAssets):
                         click_count = 0
                         self.device.click_record_clear()
                     continue
-            success = self.run_general_battle(self.battle_config)
+            success = self.run_general_battle(self.battle_config, exit_matcher=self.I_WQSE_FIRE)
         while 1:
             self.screenshot()
             if self.appear(self.I_CHECK_EXPLORATION):
@@ -611,36 +608,7 @@ class ScriptTask(WQExplore, SecretScriptTask, WantedQuestsAssets):
 
     # 使用平均亮度检测是否一致
     def appear_highlight(self, rule_image: RuleImage):
-        def compute_region_brightness(img, top_left, width, height):
-            """
-            计算目标区域的平均亮度 (灰度图的平均值)
-            :param img: 目标图像
-            :param top_left: 匹配区域的左上角坐标
-            :param width: 模板宽度
-            :param height: 模板高度
-            :return: 区域亮度均值
-            """
-            # 裁剪出匹配区域
-            region = img[top_left[1]:top_left[1] + height, top_left[0]:top_left[0] + width]
-            # 转为灰度图
-            gray_region = cv2.cvtColor(region, cv2.COLOR_BGR2GRAY)
-            # 计算灰度均值
-            return gray_region.mean()
-
-        src = rule_image.corp(self.device.image)
-        template = rule_image.image
-        result = cv2.matchTemplate(src, template, cv2.TM_CCOEFF_NORMED)
-        _, max_val, _, max_loc = cv2.minMaxLoc(result)
-
-        brightness_src = compute_region_brightness(src, max_loc, template.shape[1], template.shape[0])
-        brightness_template = compute_region_brightness(template, (0, 0), template.shape[1], template.shape[0])
-
-        if max_val > rule_image.threshold and (brightness_src >= brightness_template * rule_image.threshold) and (
-                brightness_src <= brightness_template * (2 - rule_image.threshold)):
-            rule_image.roi_front[0] = max_loc[0] + rule_image.roi_back[0]
-            rule_image.roi_front[1] = max_loc[1] + rule_image.roi_back[1]
-            return True
-        return False
+        return match_highlight_rule(rule_image, self.device.image, frame_id=self.device.image_frame_id)
 
     @cached_property
     def special_main(self) -> bool:
@@ -755,11 +723,5 @@ if __name__ == '__main__':
     c = Config('oas1')
     d = Device(c)
     t = ScriptTask(c, d)
-    # import cv2
-    #
-    # img = cv2.imread(r'E:\2.png')
-    # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    #
-    # res = t.find_wq(img)
 
     t.run()

@@ -9,11 +9,9 @@ import time
 from datetime import timedelta
 from time import sleep
 
-import cv2
 import numpy as np
 from cached_property import cached_property
 from future.backports.datetime import datetime
-from sympy.plotting.intervalmath import interval
 
 from module.atom.click import RuleClick
 from module.atom.gif import RuleGif
@@ -29,11 +27,10 @@ from tasks.Component.SwitchSoul.switch_soul import SwitchSoul
 from tasks.Component.config_base import Time
 from tasks.Dokan.config import Dokan
 from tasks.Dokan.dokan_scene import DokanScene, DokanSceneDetector
-from tasks.Dokan.ex_green_mark import ExtendGreenMark
-from tasks.Dokan.utils import detect_safe_area2
+from module.image.recipes.dokan import detect_safe_area2
+from module.image.recipes.dokan_green_mark import ExtendGreenMark
 from tasks.GameUi.game_ui import GameUi
 from tasks.GameUi.page import page_shikigami_records, page_guild, page_main, random_click
-from tasks.Hyakkiyakou.utils.fast_device import FastDevice
 
 
 class ScriptTask(ExtendGreenMark, GameUi, SwitchSoul, DokanSceneDetector):
@@ -88,7 +85,7 @@ class ScriptTask(ExtendGreenMark, GameUi, SwitchSoul, DokanSceneDetector):
         while is_dokan_activated:
             self.screenshot()
 
-            # 检测当前界面的场景（时间关系，暂时没有做庭院、町中等主界面的场景检测, 应考虑在GameUI.game_ui.ui_get_current_page()里实现）
+            # 检测当前界面的场景（时间关系，暂时没有做庭院、町中等主界面的场景检测, 应考虑在GameUI.game_ui.get_current_page()里实现）
             in_dokan, current_scene = self.get_current_scene(True)
             logger.info(f"in_dokan={in_dokan}, current_scene={current_scene}")
 
@@ -522,8 +519,7 @@ class ScriptTask(ExtendGreenMark, GameUi, SwitchSoul, DokanSceneDetector):
                 self.ui_click_until_disappear(self.I_RYOU_DOKAN, interval=1)
                 continue
             if not in_dokan:
-                self.ui_get_current_page()
-                self.ui_goto(page_guild)
+                self.goto_page(page_guild)
                 continue
         self.device.screenshot_interval_set()
         return True
@@ -916,35 +912,34 @@ class ScriptTask(ExtendGreenMark, GameUi, SwitchSoul, DokanSceneDetector):
         @return:
         @rtype:
         """
-        if skip_today:
-            self.set_next_run(task="Dokan", finish=False, success=True, server=True)
-            return
-        # 道馆没有开启
         now = datetime.now()
         run_time: Time = self.config.model.dokan.dokan_config.dokan_run_time
-        run_time = datetime.combine(now.date(), run_time)
+        run_time_dt = datetime.combine(now.date(), run_time)
+        if skip_today:
+            self.set_next_run(task="Dokan", server=False, target=datetime.combine(now.date() + timedelta(days=1), run_time))
+            return
+        # 道馆没有开启
         if not is_dokan_activated:
             # 在服务器时间之前,设置为服务器时间
-            if now < run_time:
-                self.set_next_run(task="Dokan", target=now.replace(hour=run_time.hour, minute=run_time.minute))
+            if now < run_time_dt:
+                self.set_next_run(task="Dokan", server=False, target=run_time_dt)
                 return
-            # 在服务器时间之后,如超过两小时,则直接当作成功;未超过则当作失败
-            if now - run_time > timedelta(hours=1):
-                self.set_next_run(task="Dokan", finish=False, success=True, server=True)
+            # 在服务器时间之后,如超过1小时,则直接当作成功;未超过则当作失败
+            if now - run_time_dt > timedelta(hours=1):
+                self.set_next_run(task="Dokan", server=False, target=datetime.combine(now.date() + timedelta(days=1), run_time))
                 return
             # 时间在道馆开启时间附近，failure_interval后执行
-
-            self.set_next_run(task="Dokan", target=now + self.config.dokan.scheduler.failure_interval)
+            self.set_next_run(task="Dokan", server=False, target=now + self.config.dokan.scheduler.failure_interval)
         # 道馆已开启
         if is_dokan_activated:
             # 如果打两次,当前是第一次,设置为failure_interval后运行
             #   # 本来以为server为False(finish=True,success=False,server=False)就不会变成明天，谁知道还是变成明天
             #   # 逻辑太复杂,不如直接target，简单点
             if self.config.dokan.attack_count_config.remain_attack_count == 1 and self.config.dokan.attack_count_config.daily_attack_count == 2:
-                self.set_next_run(task="Dokan", target=now + self.config.dokan.scheduler.failure_interval)
+                self.set_next_run(task="Dokan", server=False, target=now + self.config.dokan.scheduler.failure_interval)
                 return
             # 其余情况当作成功
-            self.set_next_run(task="Dokan", finish=False, success=True, server=True)
+            self.set_next_run(task="Dokan", server=False, target=datetime.combine(now.date() + timedelta(days=1), run_time))
 
     def position_offset(self, src, offset: tuple):
         return (src[0] + offset[0], src[1] + offset[1]
@@ -1121,35 +1116,3 @@ class ScriptTask(ExtendGreenMark, GameUi, SwitchSoul, DokanSceneDetector):
         self.stop_green_mark()
         logger.info(f"Win: {win}")
         return win
-
-
-if __name__ == "__main__":
-    from module.config.config import Config
-    from module.device.device import Device
-
-    # config = Config('oas1')
-    # device = Device(config)
-    # t = ScriptTask(config, device)
-    # t.run()
-
-    # test_ocr_locate_dokan_target()
-    # test_anti_detect_random_click()
-    # test_goto_main()
-
-    config = Config('测试')
-    device = Device(config)
-    t = ScriptTask(config, device)
-
-    t.config.dokan.attack_count_config.init_attack_count(t.config.save)
-    img = cv2.imread(r'E:\1.png')
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    t.device.image = img
-    isapear = t.I_RYOU_DOKAN_REMAIN_ATTACK_COUNT_ONE.match(img, threshold=0.8)
-    # isappear=t.appear(t.I_RYOU_DOKAN_REMAIN_ATTACK_COUNT_ONE)
-    t.update_remain_attack_count()
-    t.config.dokan.attack_count_config.set_attack_count(3, t.config.save)
-    t.config.dokan.attack_count_config.del_attack_count(1, t.config.save)
-
-    img = cv2.imread(r'E:\1.png')
-    res = t.I_RYOU_DOKAN_START_CHALLENGE.match(img, threshold=0.8)
-    print(res)

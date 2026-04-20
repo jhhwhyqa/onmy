@@ -199,15 +199,15 @@ class RichManAssets:
 	# Ocr Rule Assets
 	# 左数第一个 
 	O_MALL_RESOURCE_1 = RuleOcr(roi=(202,8,100,43), area=(202,8,100,43), mode="Quantity", method="Default", keyword="", name="mall_resource_1")
-	# 左数第二个 
+	# 左数第二个
 	O_MALL_RESOURCE_2 = RuleOcr(roi=(393,11,86,39), area=(393,11,86,39), mode="Quantity", method="Default", keyword="", name="mall_resource_2")
-	# 左数第二个 
+	# 左数第二个
 	O_MALL_RESOURCE_3 = RuleOcr(roi=(578,11,87,38), area=(578,11,87,38), mode="Quantity", method="Default", keyword="", name="mall_resource_3")
-	# 左数第二个 
+	# 左数第二个
 	O_MALL_RESOURCE_4 = RuleOcr(roi=(765,10,86,38), area=(765,10,86,38), mode="Quantity", method="Default", keyword="", name="mall_resource_4")
-	# 左数第二个 
+	# 左数第二个
 	O_MALL_RESOURCE_5 = RuleOcr(roi=(951,10,83,37), area=(951,10,83,37), mode="Quantity", method="Default", keyword="", name="mall_resource_5")
-	# 左数第二个 
+	# 左数第二个
 	O_MALL_RESOURCE_6 = RuleOcr(roi=(1129,6,100,41), area=(1129,6,100,41), mode="Quantity", method="Default", keyword="", name="mall_resource_6")
 
 

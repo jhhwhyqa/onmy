@@ -88,17 +88,14 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RyouToppaAssets):
                                      RealmRaidAssets.I_MEDAL_2, RealmRaidAssets.I_MEDAL_1, RealmRaidAssets.I_MEDAL_0])
 
         if ryou_config.switch_soul_config.enable:
-            self.ui_get_current_page()
-            self.ui_goto(page_shikigami_records)
+            self.goto_page(page_shikigami_records)
             self.run_switch_soul(ryou_config.switch_soul_config.switch_group_team)
 
         if ryou_config.switch_soul_config.enable_switch_by_name:
-            self.ui_get_current_page()
-            self.ui_goto(page_shikigami_records)
+            self.goto_page(page_shikigami_records)
             self.run_switch_soul_by_name(ryou_config.switch_soul_config.group_name, ryou_config.switch_soul_config.team_name)
 
-        self.ui_get_current_page()
-        self.ui_goto(page_kekkai_toppa)
+        self.goto_page(page_kekkai_toppa)
         ryou_toppa_start_flag = True
         ryou_toppa_success_penetration = False
         ryou_toppa_admin_flag = False
@@ -183,9 +180,6 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RyouToppaAssets):
                 continue
 
 
-        # 回 page_main 失败
-        # self.ui_current = page_ryou_toppa
-        # self.ui_goto(page_main)
         if success:
             self.set_next_run(task='RyouToppa', finish=True, server=True, success=True)
         else:
@@ -331,3 +325,4 @@ if __name__ == "__main__":
     device = Device(config)
     t = ScriptTask(config, device)
     t.run()
+

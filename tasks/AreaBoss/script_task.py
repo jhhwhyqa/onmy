@@ -3,13 +3,11 @@
 # github https://github.com/runhey
 import time
 
-import cv2
-import numpy as np
 import random
 import re
 from module.atom.click import RuleClick
 from tasks.base_task import BaseTask
-from tasks.Component.GeneralBattle.general_battle import GeneralBattle
+from tasks.Component.GeneralBattle.general_battle import ExitMatcher, GeneralBattle
 from tasks.GameUi.game_ui import GameUi
 from tasks.GameUi.page import page_area_boss, page_shikigami_records, page_main
 from tasks.Component.SwitchSoul.switch_soul import SwitchSoul
@@ -23,6 +21,9 @@ from typing import List
 
 class ScriptTask(GeneralBattle, GameUi, SwitchSoul, AreaBossAssets):
 
+    def _exit_matcher(self) -> ExitMatcher:
+        return self.I_AB_CLOSE_RED
+
     def run(self) -> bool:
         """
         运行脚本
@@ -33,18 +34,15 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, AreaBossAssets):
         con = self.config.area_boss.boss
 
         if self.config.area_boss.switch_soul.enable:
-            self.ui_get_current_page()
-            self.ui_goto(page_shikigami_records)
+            self.goto_page(page_shikigami_records)
             self.run_switch_soul(self.config.area_boss.switch_soul.switch_group_team)
 
         if self.config.area_boss.switch_soul.enable_switch_by_name:
-            self.ui_get_current_page()
-            self.ui_goto(page_shikigami_records)
+            self.goto_page(page_shikigami_records)
             self.run_switch_soul_by_name(self.config.area_boss.switch_soul.group_name,
                                          self.config.area_boss.switch_soul.team_name)
 
-        self.ui_get_current_page()
-        self.ui_goto(page_area_boss)
+        self.goto_page(page_area_boss)
 
         # 已挑战鬼王数量
         boss_fought = 0
@@ -69,7 +67,7 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, AreaBossAssets):
         elif con.boss_number - boss_fought == 1:
             self.boss_fight(self.I_BATTLE_1)
         # 退出
-        self.ui_goto_page(page_main)
+        self.goto_page(page_main)
         self.set_next_run(task='AreaBoss', success=True, finish=False)
 
         # 以抛出异常的形式结束

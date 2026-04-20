@@ -6,7 +6,7 @@ import re
 from cached_property import cached_property
 
 from tasks.base_task import BaseTask
-from tasks.Component.GeneralBattle.general_battle import GeneralBattle
+from tasks.Component.GeneralBattle.general_battle import ExitMatcher, GeneralBattle
 from tasks.GameUi.game_ui import GameUi
 from tasks.GameUi.page import page_realm_raid, page_main, page_shikigami_records
 from tasks.RealmRaid.assets import RealmRaidAssets
@@ -23,6 +23,9 @@ from module.atom.click import RuleClick
 
 class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RealmRaidAssets):
     medal_grid: ImageGrid = None
+
+    def _exit_matcher(self) -> ExitMatcher:
+        return self.I_BACK_RED
 
     def run(self):
         self.run_2()
@@ -63,7 +66,7 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RealmRaidAssets):
                         break
                 continue
 
-            target = self.medal_grid.find_anyone(self.device.image)
+            target = self.medal_grid.find_anyone(self.device.image, frame_id=self.device.image_frame_id)
             if target:
                 self.appear_then_click(target, interval=2)  # 点击勋章,但是设置为两秒的间隔，适应不同的模拟器速度
                 is_click = not is_click
@@ -95,16 +98,16 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RealmRaidAssets):
         if config.raid_config.raid_mode == RaidMode.NORMAL:
             logger.info(f'Execute round, retreat four attack nine')
             self.medal_fire()
-            self.run_general_battle_back(config.general_battle_config)
+            self.run_general_battle(config=self.build_quick_exit_config(config.general_battle_config))
 
             self.medal_fire()
-            self.run_general_battle_back(config.general_battle_config)
+            self.run_general_battle(config=self.build_quick_exit_config(config.general_battle_config))
 
             self.medal_fire()
-            self.run_general_battle_back(config.general_battle_config)
+            self.run_general_battle(config=self.build_quick_exit_config(config.general_battle_config))
 
             self.medal_fire()
-            self.run_general_battle_back(config.general_battle_config)
+            self.run_general_battle(config=self.build_quick_exit_config(config.general_battle_config))
 
         # 打九次
         for i in range(9):
@@ -120,16 +123,13 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RealmRaidAssets):
     def run_2(self):
         con = self.config.realm_raid
         if con.switch_soul_config.enable:
-            self.ui_get_current_page()
-            self.ui_goto(page_shikigami_records)
+            self.goto_page(page_shikigami_records)
             self.run_switch_soul(con.switch_soul_config.switch_group_team)
         if con.switch_soul_config.enable_switch_by_name:
-            self.ui_get_current_page()
-            self.ui_goto(page_shikigami_records)
+            self.goto_page(page_shikigami_records)
             self.run_switch_soul_by_name(con.switch_soul_config.group_name, con.switch_soul_config.team_name)
 
-        self.ui_get_current_page()
-        self.ui_goto(page_realm_raid)
+        self.goto_page(page_realm_raid)
 
         # 有呱太活动的时候第一次进入还会 出现一个弹窗
         self.screenshot()
@@ -186,13 +186,13 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RealmRaidAssets):
                     if not self.fire(index):
                         # 没有成功进入战斗则重新检查票数和其他条件
                         continue
-                    self.run_general_battle_back(con.general_battle_config, exit_four=True)
+                    self.run_general_battle(config=self.build_quick_exit_config(con.general_battle_config))
                     self.fire(index)
-                    self.run_general_battle_back(con.general_battle_config, exit_four=True)
+                    self.run_general_battle(config=self.build_quick_exit_config(con.general_battle_config))
                     self.fire(index)
-                    self.run_general_battle_back(con.general_battle_config, exit_four=True)
+                    self.run_general_battle(config=self.build_quick_exit_config(con.general_battle_config))
                     self.fire(index)
-                    self.run_general_battle_back(con.general_battle_config, exit_four=True)
+                    self.run_general_battle(config=self.build_quick_exit_config(con.general_battle_config))
             elif self.check_medal_is_frog(frog, medal, index):
                 # 如果挑战的这只是呱太的话，就要把锁定改为不锁定
                 con.general_battle_config.lock_team_enable = False
@@ -229,8 +229,7 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RealmRaidAssets):
 
 
         self.ui_click(self.I_BACK_RED, self.I_CHECK_EXPLORATION)
-        self.ui_get_current_page()
-        self.ui_goto(page_main)
+        self.goto_page(page_main)
         self.set_next_run(task='RealmRaid', success=success, finish=True)
         raise TaskEnd
 
@@ -531,4 +530,3 @@ if __name__ == "__main__":
     t = ScriptTask(config, device)
 
     t.run()
-

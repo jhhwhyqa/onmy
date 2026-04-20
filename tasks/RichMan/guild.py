@@ -23,8 +23,7 @@ class Guild(Buy, GameUi, RichManAssets):
         if not con.enable:
             return
         logger.hr('Start guild', 1)
-        self.ui_get_current_page()
-        self.ui_goto(page_guild)
+        self.goto_page(page_guild)
         while 1:
             self.screenshot()
             if self.appear(self.I_GUILD_CLOSE_RED):
@@ -134,3 +133,4 @@ if __name__ == '__main__':
 
     # t._guild_skin_ticket(5)
     t.execute_guild(con=c.rich_man.guild_store)
+
