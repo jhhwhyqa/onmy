@@ -133,7 +133,7 @@ class GeneralBattle(GeneralBuff, GeneralBattleAssets):
         分派规则保持最小化，不引入新的识别栈：
 
         - `None`：直接返回 `False`
-        - `Page`：解析为当前 session page 后用 `_match_page_once()` 判定
+        - `Page`：解析为当前 session page 后用 `match_page_once()` 判定
         - 自定义 callable：透传当前任务实例，兼容零参/单参函数
         - 其他 Rule/Matcher：统一走 `ensure_matcher(...).evaluate(self)`
 
@@ -150,7 +150,7 @@ class GeneralBattle(GeneralBuff, GeneralBattleAssets):
             session_page = self.navigator.resolve_page(target)
             if session_page is None:
                 return False
-            return bool(self._match_page_once(session_page))
+            return bool(self.navigator.match_page_once(session_page))
         if callable(target) and not isinstance(target, (RuleImage, RuleGif, RuleOcr)):
             return bool(invoke_task_callable(target, self))
 
@@ -447,15 +447,15 @@ class GeneralBattle(GeneralBuff, GeneralBattleAssets):
         if self.appear_then_click(self.I_CONFIRM_CLOSE_DIFF_SOUL, interval=0.6):
             return BattleAction.CONTINUE
 
-        self._run_battle_behavior_once(
-            behavior_name="preset",
-            action=lambda: self.switch_preset_team(config.preset_enable, config.preset_group, config.preset_team),
-        )
-        self._run_battle_behavior_once(
-            behavior_name="buff",
-            action=lambda: self.check_and_open_buff(context.buff),
-        )
-
+        if not context.quick_exit:  # 不退出才执行下列操作
+            self._run_battle_behavior_once(
+                behavior_name="preset",
+                action=lambda: self.switch_preset_team(config.preset_enable, config.preset_group, config.preset_team),
+            )
+            self._run_battle_behavior_once(
+                behavior_name="buff",
+                action=lambda: self.check_and_open_buff(context.buff),
+            )
         self.appear_then_click(self.I_PREPARE_HIGHLIGHT, interval=0.8)
         return BattleAction.CONTINUE
 
@@ -469,14 +469,14 @@ class GeneralBattle(GeneralBuff, GeneralBattleAssets):
         Returns:
             BattleAction: 当前轮战斗中处理后的动作决策。
         """
+        if context.quick_exit:
+            return BattleAction.QUICK_EXIT
         self._run_battle_behavior_once(
             behavior_name="green",
             action=lambda: self.green_mark(config.green_enable, config.green_mark),
         )
         if config.random_click_swipt_enable:
             self.random_click_swipt()
-        if context.quick_exit:
-            return BattleAction.QUICK_EXIT
         return BattleAction.CONTINUE
 
     def _handle_result(self, context: BattleContext, config: GeneralBattleConfig) -> BattleAction:
@@ -622,34 +622,32 @@ class GeneralBattle(GeneralBuff, GeneralBattleAssets):
                 context.quick_exit = context.quick_exit or bool(config.quick_exit)
                 page = GameUi.detect_page_in(self, page_battle_prepare, page_battle, page_battle_result,
                                              page_reward, include_global=False)
-                if page is None:
-                    action = self._handle_missing_battle_page(context, config, resolved_exit_matcher)
-                    resolved = self._resolve_action(action)
-                    if resolved is not None:
-                        return resolved
-                    time.sleep(0.3)
-                    continue
-                context.reward_no_battle_ts = None
+                context.reward_no_battle_ts = None if page else context.reward_no_battle_ts
                 self._ensure_battle_stuck_guard(context, page)
                 match page:
+                    case None:
+                        action = self._handle_missing_battle_page(context, config, resolved_exit_matcher)
                     case current if current == page_battle_prepare:
+                        self.device.screenshot_interval_set()
                         action = self._handle_prepare(context, config)
                     case current if current == page_battle:
+                        self.device.screenshot_interval_set('combat')
                         action = self._handle_in_battle(context, config)
                     case current if current == page_battle_result:
+                        self.device.screenshot_interval_set()
                         action = self._handle_result(context, config)
                     case current if current == page_reward:
+                        self.device.screenshot_interval_set()
                         action = self._handle_reward(context, config)
                     case _:
                         action = BattleAction.CONTINUE
-
                 resolved = self._resolve_action(action)
                 if resolved is not None:
                     return resolved
-                context.last_page = page
+                context.last_page = page if page else context.last_page
         finally:
             self._battle_context = None
-        return False
+            self.device.screenshot_interval_set()
 
     def exit_battle(self, skip_first: bool = False) -> bool:
         """
@@ -665,21 +663,9 @@ class GeneralBattle(GeneralBuff, GeneralBattleAssets):
             self.screenshot()
         if not self.appear(self.I_EXIT):
             return False
-        timeout = Timer(5).start()
-        while True:
-            self.screenshot()
-            if timeout.reached():
-                logger.info('Exit battle success')
-                break
-            if GameUi.get_current_page(self) == page_battle_result:
-                logger.info('Exit battle success')
-                break
-            if self.appear_then_click(self.I_EXIT_ENSURE, interval=1):
-                timeout.reset()
-                continue
-            if self.appear_then_click(self.I_EXIT, interval=4):
-                timeout.reset()
-                continue
+        self.ui_click(self.I_EXIT, self.I_EXIT_ENSURE, interval=10)
+        self.ui_click_until_disappear(self.I_EXIT_ENSURE, interval=1)
+        logger.info('Exit battle success')
         return True
 
     def green_mark(self, enable: bool = False, mark_mode: GreenMarkType = GreenMarkType.GREEN_MAIN):
@@ -953,7 +939,7 @@ def run_task_or_default_general_battle(task) -> bool:
             return battle_handler(config=battle_config)
         return battle_handler()
 
-    match_page_once = getattr(task, "_match_page_once", None)
+    match_page_once = getattr(task, "match_page_once", None)
     navigator = getattr(task, "navigator", None)
     if not callable(match_page_once) or navigator is None:
         logger.warning("Battle page recognized but no general battle handler is available")
@@ -961,7 +947,7 @@ def run_task_or_default_general_battle(task) -> bool:
 
     fallback = GeneralBattle(config=task.config, device=task.device)
     fallback.navigator = navigator
-    fallback._match_page_once = match_page_once
+    fallback.match_page_once = match_page_once
     fallback.current_count = task.current_count
     try:
         if battle_config is not None:

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from module.base.decorator import run_once
+from tasks.GlobalGame.assets import GlobalGameAssets
 
 """GameUi 导航运行时。"""
 
@@ -35,15 +36,15 @@ class GameUi(BaseTask, GameUiAssets):
 
     # 全局未知页关闭动作，所有任务共享。
     DEFAULT_UNKNOWN_CLOSERS = [
-        GameUiAssets.I_BACK_MALL,
-        GeneralBattleAssets.I_CONFIRM,
         BaseTask.I_UI_BACK_RED,
+        GlobalGameAssets.I_CHAT_CLOSE_BUTTON,
         ActivityShikigamiAssets.I_SKIP_BUTTON,
+        GeneralBattleAssets.I_CONFIRM,
         GameUiAssets.I_BACK_FRIENDS,
         GameUiAssets.I_BACK_DAILY,
         GameUiAssets.I_REALM_RAID_GOTO_EXPLORATION,
-        BaseTask.I_UI_BACK_YELLOW,
         GameUiAssets.I_SIX_GATES_GOTO_EXPLORATION,
+        BaseTask.I_UI_BACK_YELLOW,
         SixRealmsAssets.I_EXIT_SIXREALMS,
         ActivityShikigamiAssets.I_RED_EXIT,
         BaseTask.I_UI_BACK_BLUE,
@@ -138,7 +139,7 @@ class GameUi(BaseTask, GameUiAssets):
             return target()
         return target(self)
 
-    def _match_page_once(self, page: Page) -> bool:
+    def match_page_once(self, page: Page) -> bool:
         """执行一次页面识别。
 
         Args:
@@ -152,7 +153,7 @@ class GameUi(BaseTask, GameUiAssets):
             return False
         return bool(page.recognizer.evaluate(self))
 
-    def _confirm_page(self, page: Page, skip_first_screenshot: bool = True) -> bool:
+    def confirm_page(self, page: Page, skip_first_screenshot: bool = True) -> bool:
         """使用两帧稳定判定确认页面。
 
         Args:
@@ -164,10 +165,10 @@ class GameUi(BaseTask, GameUiAssets):
         """
 
         self.maybe_screenshot(skip_first_screenshot)
-        if not self._match_page_once(page):
+        if not self.match_page_once(page):
             return False
         self.screenshot()
-        return self._match_page_once(page)
+        return self.match_page_once(page)
 
     def _detect_current_page(
         self,
@@ -188,6 +189,44 @@ class GameUi(BaseTask, GameUiAssets):
         pages = self.navigator.all_pages(categories)
         return GameUi._detect_pages(self, pages, skip_first_screenshot=skip_first_screenshot)
 
+    def _detect_current_page_with_fallback(
+        self,
+        *,
+        skip_first_screenshot: bool = True,
+        categories: set[str] = None,
+        context: str = "current_page",
+    ) -> Page | None:
+        """先按作用域识别当前页面，失败后再回退到 session 全量页面。
+
+        Args:
+            skip_first_screenshot: 是否复用当前截图。
+            categories: 第一轮识别允许参与的页面分类集合。
+            context: 当前识别调用场景，用于日志输出。
+
+        Returns:
+            稳定识别到的当前页面；两轮识别都失败时返回 `None`。
+        """
+
+        page = self._detect_current_page(
+            skip_first_screenshot=skip_first_screenshot,
+            categories=categories,
+        )
+        if page is not None or not categories:
+            return page
+
+        sorted_categories = sorted(categories)
+        page = GameUi._detect_pages(
+            self,
+            self.navigator.all_pages(),
+            skip_first_screenshot=True,
+        )
+        if page is not None:
+            logger.attr("UI", page.name)
+            return page
+
+        logger.warning(f"Page detect miss[{context}]: scoped={sorted_categories}")
+        return None
+
     def _detect_pages(
         self,
         pages: list[Page],
@@ -200,13 +239,13 @@ class GameUi(BaseTask, GameUiAssets):
             return None
 
         self.maybe_screenshot(skip_first_screenshot)
-        indexed_candidates = [(index, page) for index, page in enumerate(pages) if self._match_page_once(page)]
+        indexed_candidates = [(index, page) for index, page in enumerate(pages) if self.match_page_once(page)]
         if not indexed_candidates:
             return None
 
         self.screenshot()
         for page in sort_pages_by_priority(indexed_candidates):
-            if self._match_page_once(page):
+            if self.match_page_once(page):
                 self.navigator.current_page = page
                 logger.attr("UI", page.name)
                 return page
@@ -397,7 +436,7 @@ class GameUi(BaseTask, GameUiAssets):
         return path
 
     def _refresh_current_page(self, destination: Page, skip_first_screenshot: bool) -> Page | None:
-        """优先确认缓存当前页，失败后再进行全量识别。
+        """优先确认缓存当前页，失败后再执行作用域识别与全量兜底。
 
         Args:
             destination: 当前导航目标页面。
@@ -408,11 +447,12 @@ class GameUi(BaseTask, GameUiAssets):
         """
 
         current = self.navigator.current_page
-        if current is not None and self._confirm_page(current, skip_first_screenshot=skip_first_screenshot):
+        if current is not None and self.confirm_page(current, skip_first_screenshot=skip_first_screenshot):
             return current
-        return self._detect_current_page(
+        return self._detect_current_page_with_fallback(
             skip_first_screenshot=skip_first_screenshot,
             categories=self._navigation_detect_categories(destination),
+            context="goto_page",
         )
 
     def _wait_for_destination(self, destination: Page, timeout: float = 4.0) -> bool:
@@ -428,7 +468,7 @@ class GameUi(BaseTask, GameUiAssets):
 
         timer = Timer(timeout).start()
         while not timer.reached():
-            if self._confirm_page(destination, skip_first_screenshot=False):
+            if self.confirm_page(destination, skip_first_screenshot=False):
                 self.navigator.current_page = destination
                 return True
         return False
@@ -463,7 +503,7 @@ class GameUi(BaseTask, GameUiAssets):
             self._run_hooks(transition.on_enter_failure)
             penalty = self.navigator.add_penalty(transition)
             logger.warning(f"Transition failed before leaving {source}: {transition.key}, penalty={penalty:.1f}")
-            self.navigator.current_page = self._detect_current_page(
+            self.navigator.current_page = self._detect_current_page_with_fallback(
                 skip_first_screenshot=False,
                 categories=self._navigation_detect_categories(destination),
             )
@@ -484,7 +524,7 @@ class GameUi(BaseTask, GameUiAssets):
         self._run_hooks(transition.on_enter_failure)
         penalty = self.navigator.add_penalty(transition)
         logger.warning(f"Transition cannot reach {destination}: {transition.key}, penalty={penalty:.1f}")
-        self.navigator.current_page = self._detect_current_page(
+        self.navigator.current_page = self._detect_current_page_with_fallback(
             skip_first_screenshot=False,
             categories=self._navigation_detect_categories(destination),
         )
@@ -502,7 +542,7 @@ class GameUi(BaseTask, GameUiAssets):
 
         pages = self.navigator.all_pages(self._navigation_detect_categories(destination))
         self.screenshot()
-        return [page.name for page in pages if self._match_page_once(page)]
+        return [page.name for page in pages if self.match_page_once(page)]
 
     def _record_unknown_close_event(self, message: str) -> None:
         """记录未知页关闭历史。
@@ -550,9 +590,10 @@ class GameUi(BaseTask, GameUiAssets):
             当前稳定识别到的页面；识别失败时返回 `None`。
         """
 
-        return self._detect_current_page(
+        return self._detect_current_page_with_fallback(
             skip_first_screenshot=skip_first_screenshot,
             categories=self._default_detect_categories(),
+            context="get_current_page",
         )
 
     def pages_in_category(self, category: str) -> list[Page]:
@@ -665,6 +706,11 @@ class GameUi(BaseTask, GameUiAssets):
             skip_first_screenshot = False
 
             if current is None:
+                logger.warning(
+                    "Current page detect miss after scoped/full fallback, "
+                    f"try close unknown pages: scoped={sorted(self._navigation_detect_categories(destination))}, "
+                    f"target={destination.key}"
+                )
                 if self.close_unknown_pages(skip_first_screenshot=False):
                     progress_timer.reset()
                     last_progress_signature = ("close_unknown", destination.key)
@@ -681,7 +727,7 @@ class GameUi(BaseTask, GameUiAssets):
                 progress_timer.reset()
                 last_detected_page_key = current.key
 
-            if current == destination and self._confirm_page(destination, skip_first_screenshot=False):
+            if current == destination and self.confirm_page(destination, skip_first_screenshot=False):
                 self._run_enter_success_hooks_if_needed(destination)
                 if confirm_wait > 0:
                     Timer(confirm_wait, count=int(confirm_wait // 0.5)).start().wait()
