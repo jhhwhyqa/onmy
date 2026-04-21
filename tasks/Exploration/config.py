@@ -39,6 +39,9 @@ class ExplorationLevel(str, Enum):
     EXPLORATION_27 = '第二十七章'
     EXPLORATION_28 = '第二十八章'
 
+    def get_index(self):
+        return list(ExplorationLevel).index(self)
+
 
 class AttackNumber(str, Enum):
     SEVEN = '7'
