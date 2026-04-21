@@ -256,6 +256,7 @@ page_battle_result = Page(
         GeneralBattleAssets.I_WIN,
         GeneralBattleAssets.I_DE_WIN,
         GeneralBattleAssets.I_FALSE,
+        GeneralBattleAssets.I_BATTLE_STATE_INFO
     ),
     category="global",
     priority=25

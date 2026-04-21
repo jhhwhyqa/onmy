@@ -304,5 +304,14 @@
     "method": "Template matching",
     "threshold": 0.8,
     "description": "战斗信息标识"
+  },
+  {
+    "itemName": "battle_state_info",
+    "imageName": "gb_battle_state_info.png",
+    "roiFront": "725,51,67,31",
+    "roiBack": "483,18,337,102",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "战斗数据统计"
   }
 ]
