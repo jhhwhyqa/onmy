@@ -177,7 +177,7 @@ class ScriptTask(GameUi, GeneralBattle, SwitchSoul, DemonRetreatAssets, AbyssSha
         # 绿标
         self.wait_until_disappear(self.I_BUFF)
         if self.is_in_battle(False):
-            self.green_mark(config.green_enable, config.green_mark)
+            self.green_mark(config.green_enable, config.green_mark, config.green_mark_type, config.green_mark_name)
 
         win = self.battle_wait(config.random_click_swipt_enable)
         if win:

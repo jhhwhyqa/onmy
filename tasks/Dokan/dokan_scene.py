@@ -16,14 +16,10 @@ class DokanScene(Enum):
     RYOU_DOKAN_SCENE_START_CHALLENGE = 3
     # 失败次数超过上限，CD中
     RYOU_DOKAN_SCENE_CD = 4
-    # 战斗进行中
-    RYOU_DOKAN_SCENE_FIGHTING = 5
     # 馆主战第一阵容
     RYOU_DOKAN_SCENE_BATTLE_MASTER_FIRST = 6
     # 馆主战第二阵容
     RYOU_DOKAN_SCENE_BATTLE_MASTER_SECOND = 7
-    # 加油进行中
-    RYOU_DOKAN_SCENE_CHEERING = 8
     # 道馆是否投降投票
     RYOU_DOKAN_SCENE_ABANDON_VOTE = 9
     # 道馆投降后 投票再战还是保留赏金
@@ -113,17 +109,6 @@ class DokanSceneDetector(DokanAssets, BaseTask, GeneralBattleAssets):
         if self.appear(self.I_RYOU_DOKAN_BATTLE_OVER) or self.appear(GeneralBattleAssets.I_WIN) \
                 or self.appear(GeneralBattleAssets.I_FALSE):
             return True, DokanScene.RYOU_DOKAN_SCENE_BATTLE_OVER
-
-        # # 状态：加油中，左下角有鼓
-        # if self.appear_then_click(self.I_RYOU_DOKAN_CHEERING, threshold=0.8) or self.appear(
-        #         self.I_RYOU_DOKAN_CHEERING_GRAY, threshold=0.8):
-        #     return True, DokanScene.RYOU_DOKAN_SCENE_CHEERING
-        # # 状态：战斗中，左上角的加油图标
-        # if self.appear(self.I_RYOU_DOKAN_FIGHTING, threshold=0.8):
-        #     return True, DokanScene.RYOU_DOKAN_SCENE_FIGHTING
-        # if self.appear(self.I_RYOU_DOKAN_FAILED_VOTE_NO):
-        #     return True, DokanScene.RYOU_DOKAN_SCENE_FAILED_VOTE_NO
-
         # 打完道馆后,弹出的排名界面
         if self.appear(self.I_RYOU_DOKAN_TOPPA_RANK):
             return True, DokanScene.RYOU_DOKAN_SCENE_TOPPA_RANK

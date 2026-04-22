@@ -85,5 +85,9 @@
   "choose": "选择",
   "name": "名称",
   "green_mark_name": "绿标名称",
-  "green_mark_name_help": "按照相似度识别, 失败则填写日志中匹配到的最相似文字或改名"
+  "green_mark_name_help": "按照相似度识别, 失败则填写日志中匹配到的最相似文字或改名",
+  "dokan_member_battle_conf": "道馆成员战斗配置",
+  "dokan_owner_battle_conf": "馆主战斗配置",
+  "dokan_member_switch_soul": "道馆成员切换御魂配置",
+  "dokan_owner_switch_soul": "馆主切换御魂配置"
 }

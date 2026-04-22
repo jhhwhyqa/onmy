@@ -54,6 +54,8 @@ class BattleContext:
     shared_behavior_state: BattleBehaviorState
     # 当前 `run_general_battle()` 调用级的一次性行为状态。
     call_behavior_state: BattleBehaviorState
+    # 当前调用内本轮连战的一次性行为状态；进入下一轮时重置。
+    round_behavior_state: BattleBehaviorState
     # 当前调用各行为默认使用的作用域映射。
     behavior_scopes: dict[str, "BattleBehaviorScope"]
     # 当前调用需要开启的 buff 配置；供 handler 和子类覆写逻辑直接读取。
@@ -77,6 +79,8 @@ class BattleBehaviorScope(str, Enum):
     BATTLE_KEY = "battle_key"
     # 单次 `run_general_battle()` 调用中只执行一次；连战会继续复用该状态。
     CALL = "call"
+    # 单次 `run_general_battle()` 调用内每一轮连战各执行一次。
+    ROUND = "round"
 
 
 class BattleAction(str, Enum):
@@ -252,6 +256,7 @@ class GeneralBattle(GeneralBuff, GeneralBattleAssets):
             battle_key=battle_key,
             shared_behavior_state=self._battle_shared_state.setdefault(battle_key, BattleBehaviorState()),
             call_behavior_state=BattleBehaviorState(),
+            round_behavior_state=BattleBehaviorState(),
             behavior_scopes=self._get_battle_behavior_scopes(config, battle_key),
             buff=buff,
             quick_exit=bool(config.quick_exit),
@@ -316,6 +321,8 @@ class GeneralBattle(GeneralBuff, GeneralBattleAssets):
         context = self._get_battle_context()
         if scope == BattleBehaviorScope.BATTLE_KEY:
             return context.shared_behavior_state
+        if scope == BattleBehaviorScope.ROUND:
+            return context.round_behavior_state
         return context.call_behavior_state
 
     def _run_battle_behavior_once(self, behavior_name: str, action: Callable[[], None]) -> bool:
@@ -366,6 +373,7 @@ class GeneralBattle(GeneralBuff, GeneralBattleAssets):
         context.reward_no_battle_ts = None
         context.quick_exit = bool(config.quick_exit)
         context.continuous_count = continuous_count
+        context.round_behavior_state = BattleBehaviorState()
 
     def _tick_long_battle(self, context: BattleContext) -> None:
         """按固定周期刷新长战斗卡死保护标记。
@@ -435,12 +443,12 @@ class GeneralBattle(GeneralBuff, GeneralBattleAssets):
         Returns:
             BattleAction: 当前轮准备页处理后的动作决策。
         """
-        if context.last_page in {page_battle_result, page_reward}:
+        if context.last_page in {page_battle, page_battle_result, page_reward}:
+            if not config.continuous_battle:
+                return BattleAction.EXIT_WIN if context.is_win else BattleAction.EXIT_LOSE
             action = self._handle_continuous_prepare(context, config)
             if action != BattleAction.CONTINUE:
                 return action
-            if not config.continuous_battle:
-                return BattleAction.EXIT_WIN if context.is_win else BattleAction.EXIT_LOSE
 
         if self.appear_then_click(self.I_DISABLE_7DAYS_DIFF_SOUL, interval=0.6):
             return BattleAction.CONTINUE
@@ -493,7 +501,8 @@ class GeneralBattle(GeneralBuff, GeneralBattleAssets):
         context.reward_no_battle_ts = None
         context.is_win = not self.appear(self.I_FALSE, threshold=0.8)
         logger.info(f"Battle result is {'win' if context.is_win else 'false'}")
-        self.click(random_click(), interval=1.2)
+        self.click(random_click(), interval=0.8)
+        self.device.click_record_clear()
         return BattleAction.CONTINUE
 
     def _handle_reward(self, context: BattleContext, config: GeneralBattleConfig) -> BattleAction:
@@ -507,7 +516,8 @@ class GeneralBattle(GeneralBuff, GeneralBattleAssets):
             BattleAction: 当前轮奖励页处理后的动作决策。
         """
         context.reward_no_battle_ts = None
-        self.click(random_click(), interval=1.2)
+        self.click(random_click(), interval=0.8)
+        self.device.click_record_clear()
         return BattleAction.CONTINUE
 
     def _handle_missing_battle_page(self, context: BattleContext, config: GeneralBattleConfig,
@@ -550,11 +560,12 @@ class GeneralBattle(GeneralBuff, GeneralBattleAssets):
         Returns:
             BattleAction: 连战继续、按结果退出等动作决策。
         """
-        if not config.continuous_battle or context.last_page not in {page_battle_result, page_reward}:
-            return BattleAction.CONTINUE
         if 0 < config.max_continuous <= context.continuous_count:
             return BattleAction.EXIT_WIN if context.is_win else BattleAction.EXIT_LOSE
+        logger.hr("General battle start", 2)
         next_count = context.continuous_count + 1
+        self.current_count += 1
+        logger.info(f"Current count: {self.current_count}")
         logger.info(f"Continue battle round: {next_count}")
         self._reset_round_context(context, config, continuous_count=next_count)
         return BattleAction.CONTINUE
@@ -573,6 +584,7 @@ class GeneralBattle(GeneralBuff, GeneralBattleAssets):
         if action == BattleAction.EXIT_LOSE:
             return False
         if action == BattleAction.QUICK_EXIT:
+            self.device.screenshot_interval_set()
             self.exit_battle()
         return None
 
@@ -659,8 +671,15 @@ class GeneralBattle(GeneralBuff, GeneralBattleAssets):
             self.screenshot()
         if not self.appear(self.I_EXIT):
             return False
-        self.ui_click(self.I_EXIT, self.I_EXIT_ENSURE, interval=10)
-        self.ui_click_until_disappear(self.I_EXIT_ENSURE, interval=1)
+        self.ui_click(self.I_EXIT, self.I_EXIT_ENSURE, interval=1.5)
+        while True:
+            self.screenshot()
+            if self.appear_then_click(self.I_EXIT_ENSURE, interval=1.5):
+                continue
+            if self.appear_then_click(self.I_FALSE, interval=1.5):
+                continue
+            if not self.appear(self.I_EXIT):
+                break
         logger.info('Exit battle success')
         return True
 
@@ -683,11 +702,13 @@ class GeneralBattle(GeneralBuff, GeneralBattleAssets):
         if not enable:
             return
         logger.info("Green is enable")
+        self.device.screenshot_interval_set()
         match green_mark_type:
             case GreenMarkEnum.CHOOSE:
                 self.green_mark_choose(mark_mode)
             case GreenMarkEnum.NAME:
                 self.green_mark_name(green_mark_name)
+        self.device.screenshot_interval_set('combat')
 
     def green_mark_choose(self, mark_mode: GreenMarkType = GreenMarkType.GREEN_MAIN):
         x, y = None, None

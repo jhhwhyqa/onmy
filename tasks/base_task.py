@@ -712,6 +712,29 @@ class BaseTask(GlobalGameAssets, CostumeBase):
                 appear_and_clicked = True
         return appear_and_clicked
 
+    def ui_click_until_appear_or_timeout(self, click, stop=None, interval: float = 1, timeout: float = 10):
+        """
+        在UI中点击某个元素，直到目标元素出现或达到超时时间。
+
+        :param click: 要点击的元素规则，可以是图片规则、点击规则或OCR规则。
+        :param stop: 可选参数，出现此元素时停止点击。如果为None，则一直点击直到超时。
+        :param interval: 每次点击之间的间隔时间（秒）。默认为1秒。
+        :param timeout: 总的超时时间（秒）。默认为10秒。
+        :return: 如果在超时时间内找到目标元素，则返回True，否则返回False。
+        """
+        timeout_timer = Timer(timeout).start()
+        while not timeout_timer.reached():
+            self.screenshot()
+            if self.appear(stop):
+                return True
+            if isinstance(click, RuleImage) and self.appear_then_click(click, interval=interval):
+                continue
+            if isinstance(click, RuleClick) and self.click(click, interval=interval):
+                continue
+            elif isinstance(click, RuleOcr) and self.ocr_appear_click(click, interval=interval):
+                continue
+        return False
+
     def ui_click_until_smt_disappear(self, click, stop, interval: float = 1):
         """
         点击一个按钮/区域/文字直到stop消失
