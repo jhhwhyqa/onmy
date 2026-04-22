@@ -16,6 +16,11 @@ class GreenMarkType(str, Enum):
     GREEN_MAIN = 'green_main'
 
 
+class GreenMarkEnum(str, Enum):
+    CHOOSE = 'choose'
+    NAME = 'name'
+
+
 class GeneralBattleConfig(BaseModel):
 
     # 是否锁定阵容, 有些的战斗是外边的锁定阵容甚至有些的战斗没有锁定阵容的
@@ -44,9 +49,12 @@ class GeneralBattleConfig(BaseModel):
 
     # 是否开启绿标
     green_enable: bool = Field(default=False, description='green_enable_help')
+    # 绿标类型
+    green_mark_type: GreenMarkEnum = Field(default=GreenMarkEnum.CHOOSE)
     # 选哪一个绿标
     green_mark: GreenMarkType = Field(default=GreenMarkType.GREEN_LEFT1, description='green_mark_help')
-
+    # 绿标式神的名称
+    green_mark_name: str = Field(default='', description='green_mark_name_help')
     # 是否启动战斗时随机点击或者随机滑动
     random_click_swipt_enable: bool = Field(default=False, description='random_click_swipt_enable_help')
 

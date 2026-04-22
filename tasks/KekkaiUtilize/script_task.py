@@ -95,7 +95,7 @@ class ScriptTask(GameUi, ReplaceShikigami, KekkaiUtilizeAssets):
                 logger.info('Utilize failed, exit')
             # 开始执行寄养
             self.run_utilize(con.select_friend_list, con.shikigami_class, con.shikigami_order)
-            self.goto_page(page_guild_realm)
+            self.goto_page(page_guild_realm_growth)
 
     def check_max_lv(self, shikigami_class: ShikigamiClass = ShikigamiClass.N):
         """
@@ -345,6 +345,7 @@ class ScriptTask(GameUi, ReplaceShikigami, KekkaiUtilizeAssets):
                     shikigami_order: int = 7):
         """
         执行寄养
+        :param shikigami_order:
         :param shikigami_class:
         :param friend:
         :param rule:

@@ -11,7 +11,7 @@
   {
     "itemName": "preset",
     "roiFront": "20,620,60,80",
-    "roiBack":  "20,620,60,80",
+    "roiBack": "20,620,60,80",
     "mode": "Single",
     "method": "Default",
     "keyword": "预",
@@ -20,10 +20,19 @@
   {
     "itemName": "preset_full",
     "roiFront": "20,620,60,80",
-    "roiBack":  "20,620,60,80",
+    "roiBack": "20,620,60,80",
     "mode": "Single",
     "method": "Default",
     "keyword": "预设",
     "description": "预设"
+  },
+  {
+    "itemName": "green_mark_area",
+    "roiFront": "84,256,1116,308",
+    "roiBack": "84,256,1116,308",
+    "mode": "Full",
+    "method": "Default",
+    "keyword": "",
+    "description": "绿标区域"
   }
 ]

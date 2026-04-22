@@ -3,6 +3,7 @@
 # github https://github.com/runhey
 from __future__ import annotations
 
+import difflib
 import random
 import time
 from dataclasses import dataclass, field
@@ -17,7 +18,7 @@ from module.base.timer import Timer
 from module.base.utils import color_similar, get_color
 from module.logger import logger
 from tasks.Component.GeneralBattle.assets import GeneralBattleAssets
-from tasks.Component.GeneralBattle.config_general_battle import GeneralBattleConfig, GreenMarkType
+from tasks.Component.GeneralBattle.config_general_battle import GeneralBattleConfig, GreenMarkType, GreenMarkEnum
 from tasks.Component.GeneralBuff.config_buff import BuffClass
 from tasks.Component.GeneralBuff.general_buff import GeneralBuff
 from tasks.GameUi.common import RecognizerLike, invoke_task_callable
@@ -25,7 +26,6 @@ from tasks.GameUi.matcher import Matcher, ensure_matcher
 from tasks.GameUi.navigator import GameUi
 from tasks.GameUi.page import page_battle, page_battle_prepare, page_battle_result, page_reward
 from tasks.GameUi.page_definition import Page
-
 
 # 战斗结束后用于确认“已经回到任务自身页面”的识别条件。
 # 推荐优先复用调用方战后原本就会 `wait_until_appear(...)` 的稳定特征。
@@ -150,7 +150,7 @@ class GeneralBattle(GeneralBuff, GeneralBattleAssets):
             session_page = self.navigator.resolve_page(target)
             if session_page is None:
                 return False
-            return bool(self.navigator.match_page_once(session_page))
+            return bool(self.match_page_once(session_page))
         if callable(target) and not isinstance(target, (RuleImage, RuleGif, RuleOcr)):
             return bool(invoke_task_callable(target, self))
 
@@ -473,7 +473,8 @@ class GeneralBattle(GeneralBuff, GeneralBattleAssets):
             return BattleAction.QUICK_EXIT
         self._run_battle_behavior_once(
             behavior_name="green",
-            action=lambda: self.green_mark(config.green_enable, config.green_mark),
+            action=lambda: self.green_mark(config.green_enable, config.green_mark,
+                                           config.green_mark_type, config.green_mark_name),
         )
         if config.random_click_swipt_enable:
             self.random_click_swipt()
@@ -668,7 +669,8 @@ class GeneralBattle(GeneralBuff, GeneralBattleAssets):
         logger.info('Exit battle success')
         return True
 
-    def green_mark(self, enable: bool = False, mark_mode: GreenMarkType = GreenMarkType.GREEN_MAIN):
+    def green_mark(self, enable: bool = False, mark_mode: GreenMarkType = GreenMarkType.GREEN_MAIN,
+                   green_mark_type: GreenMarkEnum = GreenMarkEnum.CHOOSE, green_mark_name: str = ''):
         """
         绿标， 如果不使能就直接返回。
 
@@ -678,38 +680,71 @@ class GeneralBattle(GeneralBuff, GeneralBattleAssets):
 
         Returns:
             None: 直接执行绿标相关点击。
+            :param enable:
+            :param mark_mode:
+            :param green_mark_name:
+            :param green_mark_type:
         """
-        if enable:
-            logger.info("Green is enable")
-            x, y = None, None
-            match mark_mode:
-                case GreenMarkType.GREEN_LEFT1:
-                    x, y = self.C_GREEN_LEFT_1.coord()
-                    logger.info("Green left 1")
-                case GreenMarkType.GREEN_LEFT2:
-                    x, y = self.C_GREEN_LEFT_2.coord()
-                    logger.info("Green left 2")
-                case GreenMarkType.GREEN_LEFT3:
-                    x, y = self.C_GREEN_LEFT_3.coord()
-                    logger.info("Green left 3")
-                case GreenMarkType.GREEN_LEFT4:
-                    x, y = self.C_GREEN_LEFT_4.coord()
-                    logger.info("Green left 4")
-                case GreenMarkType.GREEN_LEFT5:
-                    x, y = self.C_GREEN_LEFT_5.coord()
-                    logger.info("Green left 5")
-                case GreenMarkType.GREEN_MAIN:
-                    x, y = self.C_GREEN_MAIN.coord()
-                    logger.info("Green main")
+        if not enable:
+            return
+        logger.info("Green is enable")
+        match green_mark_type:
+            case GreenMarkEnum.CHOOSE:
+                self.green_mark_choose(mark_mode)
+            case GreenMarkEnum.NAME:
+                self.green_mark_name(green_mark_name)
 
-            while 1:
-                self.screenshot()
-                if not self.appear(self.I_PREPARE_HIGHLIGHT):
-                    break
+    def green_mark_choose(self, mark_mode: GreenMarkType = GreenMarkType.GREEN_MAIN):
+        x, y = None, None
+        match mark_mode:
+            case GreenMarkType.GREEN_LEFT1:
+                x, y = self.C_GREEN_LEFT_1.coord()
+                logger.info("Green left 1")
+            case GreenMarkType.GREEN_LEFT2:
+                x, y = self.C_GREEN_LEFT_2.coord()
+                logger.info("Green left 2")
+            case GreenMarkType.GREEN_LEFT3:
+                x, y = self.C_GREEN_LEFT_3.coord()
+                logger.info("Green left 3")
+            case GreenMarkType.GREEN_LEFT4:
+                x, y = self.C_GREEN_LEFT_4.coord()
+                logger.info("Green left 4")
+            case GreenMarkType.GREEN_LEFT5:
+                x, y = self.C_GREEN_LEFT_5.coord()
+                logger.info("Green left 5")
+            case GreenMarkType.GREEN_MAIN:
+                x, y = self.C_GREEN_MAIN.coord()
+                logger.info("Green main")
+        while True:
+            self.screenshot()
+            if not self.appear(self.I_PREPARE_HIGHLIGHT):
+                break
+        self.appear_then_click(self.I_LOCAL)
+        time.sleep(0.3)
+        self.device.click(x, y)
 
-            self.appear_then_click(self.I_LOCAL)
-            time.sleep(0.3)
-            self.device.click(x, y)
+    def green_mark_name(self, name: str = ''):
+        if name == '':
+            logger.warning("Green mark name is empty")
+            return
+        timeout_timer = Timer(3).start()
+        best = {'name': '', 'x': -1, 'y': -1, 'similarity': 0.0}
+        while not timeout_timer.reached():
+            self.screenshot()
+            results = self.O_GREEN_MARK_AREA.detect_and_ocr(self.device.image)
+            for ret in results:
+                similarity = difflib.SequenceMatcher(None, ret.ocr_text, name).ratio()
+                if similarity > best['similarity']:
+                    x = self.O_GREEN_MARK_AREA.roi[0] + ret.box[0, 0] + 5
+                    y = self.O_GREEN_MARK_AREA.roi[1] + ret.box[0, 1] + 30
+                    x = 1280 if x > 1280 else x
+                    y = 720 if y > 720 else y
+                    best = {'name': ret.ocr_text, 'x': x, 'y': y, 'similarity': similarity}
+            if best['similarity'] > 0.5:
+                logger.info(f'Green name success, text: {best["name"]}[{best["similarity"]:.2f}]')
+                self.device.click(best['x'], best['y'], control_name=best['name'])
+                return
+        logger.warning(f'Green name failed, best text: {best["name"]}[{best["similarity"]:.2f}]')
 
     def switch_preset_team(self, enable: bool = False, preset_group: int = 1, preset_team: int = 1):
         """
