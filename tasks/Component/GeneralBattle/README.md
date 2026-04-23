@@ -9,6 +9,54 @@
 
 `run_general_battle(config, buff, battle_key)` 会在单一循环里截图、识别 `page_battle_prepare` / `page_battle` / `page_battle_result` / `page_reward`，再把处理分派到对应 handler。
 
+## 定时巡检
+
+`GeneralBattle` 在 `page_battle` 阶段提供统一的定时巡检框架：
+
+- 通过 `_get_timed_battle_inspections(config, battle_key)` 声明当前 battle 生效的巡检项。
+- 每个巡检项都要有稳定唯一的 `name`、独立的 `interval` 和自己的 `action`。
+- `timer` 直接内聚在 `BattleTimedInspection` 自身；进入新的 `page_battle` 时统一启动或重置，不需要再往 `BattleContext` 里追加 `xxx_timer` 字段。
+- 巡检框架只负责“什么时候触发”，具体健康态判断和恢复动作由巡检项自己实现。
+- 巡检 timer 不会在调用 `run_general_battle()` 时就开始计时，而是等到首次进入 `page_battle` 后才启用。
+
+基类默认内置一个 `recover_auto_mode` 巡检项：
+
+- 间隔为 60 秒。
+- 触发时复用 `GameUi` 的 `O_BATTLE_HAND` / `O_BATTLE_AUTO`。
+- 仅当明确识别到“手动”时才点击切回自动；已经是自动时不会额外点击。
+
+### 扩展示例
+
+如果后续要追加一个“每 30 秒检查绿标状态”的巡检项，不需要再增加新的上下文字段，只要覆写钩子并追加一个声明即可：
+
+```python
+from tasks.Component.GeneralBattle.general_battle import BattleTimedInspection
+
+def _get_timed_battle_inspections(self, config, battle_key):
+    inspections = list(super()._get_timed_battle_inspections(config, battle_key))
+    inspections.append(
+        BattleTimedInspection(
+            name="green_mark_status",
+            interval=30,
+            action=lambda context: self._inspect_green_mark_status(context, config),
+        )
+    )
+    return tuple(inspections)
+```
+
+要求：
+
+- `name` 必须唯一，否则构建上下文时会直接报错。
+- `interval` 必须大于 0。
+- 巡检动作内部自己决定“是否健康”和“如何恢复”，不要把业务判断塞回统一调度层。
+
+### 生命周期
+
+- 每次从非 `page_battle` 页面首次进入 `page_battle` 时，会统一启动或重置当前生效巡检项的 timer。
+- battle 首帧也会走同一套巡检推进逻辑，但因为 timer 刚启动，不会立刻触发。
+- 持续停留在 `page_battle` 的后续循环里，会继续逐个巡检项检查各自 timer 是否到期。
+- 连战下一轮重新进入 `page_battle` 时，会开启新的巡检窗口，不继承上一轮剩余计时。
+
 ## 快速结束识别
 
 `run_general_battle(config, buff, battle_key, exit_matcher=None)` 支持在结算/奖励之后用任务自身页面特征提前结束，不再一律等待 `reward_no_battle_ts` 的 2 秒兜底。
@@ -78,10 +126,23 @@ self.run_general_battle(
 
 - `BATTLE_KEY`：同一 `battle_key` 下跨多次 `run_general_battle()` 调用只执行一次。
 - `CALL`：单次 `run_general_battle()` 调用中只执行一次；连战轮次继续复用该状态。
+- `ROUND`：单次 `run_general_battle()` 调用内，每一轮连战各执行一次；进入下一轮时重置。
 - 基类默认策略是 `preset -> BATTLE_KEY`、`buff -> BATTLE_KEY`、`green -> CALL`。
 - 子任务可以覆写 `_get_battle_behavior_scopes(config, battle_key)` 调整某个行为的执行频率，而不必重写整个 prepare/battle handler。
-- 当前 `BattleContext` 同时保存运行时字段、共享行为状态、调用级行为状态与 `buff` 配置。
+- 当前 `BattleContext` 同时保存运行时字段、共享行为状态、调用级行为状态、轮次级行为状态与 `buff` 配置。
 - 在 handler 或子任务扩展逻辑里，直接调用 `_run_battle_behavior_once("green", lambda: ...)` 即可复用当前通用战斗调用的上下文，不需要再手动透传行为状态。
+
+### 作用域差异
+
+- `BATTLE_KEY` 适合预设、buff 这类“同一种战斗类型只做一次”的行为。
+- `CALL` 适合单次 `run_general_battle()` 内只做一次、但下一次重新调用可以再做一次的行为。
+- `ROUND` 适合连战中每一轮都要重新校正一次的行为，例如某些特殊场景下的逐轮绿标。
+
+### 连战示例
+
+- 若某行为声明为 `CALL`，那么一次 `run_general_battle()` 的第 1 轮执行后，第 2 轮、第 3 轮连战都会复用，不会再次执行。
+- 若某行为声明为 `ROUND`，那么同一次 `run_general_battle()` 的第 1 轮执行后，进入第 2 轮时会重新具备执行资格。
+- 若某行为声明为 `BATTLE_KEY`，那么同一 `battle_key` 下后续再次调用 `run_general_battle()` 时仍会复用已经执行过的状态。
 
 ## 自定义页面识别
 
