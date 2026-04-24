@@ -35,6 +35,8 @@ from tasks.base_task import BaseTask
 class GameUi(BaseTask, GameUiAssets):
     """页面识别、导航与未知页恢复的统一入口。"""
 
+    REPEATED_TRANSITION_FAILURE_THRESHOLD = 3
+
     # 全局未知页关闭动作，所有任务共享。
     DEFAULT_UNKNOWN_CLOSERS = [
         GlobalGameAssets.I_UI_BACK_RED,
@@ -573,12 +575,22 @@ class GameUi(BaseTask, GameUiAssets):
         self.navigator.unknown_close_history.append(message)
         self.navigator.unknown_close_history = self.navigator.unknown_close_history[-10:]
 
-    def _log_navigation_timeout(self, destination: Page, last_path_signature: tuple[str, str] | None = None) -> None:
+    def _log_navigation_timeout(
+        self,
+        destination: Page,
+        last_path_signature: tuple[str, str] | None = None,
+        repeated_failure_transition_key: str | None = None,
+        repeated_failure_count: int = 0,
+        last_repeated_failure_close_result: str | None = None,
+    ) -> None:
         """输出导航超时诊断日志。
 
         Args:
             destination: 当前导航目标页面。
             last_path_signature: 最近一次成功构建的路径签名。
+            repeated_failure_transition_key: 最近一次连续失败的边 key。
+            repeated_failure_count: 当前连续失败次数。
+            last_repeated_failure_close_result: 最近一次“三连失败后主动关闭”的结果摘要。
         """
 
         current = self.navigator.current_page.name if self.navigator.current_page else "None"
@@ -596,8 +608,14 @@ class GameUi(BaseTask, GameUiAssets):
         logger.warning(f"Current task category: {self.navigator.task_category}")
         logger.warning(f"Current page checks: {check_results}")
         logger.warning(f"Last path signature: {last_path_signature}")
+        logger.warning(
+            "Repeated transition failure: "
+            f"key={repeated_failure_transition_key}, count={repeated_failure_count}"
+        )
+        logger.warning(f"Last repeated-failure close result: {last_repeated_failure_close_result}")
         logger.warning(f"Edge penalties: {penalties}")
         logger.warning(f"Unknown close history: {self.navigator.unknown_close_history}")
+        raise GamePageUnknownError(f"Cannot goto page[{destination}]")
 
     def get_current_page(self, skip_first_screenshot: bool = True) -> Page | None:
         """获取当前稳定页面。
@@ -691,13 +709,8 @@ class GameUi(BaseTask, GameUiAssets):
         rotation_check()
         return False
 
-    def goto_page(
-        self,
-        destination: Page,
-        confirm_wait: float = 0,
-        skip_first_screenshot: bool = True,
-        timeout: int = 30,
-    ) -> bool | None:
+    def goto_page(self, destination: Page, confirm_wait: float = 0, skip_first_screenshot: bool = True,
+                  timeout: int = 30) -> bool | None:
         """导航到目标页面。
 
         Args:
@@ -719,6 +732,14 @@ class GameUi(BaseTask, GameUiAssets):
         progress_timer = Timer(timeout).start()
         last_progress_signature: tuple[str, str] | None = None
         last_detected_page_key: str | None = None
+        repeated_failure_transition_key: str | None = None
+        repeated_failure_count = 0
+        last_repeated_failure_close_result: str | None = None
+
+        def reset_repeated_transition_failures() -> None:
+            nonlocal repeated_failure_transition_key, repeated_failure_count
+            repeated_failure_transition_key = None
+            repeated_failure_count = 0
 
         while True:
             current = self._refresh_current_page(destination, skip_first_screenshot)
@@ -734,17 +755,23 @@ class GameUi(BaseTask, GameUiAssets):
                     progress_timer.reset()
                     last_progress_signature = ("close_unknown", destination.key)
                     last_detected_page_key = None
+                    reset_repeated_transition_failures()
                 elif progress_timer.reached():
-                    self._log_navigation_timeout(destination, last_progress_signature)
+                    self._log_navigation_timeout(
+                        destination,
+                        last_path_signature=last_progress_signature,
+                        repeated_failure_transition_key=repeated_failure_transition_key,
+                        repeated_failure_count=repeated_failure_count,
+                        last_repeated_failure_close_result=last_repeated_failure_close_result,
+                    )
                     raise GamePageUnknownError(f"Cannot goto page[{destination}]")
-                else:
-                    sleep(0.3)
                 continue
 
             if current.key != last_detected_page_key:
                 self._run_enter_success_hooks_if_needed(current)
                 progress_timer.reset()
                 last_detected_page_key = current.key
+                reset_repeated_transition_failures()
 
             if current == destination and self.confirm_page(destination, skip_first_screenshot=False):
                 self._run_enter_success_hooks_if_needed(destination)
@@ -758,18 +785,22 @@ class GameUi(BaseTask, GameUiAssets):
                 if self.close_unknown_pages(skip_first_screenshot=False):
                     progress_timer.reset()
                     last_progress_signature = ("close_unknown", current.key)
+                    reset_repeated_transition_failures()
                     continue
                 if progress_timer.reached():
-                    self._log_navigation_timeout(destination, last_progress_signature)
-                    raise GamePageUnknownError(f"Cannot goto page[{destination}]")
-                sleep(0.3)
+                    self._log_navigation_timeout(
+                        destination,
+                        last_path_signature=last_progress_signature,
+                        repeated_failure_transition_key=repeated_failure_transition_key,
+                        repeated_failure_count=repeated_failure_count,
+                        last_repeated_failure_close_result=last_repeated_failure_close_result,
+                    )
                 continue
 
             path_signature = (current.key, " -> ".join(transition.key for transition in path))
             if path_signature != last_progress_signature:
                 progress_timer.reset()
                 last_progress_signature = path_signature
-
             logger.info(f"Current page: {current}. Following path:")
             logger.info(" -> ".join([current.name, *[transition.destination.name for transition in path]]))
 
@@ -777,13 +808,31 @@ class GameUi(BaseTask, GameUiAssets):
             for transition in path:
                 if not self._execute_transition(transition):
                     advanced = False
+                    if repeated_failure_transition_key == transition.key:
+                        repeated_failure_count += 1
+                    else:
+                        repeated_failure_transition_key = transition.key
+                        repeated_failure_count = 1
+                    if repeated_failure_count % self.REPEATED_TRANSITION_FAILURE_THRESHOLD == 0:
+                        close_success = self.close_unknown_pages(skip_first_screenshot=False)
+                        logger.warning(f"Transition {transition.key} repeated failure close result: {close_success}")
+                        if close_success:
+                            progress_timer.reset()
+                            last_progress_signature = ("close_unknown_after_repeated_failure", transition.key)
+                            reset_repeated_transition_failures()
                     break
                 progress_timer.reset()
                 last_detected_page_key = transition.destination.key
+                last_repeated_failure_close_result = None
+                reset_repeated_transition_failures()
 
             if advanced and self.navigator.current_page == destination:
                 continue
-
             if progress_timer.reached():
-                self._log_navigation_timeout(destination, last_progress_signature)
-                raise GamePageUnknownError(f"Cannot goto page[{destination}]")
+                self._log_navigation_timeout(
+                    destination,
+                    last_path_signature=last_progress_signature,
+                    repeated_failure_transition_key=repeated_failure_transition_key,
+                    repeated_failure_count=repeated_failure_count,
+                    last_repeated_failure_close_result=last_repeated_failure_close_result,
+                )

@@ -48,6 +48,7 @@ from tasks.GameUi.default_pages import (
     page_team,
     page_town,
     page_travel,
+    page_shirin,
     random_click,
 )
 from tasks.GameUi.matcher import AllMatcher, AnyMatcher, AtomMatcher, Matcher, NotMatcher, all_of, any_of, ensure_matcher, not_
@@ -110,6 +111,7 @@ __all__ = [
     "page_team",
     "page_town",
     "page_travel",
+    "page_shirin",
     "random_click",
     "sequence",
 ]
