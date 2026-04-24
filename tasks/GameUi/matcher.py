@@ -142,3 +142,39 @@ def not_(target: RecognizerLike | Matcher) -> Matcher:
     """
 
     return NotMatcher(ensure_matcher(target))
+
+
+def collect_rule_images(target: Union[Matcher | RecognizerLike | Iterable[RecognizerLike] | None]) -> tuple[RuleImage, ...]:
+    """提取 matcher 树中可批量预取的 `RuleImage` 原子节点。"""
+
+    images: list[RuleImage] = []
+    seen = set()
+
+    def visit(node):
+        if node is None:
+            return
+        if isinstance(node, RuleImage):
+            cache_key = id(node)
+            if cache_key in seen:
+                return
+            seen.add(cache_key)
+            images.append(node)
+            return
+        if isinstance(node, AtomMatcher):
+            visit(node.target)
+            return
+        if isinstance(node, (AnyMatcher, AllMatcher)):
+            for child in node.children:
+                visit(child)
+            return
+        if isinstance(node, NotMatcher):
+            visit(node.child)
+            return
+        if isinstance(node, Matcher):
+            return
+        if isinstance(node, (list, tuple, set)):
+            for item in node:
+                visit(item)
+
+    visit(target)
+    return tuple(images)

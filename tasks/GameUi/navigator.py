@@ -24,6 +24,7 @@ from tasks.Component.GeneralBattle.assets import GeneralBattleAssets
 from tasks.GameUi.action import ActionSequence, ConditionalAction
 from tasks.GameUi.assets import GameUiAssets
 from tasks.GameUi.common import infer_tasks_category_from_parts, infer_tasks_category_from_path
+from tasks.GameUi.matcher import collect_rule_images
 from tasks.GameUi.page_definition import Page, Transition, sort_pages_by_priority
 from tasks.GameUi.registry import PageRegistry
 from tasks.GameUi.session import NavigatorSession
@@ -240,17 +241,34 @@ class GameUi(BaseTask, GameUiAssets):
             return None
 
         self.maybe_screenshot(skip_first_screenshot)
+        self._prepare_page_rule_image_cache(pages)
         indexed_candidates = [(index, page) for index, page in enumerate(pages) if self.match_page_once(page)]
         if not indexed_candidates:
             return None
 
         self.screenshot()
+        self._prepare_page_rule_image_cache([page for _, page in indexed_candidates])
         for page in sort_pages_by_priority(indexed_candidates):
             if self.match_page_once(page):
                 self.navigator.current_page = page
                 logger.attr("UI", page.name)
                 return page
         return None
+
+    def _prepare_page_rule_image_cache(self, pages: list[Page]) -> None:
+        targets = []
+        seen = set()
+        for page in pages:
+            if page.recognizer is None:
+                continue
+            for target in collect_rule_images(page.recognizer):
+                cache_key = id(target)
+                if cache_key in seen:
+                    continue
+                seen.add(cache_key)
+                targets.append(target)
+        if targets:
+            self.prepare_appear_cache(targets)
 
     @staticmethod
     def _action_name(action) -> str:

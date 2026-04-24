@@ -16,6 +16,11 @@ class Control(Minitouch, Adb, Scrcpy, Window):
         # Will be overridden in Device
         pass
 
+    def _invalidate_image_batch_cache(self) -> None:
+        invalidate = getattr(self, 'invalidate_image_batch_cache', None)
+        if callable(invalidate):
+            invalidate()
+
     @cached_property
     def click_methods(self):
         return {
@@ -74,6 +79,7 @@ class Control(Minitouch, Adb, Scrcpy, Window):
         logger.info(
             'Click %s @ %s' % (point2str(x, y), control_name)
         )
+        self._invalidate_image_batch_cache()
         method = self.click_methods.get(
             self.config.script.device.control_method,
             self.click_adb
@@ -144,6 +150,7 @@ class Control(Minitouch, Adb, Scrcpy, Window):
         logger.info(
             'Click %s @ %s %s' % (point2str(x, y), control_name, duration)
         )
+        self._invalidate_image_batch_cache()
         method = self.long_click_methods.get(
             self.config.script.device.control_method,
             self.long_click_adb)
@@ -184,16 +191,21 @@ class Control(Minitouch, Adb, Scrcpy, Window):
                 return
 
         if method == 'minitouch':
+            self._invalidate_image_batch_cache()
             self.swipe_minitouch(p1, p2)
         elif method == 'window_message':
+            self._invalidate_image_batch_cache()
             self.swipe_window_message(p1, p2)
         elif method == 'uiautomator2':
+            self._invalidate_image_batch_cache()
             self.swipe_uiautomator2(p1, p2, duration=duration)
         elif method == 'scrcpy':
+            self._invalidate_image_batch_cache()
             self.swipe_scrcpy(p1, p2)
         # elif method == 'MaaTouch':
         #     self.swipe_maatouch(p1, p2)
         else:
+            self._invalidate_image_batch_cache()
             self.swipe_adb(p1, p2, duration=duration)
 
     def swipe_vector(self, vector, box=(123, 159, 1175, 628), random_range=(0, 0, 0, 0), padding=15,

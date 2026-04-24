@@ -56,10 +56,36 @@ class Device(Platform, Screenshot, Control, AppControl):
             _ = self.emulator_instance
 
         self.screenshot_interval_set()
+        self._image_batch_cache_frame_id: str | None = None
+        self._image_batch_cache: dict[int, dict] = {}
 
         # Auto-select the fastest screenshot method
         if self.config.script.device.screenshot_method == 'auto':
             self.run_simple_screenshot_benchmark()
+
+    def reset_image_batch_cache(self, frame_id: str | None = None) -> None:
+        self._image_batch_cache_frame_id = frame_id
+        self._image_batch_cache = {}
+
+    def invalidate_image_batch_cache(self) -> None:
+        self.reset_image_batch_cache()
+
+    def get_image_batch_cache(self, target, frame_id: str | None = None) -> dict | None:
+        active_frame_id = self.image_frame_id if frame_id is None else frame_id
+        if active_frame_id is None:
+            return None
+        if self._image_batch_cache_frame_id != active_frame_id:
+            return None
+        return self._image_batch_cache.get(id(target))
+
+    def update_image_batch_cache(self, targets: list, results: list[dict], frame_id: str | None = None) -> None:
+        active_frame_id = self.image_frame_id if frame_id is None else frame_id
+        if active_frame_id is None:
+            return
+        if self._image_batch_cache_frame_id != active_frame_id:
+            self.reset_image_batch_cache(active_frame_id)
+        for target, result in zip(targets, results):
+            self._image_batch_cache[id(target)] = dict(result)
 
     def run_simple_screenshot_benchmark(self):
         """
@@ -114,6 +140,7 @@ class Device(Platform, Screenshot, Control, AppControl):
         if self.handle_night_commission():
             super().screenshot()
 
+        self.reset_image_batch_cache(self.image_frame_id)
         return self.image
 
     def release_during_wait(self):

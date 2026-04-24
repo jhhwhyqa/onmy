@@ -140,6 +140,17 @@ class ScriptTask(GameUi, SwitchSoul, GeneralBattle, DokanAssets):
 
     def run_on_dokan(self):
         """道馆页面逻辑处理"""
+        self.prepare_appear_cache([
+            self.I_RYOU_DOKAN_GATHERING,
+            self.I_RYOU_DOKAN_MASTER_BATTLE,
+            self.I_RYOU_DOKAN_START_CHALLENGE,
+            self.I_RYOU_DOKAN_CD,
+            self.I_RYOU_DOKAN_ABANDONED_TOPPA_ABANDONED,
+            self.I_RYOU_DOKAN_FAILED_VOTE_KEEP_BOUNTY,
+            self.I_RYOU_DOKAN_FAILED_VOTE_BATTLE_AGAIN,
+            self.I_RYOU_DOKAN_TODAY_ATTACK_COUNT,
+            self.I_RYOU_DOKAN_REMAIN_ATTACK_COUNT_DONE,
+        ])
         if self.appear(self.I_RYOU_DOKAN_GATHERING):  # 正在集结
             logger.debug(f"Dokan is gathering...")
             self.switch_priority()  # 选择优先级

@@ -18,6 +18,7 @@ from module.base.timer import Timer
 from module.config.config import Config
 from module.device.device import Device
 from module.exception import ScriptError
+from module.image.rpc import get_image_client
 from module.logger import logger
 from module.ocr.base_ocr import OcrMode
 from tasks.Component.Costume.costume_base import CostumeBase
@@ -155,6 +156,37 @@ class BaseTask(GlobalGameAssets, CostumeBase):
         """
         return hasattr(self.device, 'image') and self.device.image is not None
 
+    def prepare_appear_cache(self, targets: list[RuleImage]) -> None:
+        """在当前截图帧上批量预取一组 `RuleImage` 的匹配结果。"""
+        if not self.exist_image():
+            return
+        frame_id = self.device.image_frame_id
+        if frame_id is None:
+            return
+
+        unique_targets = []
+        seen = set()
+        for target in targets:
+            if not isinstance(target, RuleImage):
+                continue
+            cache_key = id(target)
+            if cache_key in seen:
+                continue
+            seen.add(cache_key)
+            if self.device.get_image_batch_cache(target, frame_id=frame_id) is not None:
+                continue
+            unique_targets.append(target)
+
+        if not unique_targets:
+            return
+
+        results = get_image_client().match_many(
+            rules_data=[target.to_service_payload() for target in unique_targets],
+            image=self.device.image,
+            frame_id=frame_id,
+        )
+        self.device.update_image_batch_cache(unique_targets, results, frame_id=frame_id)
+
     def appear(self,
                target: RuleImage | RuleGif | RuleOcr,
                interval: float = None,
@@ -177,7 +209,14 @@ class BaseTask(GlobalGameAssets, CostumeBase):
         if isinstance(target, RuleOcr):
             appear = self.ocr_appear(target, interval)
         elif isinstance(target, RuleImage):
-            appear = target.match(self.device.image, threshold=threshold, frame_id=self.device.image_frame_id)
+            if threshold is None:
+                cached_result = self.device.get_image_batch_cache(target, frame_id=self.device.image_frame_id)
+                if cached_result is not None:
+                    appear = target._apply_match_result(cached_result)
+                else:
+                    appear = target.match(self.device.image, threshold=threshold, frame_id=self.device.image_frame_id)
+            else:
+                appear = target.match(self.device.image, threshold=threshold, frame_id=self.device.image_frame_id)
         else:
             appear = target.match(self.device.image, threshold=threshold, frame_id=self.device.image_frame_id)
 
