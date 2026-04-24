@@ -244,29 +244,6 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, AbyssShadowsAssets):
 
         return success
 
-    def goto_abyss_shadows(self) -> bool:
-        """ 进入狭间
-        :return bool
-        """
-        logger.info("Entering abyss_shadows")
-        self.goto_page(page_guild)
-
-        while 1:
-            self.screenshot()
-            # 进入神社
-            if self.appear_then_click(self.I_RYOU_SHENSHE, interval=1):
-                logger.info("Enter Shenshe")
-                continue
-            # 查找狭间
-            if not self.appear(self.I_ABYSS_SHADOWS, threshold=0.8):
-                self.swipe(self.S_TO_ABBSY_SHADOWS, interval=3)
-                continue
-            # 进入狭间
-            if self.appear_then_click(self.I_ABYSS_SHADOWS):
-                logger.info("Enter abyss_shadows")
-                break
-        return True
-
     def select_boss(self, area_name: AreaType) -> bool:
         """ 选择暗域类型
         :return

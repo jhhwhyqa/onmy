@@ -1,18 +1,9 @@
 [
   {
-    "itemName": "ryou_shenshe",
-    "imageName": "res_ryou_shenshe.png",
-    "roiFront": "872,659,62,25",
-    "roiBack": "872,659,62,25",
-    "method": "Template matching",
-    "threshold": 0.8,
-    "description": "阴阳竂->神社"
-  },
-  {
     "itemName": "abyss_dragon",
     "imageName": "res_abyss_dragon.png",
-    "roiFront": "200,150,110,270",
-    "roiBack": "200,150,110,270",
+    "roiFront": "199,150,109,271",
+    "roiBack": "199,150,109,271",
     "method": "Template matching",
     "threshold": 0.8,
     "description": "狭间_神龙入口"

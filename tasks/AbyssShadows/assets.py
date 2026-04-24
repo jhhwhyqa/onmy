@@ -50,10 +50,8 @@ class AbyssShadowsAssets:
 
 
 	# Image Rule Assets
-	# 阴阳竂->神社 
-	I_RYOU_SHENSHE = RuleImage(roi_front=(872,659,62,25), roi_back=(872,659,62,25), threshold=0.8, method="Template matching", file="./tasks/AbyssShadows/res/res_ryou_shenshe.png")
 	# 狭间_神龙入口 
-	I_ABYSS_DRAGON = RuleImage(roi_front=(200,150,110,270), roi_back=(200,150,110,270), threshold=0.8, method="Template matching", file="./tasks/AbyssShadows/res/res_abyss_dragon.png")
+	I_ABYSS_DRAGON = RuleImage(roi_front=(199,150,109,271), roi_back=(199,150,109,271), threshold=0.8, method="Template matching", file="./tasks/AbyssShadows/res/res_abyss_dragon.png")
 	# 狭间_神龙入口_已封印 
 	I_ABYSS_DRAGON_OVER = RuleImage(roi_front=(200,150,110,270), roi_back=(200,150,110,270), threshold=0.8, method="Template matching", file="./tasks/AbyssShadows/res/res_abyss_dragon_over.png")
 	# 狭间_孔雀入口 

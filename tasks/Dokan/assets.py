@@ -40,8 +40,6 @@ class DokanAssets:
 
 
 	# Image Rule Assets
-	# 阴阳寮->神社的按钮 
-	I_RYOU_SHENSHE = RuleImage(roi_front=(850,660,100,60), roi_back=(850,660,100,60), threshold=0.8, method="Template matching", file="./tasks/Dokan/res/res_ryou_shenshe.png")
 	# 神社->道馆 
 	I_RYOU_DOKAN = RuleImage(roi_front=(465,160,100,50), roi_back=(465,160,100,50), threshold=0.8, method="Template matching", file="./tasks/Dokan/res/res_ryou_dokan.png")
 	# 阴阳寮卡通人界面,左侧已开启的活动 列表 
