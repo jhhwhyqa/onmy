@@ -127,6 +127,9 @@ class ScriptTask(GameUi, SwitchSoul, GeneralBattle, DokanAssets):
                     case pages.page_dokan:
                         unknown_page_timer.reset()
                         self.run_on_dokan()
+                    case pages.page_battle_prepare | pages.page_battle:
+                        unknown_page_timer.reset()
+                        self.run_on_battle()
                     case _:
                         if unknown_page_timer.reached():  # 15秒都是非道馆界面, 则尝试回到道馆
                             self.goto_page(pages.page_dokan)
@@ -166,16 +169,16 @@ class ScriptTask(GameUi, SwitchSoul, GeneralBattle, DokanAssets):
             logger.info(f"Dokan master count:{count}, first master killed:{first_master_killed}")
             if (count - (1 if first_master_killed else 0)) > 0:
                 logger.info("start Master first")
-                self.click(self.I_RYOU_DOKAN_START_CHALLENGE, interval=2)
-                self.run_general_battle(self.conf.dokan_owner_battle_conf, battle_key='dokan_owner')
+                if self.click_until_in_battle():
+                    self.run_general_battle(self.conf.dokan_owner_battle_conf, battle_key='dokan_owner')
             # 有权限且当前道馆突破 不再打馆主,直接放弃突破
             elif self.conf.dokan_config.try_start_dokan:
                 self.abandoned_toppa()
             return
         if self.appear(self.I_RYOU_DOKAN_START_CHALLENGE):  # 非馆主且可挑战
             self.switch_soul_in_dokan('member')
-            self.click(self.I_RYOU_DOKAN_START_CHALLENGE, interval=2)
-            self.run_general_battle(self.conf.dokan_member_battle_conf, battle_key='dokan_member')
+            if self.click_until_in_battle():
+                self.run_general_battle(self.conf.dokan_member_battle_conf, battle_key='dokan_member')
             return
         if self.appear(self.I_RYOU_DOKAN_CD):  # 挑战CD中
             self.device.click_record_clear()
@@ -200,6 +203,18 @@ class ScriptTask(GameUi, SwitchSoul, GeneralBattle, DokanAssets):
             self.update_remain_attack_count()  # 更新配置
             raise DokanFinishedError
 
+    def click_until_in_battle(self) -> bool:
+        """点击挑战直到进入战斗"""
+        timeout_timer = Timer(5).start()
+        while True:
+            self.screenshot()
+            if self.is_in_battle(False):
+                return True
+            if timeout_timer.reached():
+                break
+            self.appear_then_click(self.I_RYOU_DOKAN_START_CHALLENGE, interval=2)
+        return False
+
     def run_on_dokan_map(self):
         """道馆地图页面逻辑处理"""
         if self.appear(self.I_RYOU_DOKAN_FINDING_DOKAN):  # 道馆未开启
@@ -218,6 +233,14 @@ class ScriptTask(GameUi, SwitchSoul, GeneralBattle, DokanAssets):
             return
         if self.appear(self.I_RYOU_DOKAN_FOUND_DOKAN):  # 道馆已开启
             self.goto_page(pages.page_dokan)  # 跳转到道馆
+
+    def run_on_battle(self):
+        """处理战斗页面逻辑(正常来说是一定不会进入该逻辑的)"""
+        if self.appear(self.I_RYOU_DOKAN_BATTLE_MASTER_FIRST) or \
+                self.appear(self.I_RYOU_DOKAN_BATTLE_MASTER_SECOND):
+            self.run_general_battle(self.conf.dokan_owner_battle_conf, battle_key='dokan_owner')
+            return
+        self.run_general_battle(self.conf.dokan_member_battle_conf, battle_key='dokan_member')
 
     def switch_priority(self):
         """选择优先级"""
