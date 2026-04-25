@@ -11,6 +11,25 @@ class AppControl(Adb, Uiautomator2):
     hierarchy: etree._Element
     _app_u2_family = ['uiautomator2', 'minitouch', 'scrcpy']
 
+    def app_is_alive(self, package_name=None) -> bool:
+        """
+        判断目标应用进程是否仍然存活，不要求当前位于前台。
+
+        这用于区分“应用被切到后台”和“应用已经被真正杀掉”两种情况。
+        """
+        if not package_name:
+            package_name = self.package
+
+        try:
+            result = self.adb_shell(['pidof', package_name])
+        except Exception as e:
+            logger.info(f'Check app alive by pidof failed: {e}')
+            return False
+
+        result = result.strip(' \t\r\n')
+        logger.attr('Package_pid', result if result else 'None')
+        return bool(result)
+
     def app_is_running(self) -> bool:
         method = self.config.script.device.control_method
         # if self.is_wsa:

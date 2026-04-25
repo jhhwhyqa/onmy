@@ -31,7 +31,7 @@ from module.exception import *
 from module.server.i18n import I18n
 from module.image.rpc import ensure_image_server_ready
 from module.ocr.rpc import ensure_ocr_server_ready
-from module.script import ScriptRuntimeController
+from module.script import ScriptRuntimeController, ScriptRuntimeDecision
 
 _log_switch_lock = threading.Lock()#线程锁
 
@@ -308,8 +308,12 @@ class Script:
             if task.next_run <= now:
                 return task.command
             # 根据策略执行等待逻辑
-            if not self.runtime.handle_wait_during_idle(task.next_run):
-                # 若等待被打断, 则刷新配置
+            decision = self.runtime.handle_wait_during_idle(task.next_run)
+            if decision == ScriptRuntimeDecision.RESCHEDULE:
+                logger.info('Idle wait requested scheduler refresh, reload config and reschedule')
+                del_cached_property(self, "config")
+            elif decision == ScriptRuntimeDecision.FAILED:
+                logger.warning('Idle wait preparation failed, reload config and retry scheduling')
                 del_cached_property(self, "config")
 
     def exception_handler(self, e: Exception, command: str) -> None:
@@ -447,7 +451,12 @@ class Script:
                 del_cached_property(self, 'config')
                 continue
 
-            if not self.runtime.prepare_task_execution(task):
+            decision = self.runtime.prepare_task_execution(task)
+            if decision == ScriptRuntimeDecision.RESCHEDULE:
+                logger.info(f'Runtime preparation for `{task}` requested reschedule, reload config and retry scheduling')
+                del_cached_property(self, 'config')
+                continue
+            if decision == ScriptRuntimeDecision.FAILED:
                 logger.warning(f'Runtime preparation for `{task}` failed, reload config and retry scheduling')
                 del_cached_property(self, 'config')
                 continue

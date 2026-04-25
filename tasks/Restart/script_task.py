@@ -1,7 +1,7 @@
 # This Python file uses the following encoding: utf-8
 # @author runhey
 # github https://github.com/runhey
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from module.exception import TaskEnd
 from module.logger import logger
@@ -17,9 +17,8 @@ class ScriptTask(BaseTask):
         :return:
         """
         if not self.delay_pending_tasks():
-            self.app_restart()
-            if self.config.model.restart.restart_config.enable_daily:
-                self.config.task_call('DailyTrifles')
+            self.recover_app()
+            self.finish_recovery()
         raise TaskEnd('ScriptTask end')
 
     def app_stop(self):
@@ -35,10 +34,19 @@ class ScriptTask(BaseTask):
     def app_restart(self):
         logger.hr('App restart')
         self.device.app_stop()
-        self.device.app_start()
-        self.device.wait_app_start_ready()
-        LoginService(config=self.config, device=self.device).app_handle_login()
+        self.app_start()
+
+    def recover_app(self):
+        if self.device.app_is_alive():
+            logger.info('Game process is still alive, use start-only recovery')
+            self.app_start()
+            return
+        self.app_restart()
+
+    def finish_recovery(self):
         self.set_next_run(task='Restart', success=True, finish=True, server=True)
+        if self.config.model.restart.restart_config.enable_daily:
+            self.config.task_call('DailyTrifles')
 
     def delay_pending_tasks(self) -> bool:
         """
