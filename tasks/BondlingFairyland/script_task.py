@@ -22,13 +22,14 @@ from tasks.GameUi.default_pages import page_battle_result, random_click
 from tasks.GameUi.game_ui import GameUi
 from tasks.GameUi.matcher import any_of
 from tasks.GameUi.page import page_main, page_bondling_fairyland, page_shikigami_records, page_mall
+from tasks.RichMan.assets import RichManAssets
 
 
 class BondlingNumberMax(Exception):
     pass
 
 
-class ScriptTask(GameUi, GeneralInvite, GeneralRoom, GeneralBattle, SwitchSoul, BondlingFairylandAssets):
+class ScriptTask(GameUi, GeneralInvite, GeneralRoom, GeneralBattle, SwitchSoul, BondlingFairylandAssets, RichManAssets):
     """ 契灵 """
 
     def _exit_matcher(self) -> ExitMatcher | None:
