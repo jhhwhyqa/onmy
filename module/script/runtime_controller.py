@@ -172,6 +172,12 @@ class ScriptRuntimeController:
         """
         self._ensure_game_closed()
 
+    def _prepare_idle_keep_game_running(self) -> None:
+        """
+        将空闲状态调整为“模拟器开启、游戏运行”。
+        """
+        self._ensure_game_running(require_main=False)
+
     def prepare_task_execution(self, task: str) -> None:
         """
         在任务真正执行前补齐运行环境。
@@ -224,6 +230,30 @@ class ScriptRuntimeController:
             return self.script.wait_until(next_run)
         return True
 
+    def _should_close_game_during_wait(self, next_run: datetime) -> bool:
+        """
+        判断本次空闲等待是否需要关闭游戏。
+
+        Args:
+            next_run: 下一个任务的计划运行时间。
+
+        Returns:
+            bool: True 表示本次等待前应关闭游戏；False 表示保持当前状态直接等待。
+        """
+        close_game_limit_time = self.config.script.optimization.close_game_limit_time
+        close_game_limit = self._time_to_timedelta(close_game_limit_time)
+
+        if close_game_limit <= timedelta(0):
+            logger.info('Close game during wait immediately (close_game_limit_time <= 0)')
+            return True
+
+        if next_run > datetime.now() + close_game_limit:
+            logger.info('Close game during wait (next task exceeds close_game_limit_time)')
+            return True
+
+        logger.info('Keep game running during short wait (next task within close_game_limit_time)')
+        return False
+
     def _wait_close_game(self, next_run: datetime) -> bool:
         """
         按“关闭游戏”策略等待下个任务。
@@ -234,7 +264,12 @@ class ScriptRuntimeController:
         Returns:
             bool: True 表示等待完成；False 表示等待被配置刷新打断。
         """
-        self._prepare_idle_close_game()
+        if self._should_close_game_during_wait(next_run):
+            self._prepare_idle_close_game()
+            self.device.release_during_wait()
+            return self.script.wait_until(next_run)
+
+        self._prepare_idle_keep_game_running()
         self.device.release_during_wait()
         return self.script.wait_until(next_run)
 
