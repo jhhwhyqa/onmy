@@ -290,7 +290,7 @@ class ScriptTask(GameUi, GeneralBattle, HeroTestAssets, SwitchSoul):
                 page_hero_test.connect(self.page_hero_mode, self.I_ENTER_MXMJ, key="page_hero_test->page_hero_mode")
             case _:
                 raise ValueError(f'Unknown Layer {Layer}')
-        self.page_hero_mode.connect(page_hero_test, self.I_BACK_YOLLOW, key="page_hero_mode->page_hero_test")
+        self.page_hero_mode.connect(page_hero_test, self.I_UI_BACK_YELLOW, key="page_hero_mode->page_hero_test")
 
 
 if __name__ == "__main__":

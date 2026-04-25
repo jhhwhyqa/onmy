@@ -1,39 +1,12 @@
 [
   {
-    "itemName": "check_main",
-    "imageName": "page_check_main.png",
-    "roiFront": "807,108,76,45",
-    "roiBack": "49,98,1033,61",
-    "method": "Template matching",
-    "threshold": 0.8,
-    "description": "description"
-  },
-  {
-    "itemName": "main_scroll_close",
-    "imageName": "page_main_scroll_close.png",
-    "roiFront": "1181,634,28,39",
-    "roiBack": "1162,595,77,112",
-    "method": "Template matching",
-    "threshold": 0.8,
-    "description": "庭院卷轴关闭标识"
-  },
-  {
-    "itemName": "main_goto_exploration",
-    "imageName": "page_main_goto_exploration.png",
-    "roiFront": "493,116,45,75",
-    "roiBack": "243,100,933,211",
-    "method": "Template matching",
-    "threshold": 0.8,
-    "description": "description"
-  },
-  {
     "itemName": "check_exploration",
     "imageName": "page_check_exploration.png",
     "roiFront": "1146,175,21,22",
     "roiBack": "1146,175,21,22",
     "method": "Template matching",
     "threshold": 0.8,
-    "description": "description"
+    "description": "探索界面标识"
   },
   {
     "itemName": "exploration_goto_awake_zone",
@@ -90,6 +63,15 @@
     "description": "探索前往秘闻"
   },
   {
+    "itemName": "exploration_goto_hero_test",
+    "imageName": "page_exploration_goto_hero_test.png",
+    "roiFront": "837,630,58,56",
+    "roiBack": "7,605,1272,113",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "探索前往英杰试炼"
+  },
+  {
     "itemName": "exploration_goto_area_boss",
     "imageName": "page_exploration_goto_area_boss.png",
     "roiFront": "640,638,51,45",
@@ -126,22 +108,13 @@
     "description": "探索前往契灵之境"
   },
   {
-    "itemName": "back_blue",
-    "imageName": "page_back_blue.png",
-    "roiFront": "32,37,54,52",
-    "roiBack": "3,2,130,114",
-    "method": "Template matching",
-    "threshold": 0.8,
-    "description": "description"
-  },
-  {
     "itemName": "check_awake",
     "imageName": "page_check_awake.png",
     "roiFront": "376,565,73,82",
     "roiBack": "376,565,73,82",
     "method": "Template matching",
     "threshold": 0.8,
-    "description": "description"
+    "description": "觉醒页面标志"
   },
   {
     "itemName": "check_soul_zones",
@@ -150,7 +123,7 @@
     "roiBack": "49,186,298,237",
     "method": "Template matching",
     "threshold": 0.8,
-    "description": "description"
+    "description": "八岐大蛇页面标志"
   },
   {
     "itemName": "check_realm_raid",
@@ -159,7 +132,16 @@
     "roiBack": "66,526,233,188",
     "method": "Template matching",
     "threshold": 0.7,
-    "description": "description"
+    "description": "个人突破页面标志"
+  },
+  {
+    "itemName": "check_hero_test",
+    "imageName": "page_check_hero_test.png",
+    "roiFront": "148,10,133,48",
+    "roiBack": "137,0,157,71",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "英杰试炼页面标志"
   },
   {
     "itemName": "check_goryou",
@@ -168,7 +150,7 @@
     "roiBack": "881,17,30,39",
     "method": "Template matching",
     "threshold": 0.8,
-    "description": "description"
+    "description": "御灵页面标志"
   },
   {
     "itemName": "check_delegation",
@@ -177,7 +159,7 @@
     "roiBack": "839,132,49,45",
     "method": "Template matching",
     "threshold": 0.8,
-    "description": "description"
+    "description": "委派页面标志"
   },
   {
     "itemName": "check_secret_zones",
@@ -186,7 +168,7 @@
     "roiBack": "1145,592,110,119",
     "method": "Template matching",
     "threshold": 0.8,
-    "description": "description"
+    "description": "秘闻页面标志"
   },
   {
     "itemName": "check_area_boss",
@@ -195,7 +177,7 @@
     "roiBack": "20,320,150,130",
     "method": "Template matching",
     "threshold": 0.8,
-    "description": "description"
+    "description": "地鬼页面标志"
   },
   {
     "itemName": "check_heian_kitan",
@@ -204,7 +186,7 @@
     "roiBack": "27,48,47,39",
     "method": "Template matching",
     "threshold": 0.8,
-    "description": "description"
+    "description": "平安奇谭页面标志"
   },
   {
     "itemName": "check_six_gates",
@@ -213,7 +195,7 @@
     "roiBack": "1174,621,55,44",
     "method": "Template matching",
     "threshold": 0.8,
-    "description": "description"
+    "description": "六道之门页面标志"
   },
   {
     "itemName": "check_bondling_fairyland",
@@ -222,7 +204,7 @@
     "roiBack": "582,630,130,90",
     "method": "Template matching",
     "threshold": 0.8,
-    "description": "description"
+    "description": "契灵页面标志"
   },
   {
     "itemName": "six_gates_goto_exploration",
@@ -231,16 +213,7 @@
     "roiBack": "18,19,52,55",
     "method": "Template matching",
     "threshold": 0.8,
-    "description": "description"
-  },
-  {
-    "itemName": "bondling_goto_exploration",
-    "imageName": "page_bondling_goto_exploration.png",
-    "roiFront": "20,13,60,59",
-    "roiBack": "20,13,60,59",
-    "method": "Template matching",
-    "threshold": 0.8,
-    "description": "description"
+    "description": "六道返回探索按钮"
   },
   {
     "itemName": "ryoutoppa_goto_realmraid",
@@ -249,7 +222,16 @@
     "roiBack": "1201,234,62,105",
     "method": "Template matching",
     "threshold": 0.8,
-    "description": "description"
+    "description": "寮突切换到个突按钮"
+  },
+  {
+    "itemName": "kekkai_toppa",
+    "imageName": "page_kekkai_toppa.png",
+    "roiFront": "1065,3,203,61",
+    "roiBack": "1065,3,203,61",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "寮突页面标志"
   },
   {
     "itemName": "realm_raid_goto_shikigami_records",
@@ -258,6 +240,6 @@
     "roiBack": "1166,520,112,198",
     "method": "Template matching",
     "threshold": 0.8,
-    "description": "突破进入式神录标志"
+    "description": "突破进入式神录按钮"
   }
 ]

@@ -154,6 +154,10 @@ class GeneralBattleAssets:
 	O_PRESET_FULL = RuleOcr(roi=(20,620,60,80), area=(20,620,60,80), mode="Single", method="Default", keyword="预设", name="preset_full")
 	# 绿标区域 
 	O_GREEN_MARK_AREA = RuleOcr(roi=(84,256,1116,308), area=(84,256,1116,308), mode="Full", method="Default", keyword="", name="green_mark_area")
+	# 战斗界面自动标识 
+	O_BATTLE_AUTO = RuleOcr(roi=(37,642,51,36), area=(0,589,133,128), mode="Single", method="Default", keyword="自动", name="battle_auto")
+	# 战斗页面手动标志 
+	O_BATTLE_HAND = RuleOcr(roi=(35,644,52,34), area=(0,589,136,129), mode="Single", method="Default", keyword="手动", name="battle_hand")
 
 
 	# Swipe Rule Assets

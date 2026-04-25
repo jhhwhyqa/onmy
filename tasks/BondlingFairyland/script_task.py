@@ -340,7 +340,7 @@ class ScriptTask(GameUi, GeneralInvite, GeneralRoom, GeneralBattle, SwitchSoul, 
             if self.in_search_ui():
                 break
             if self.in_catch_ui():
-                self.appear_then_click(self.I_BACK_Y, interval=1)
+                self.appear_then_click(self.I_UI_BACK_YELLOW, interval=1)
         logger.info('BondlingFairyland task finished')
 
         self.goto_page(page_main)

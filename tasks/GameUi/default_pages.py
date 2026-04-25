@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from tasks.ActivityShikigami.assets import ActivityShikigamiAssets
+from tasks.Component.SwitchAccount.assets import SwitchAccountAssets
 from tasks.GameUi.action import conditional_action
 from typing import Union
 
@@ -51,14 +52,14 @@ def handle_login_page(task) -> bool:
 
 
 # 登录页。
-page_login = Page(GameUiAssets.I_CHECK_LOGIN_FORM, category="global")
+page_login = Page(SwitchAccountAssets.I_CHECK_LOGIN_FORM, category="global")
 page_login.add_enter_success_hooks(handle_login_page)
 
 # 庭院主页。
 page_main = Page(GameUiAssets.I_CHECK_MAIN, category="global")
 page_main.add_enter_success_hooks(
     GameUiAssets.I_AD_CLOSE_RED,
-    GameUiAssets.I_BACK_FRIENDS,
+    GlobalGameAssets.I_UI_BACK_RED,
     RestartAssets.I_CANCEL_BATTLE,
     conditional_action(RestartAssets.I_LOGIN_COURTYARD, RestartAssets.C_LOGIN_SCROLL_CLOSE_AREA),
 )
@@ -74,7 +75,7 @@ page_onmyodo.connect(page_main, GlobalGameAssets.I_UI_BACK_YELLOW, key="page_onm
 page_main.connect(page_onmyodo, GameUiAssets.I_MAIN_GOTO_ONMYODO, key="page_main->page_onmyodo")
 
 page_friends = Page(GameUiAssets.I_CHECK_FRIENDS, category="global")
-page_friends.connect(page_main, GameUiAssets.I_BACK_FRIENDS, key="page_friends->page_main")
+page_friends.connect(page_main, GlobalGameAssets.I_UI_BACK_RED, key="page_friends->page_main")
 page_friends.add_leave_failure_hooks(GlobalGameAssets.I_UI_BACK_RED)
 page_main.connect(page_friends, GameUiAssets.I_MAIN_GOTO_FRIENDS, key="page_main->page_friends")
 
@@ -89,11 +90,12 @@ page_courtyard_affairs.add_leave_failure_hooks(GlobalGameAssets.I_UI_CANCEL_SAML
                                                ActivityShikigamiAssets.I_SKIP_BUTTON, GlobalGameAssets.I_UI_BACK_YELLOW)
 
 page_mall = Page(GameUiAssets.I_CHECK_MALL, category="global")
-page_mall.add_enter_success_hooks(GameUiAssets.I_AD_CLOSE_RED, GameUiAssets.I_DLC_CLOSE, GlobalGameAssets.I_UI_CANCEL_SAMLL)
+page_mall.add_enter_success_hooks(GameUiAssets.I_AD_CLOSE_RED, GlobalGameAssets.I_UI_BACK_RED, GlobalGameAssets.I_UI_CANCEL_SAMLL)
 page_mall.connect(page_main, GlobalGameAssets.I_UI_BACK_YELLOW, key="page_mall->page_main")
 
 page_mall_recommend = Page(GameUiAssets.I_CHECK_MALL_RECOMMEND, category="global")
-page_mall_recommend.add_enter_success_hooks(GameUiAssets.I_AD_CLOSE_RED, GameUiAssets.I_DLC_CLOSE, GlobalGameAssets.I_UI_CANCEL_SAMLL)
+page_mall_recommend.add_enter_success_hooks(GameUiAssets.I_AD_CLOSE_RED, GlobalGameAssets.I_UI_BACK_RED,
+                                            GlobalGameAssets.I_UI_CANCEL_SAMLL)
 page_mall_recommend.connect(page_mall, GlobalGameAssets.I_UI_BACK_YELLOW, key="page_mall_recommend->page_mall")
 page_main.connect(page_mall_recommend, GameUiAssets.I_MAIN_GOTO_MALL, key="page_main->page_mall_recommend")
 
@@ -122,11 +124,11 @@ page_main.connect(page_travel, GameUiAssets.I_MAIN_GOTO_TRAVEL, key="page_main->
 page_act_list = Page(GameUiAssets.I_CHECK_ACT_LIST, category="global")
 page_act_list.add_enter_success_hooks(GameUiAssets.I_PAPER_DOLL_CLOSE)
 page_main.connect(page_act_list, GameUiAssets.I_ACT_LIST_EXPAND, key="page_main->page_act_list")
-page_act_list.connect(page_main, GameUiAssets.I_BACK_ACT_LIST, key="page_act_list->page_main")
+page_act_list.connect(page_main, GlobalGameAssets.I_UI_BACK_RED, key="page_act_list->page_main")
 
 # 召唤页。
 page_summon = Page(GameUiAssets.I_CHECK_SUMMON, category="global")
-page_summon.connect(page_main, GameUiAssets.I_SUMMON_GOTO_MAIN, key="page_summon->page_main")
+page_summon.connect(page_main, GlobalGameAssets.I_UI_BACK_YELLOW, key="page_summon->page_main")
 page_main.connect(page_summon, GameUiAssets.I_MAIN_GOTO_SUMMON, key="page_main->page_summon")
 
 # 町中主页。
@@ -160,7 +162,7 @@ page_hyakkisen.connect(page_town, GlobalGameAssets.I_UI_BACK_YELLOW, key="page_h
 page_town.connect(page_hyakkisen, GameUiAssets.I_TOWN_GOTO_HYAKKISEN, key="page_town->page_hyakkisen")
 
 page_hyakkiyakou = Page(GameUiAssets.I_CHECK_KYAKKIYAKOU, category="global")
-page_hyakkiyakou.connect(page_town, GameUiAssets.I_HYAKKIYAKOU_CLOSE, key="page_hyakkiyakou->page_town")
+page_hyakkiyakou.connect(page_town, GlobalGameAssets.I_UI_BACK_RED, key="page_hyakkiyakou->page_town")
 page_town.connect(page_hyakkiyakou, GameUiAssets.I_TOWN_GOTO_HYAKKIYAKOU, key="page_town->page_hyakkiyakou")
 
 
@@ -179,12 +181,12 @@ page_soul_zones.connect(page_exploration, GlobalGameAssets.I_UI_BACK_YELLOW, key
 page_exploration.connect(page_soul_zones, GameUiAssets.I_EXPLORATION_GOTO_SOUL_ZONE, key="page_exploration->page_soul_zones")
 
 page_realm_raid = Page(GameUiAssets.I_CHECK_REALM_RAID, category="global")
-page_realm_raid.connect(page_exploration, GameUiAssets.I_REALM_RAID_GOTO_EXPLORATION, key="page_realm_raid->page_exploration")
+page_realm_raid.connect(page_exploration, GlobalGameAssets.I_UI_BACK_RED, key="page_realm_raid->page_exploration")
 page_realm_raid.connect(page_shikigami_records, GameUiAssets.I_REALM_RAID_GOTO_SHIKIGAMI_RECORDS, key="page_realm_raid->page_shikigami_records")
 page_exploration.connect(page_realm_raid, GameUiAssets.I_EXPLORATION_GOTO_REALM_RAID, key="page_exploration->page_realm_raid")
 
 page_kekkai_toppa = Page(GameUiAssets.I_KEKKAI_TOPPA, category="global")
-page_kekkai_toppa.connect(page_exploration, GameUiAssets.I_REALM_RAID_GOTO_EXPLORATION, key="page_kekkai_toppa->page_exploration")
+page_kekkai_toppa.connect(page_exploration, GlobalGameAssets.I_UI_BACK_RED, key="page_kekkai_toppa->page_exploration")
 page_kekkai_toppa.connect(page_shikigami_records, GameUiAssets.I_REALM_RAID_GOTO_SHIKIGAMI_RECORDS, key="page_kekkai_toppa->page_shikigami_records")
 page_realm_raid.connect(page_kekkai_toppa, RyouToppaAssets.I_RYOU_TOPPA, key="page_realm_raid->page_kekkai_toppa")
 page_kekkai_toppa.connect(page_realm_raid, GameUiAssets.I_RYOUTOPPA_GOTO_REALMRAID, key="page_kekkai_toppa->page_realm_raid")

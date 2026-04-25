@@ -57,7 +57,7 @@ class ScriptTask(GeneralBattle, SwitchSoul, GameUi, MetaDemonAssets):
         page_shikigami_records.clear_transitions()
         page_shikigami_records.connect(
             page_meta_demon_boss,
-            self.I_BACK_Y,
+            self.I_UI_BACK_YELLOW,
             key="page_shikigami_records->page_meta_demon_boss",
         )
         page_meta_demon_boss.connect(

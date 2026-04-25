@@ -351,7 +351,7 @@ class BaseExploration(GameUi, GeneralBattle, GeneralRoom, GeneralInvite, Replace
                 logger.warning('Exit immediately after the boss battle')
                 break
             if self.appear_then_click(self.I_E_EXIT_CONFIRM, interval=0.8) or \
-                    self.appear_then_click(self.I_BACK_Y, interval=2.8):
+                    self.appear_then_click(self.I_UI_BACK_YELLOW, interval=2.8):
                 continue
             if self.appear(self.I_EXPLORATION_TITLE) or self.appear(self.I_CHECK_EXPLORATION):
                 break

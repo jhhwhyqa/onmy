@@ -27,24 +27,6 @@
     "description": "名士星星数"
   },
   {
-    "itemName": "d_hand",
-    "roiFront": "31,639,63,45",
-    "roiBack": "31,639,63,45",
-    "mode": "Single",
-    "method": "Default",
-    "keyword": "手动",
-    "description": "手动"
-  },
-  {
-    "itemName": "d_auto",
-    "roiFront": "30,640,65,44",
-    "roiBack": "30,640,65,44",
-    "mode": "Single",
-    "method": "Default",
-    "keyword": "自动",
-    "description": "自动"
-  },
-  {
     "itemName": "d_ban_name",
     "roiFront": "92,97,82,25",
     "roiBack": "92,97,82,25",

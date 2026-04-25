@@ -49,7 +49,7 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, GuguArtStudioAssets):
             self.I_ACT_LIST_GOTO_ACT,
             key="page_act_list_gugu_act->page_gugu_act",
         )
-        self.page_gugu_act.connect(page_main, self.I_BACK_Y, key="page_gugu_act->page_main")
+        self.page_gugu_act.connect(page_main, self.I_UI_BACK_YELLOW, key="page_gugu_act->page_main")
 
     def run(self):
         self.before_run()
@@ -92,7 +92,7 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, GuguArtStudioAssets):
                 continue
             if self.appear(self.I_GAS_CANNOT_FIRE, interval=0.8):  # 无法挑战则退出到提交颜料页面
                 logger.info('Cannot fire, go to submit paint')
-                self.ui_click(self.I_BACK_Y, self.I_SUBMIT_PAINT, interval=2.5)
+                self.ui_click(self.I_UI_BACK_YELLOW, self.I_SUBMIT_PAINT, interval=2.5)
                 continue
             if self.appear_then_click(self.I_GAS_CAN_FIRE, interval=0.8):  # 点击挑战
                 self.run_general_battle()

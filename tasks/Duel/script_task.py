@@ -189,7 +189,7 @@ class ScriptTask(GameUi, GeneralBattle, SwitchSoul, DuelAssets, SwitchOnmyoji):
                 self.duel_exit_battle()
                 continue
             if ret is None and not battle_operated:  # 进行战斗前的操作
-                self.ui_click(self.O_D_HAND, self.O_D_AUTO, interval=0.8)
+                self.ui_click(self.O_BATTLE_HAND, self.O_BATTLE_AUTO, interval=0.8)
                 self.green_mark(self.conf.duel_config.green_enable, self.conf.duel_config.green_mark)
                 battle_operated = True
                 self.reset_device('BATTLE_STATUS_S')

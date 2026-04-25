@@ -6,7 +6,7 @@ from tasks.GlobalGame.assets import GlobalGameAssets
 
 # 商店礼包屋页面
 page_store_gift_room = Page(DailyTriflesAssets.I_GIFT_RECOMMEND)
-page_store_gift_room.connect(page_mall, GameUiAssets.I_BACK_Y, key="page_store_gift_room->page_mall")
+page_store_gift_room.connect(page_mall, GameUiAssets.I_UI_BACK_YELLOW, key="page_store_gift_room->page_mall")
 page_mall.connect(page_store_gift_room, DailyTriflesAssets.I_ROOM_GIFT, key="page_mall->page_store_gift_room")
 # 好友吉闻页面
 page_friends_luck = Page(DailyTriflesAssets.I_LUCK_TITLE, priority=75)

@@ -283,7 +283,11 @@ class AssetsExtractor:
         :return:
         """
         with open(file, 'r', encoding='utf-8') as f:
-            data = json.load(f)
+            try:
+                data = json.load(f)
+            except json.JSONDecodeError as e:
+                logger.error(f'{file} 文件解析错误')
+                raise e
         if not isinstance(data, list) and not isinstance(data, dict):
             logger.error(f'{file} 文件解析错误，不是list 或者 dict')
             return None
