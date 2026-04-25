@@ -254,7 +254,6 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, AreaBossAssets):
         logger.info("Swipe to top")
         for i in range(random.randint(1, 3)):
             self.swipe(self.S_AB_FILTER_DOWN)
-        self.screenshot()
         # 遍历所有boss找到名称一致的即目前挑战人数最多的
         for PHOTO in BOSS_REWARD_PHOTO1:
             self.open_filter()
@@ -263,11 +262,9 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, AreaBossAssets):
                 return self.boss_fight(PHOTO, True, fileter_open=False)
             self.ui_click_until_disappear(self.I_AB_CLOSE_RED)
         # 倒数一和二
-        for i in range(random.randint(1, 3)):
-            self.swipe(self.S_AB_FILTER_UP)
-        self.screenshot()
         for PHOTO in BOSS_REWARD_PHOTO2:
             self.open_filter()
+            self.swipe(self.S_AB_FILTER_UP)
             name = self.get_bossName(PHOTO)
             if self.check_common_chars(str(name), boss_name):
                 return self.boss_fight(PHOTO, True, fileter_open=False)
