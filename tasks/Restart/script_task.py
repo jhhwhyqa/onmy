@@ -19,7 +19,7 @@ class ScriptTask(BaseTask):
         if not self.delay_pending_tasks():
             self.app_restart()
             if self.config.model.restart.restart_config.enable_daily:
-                self.set_next_run(task='DailyTrifles', success=False, finish=False, target=datetime.now())
+                self.config.task_call('DailyTrifles')
         raise TaskEnd('ScriptTask end')
 
     def app_stop(self):
