@@ -7,10 +7,8 @@ from module.logger import logger
 from module.atom.image import RuleImage
 from module.atom.ocr import RuleOcr
 
-from tasks.GameUi.page import page_main, page_guild
 from tasks.RichMan.mall.navbar import MallNavbar
 from tasks.Component.Buy.buy import Buy
-from tasks.RichMan.assets import RichManAssets
 from tasks.RichMan.config import Bondlings as BondlingsConfig
 
 
@@ -100,13 +98,12 @@ class Bondlings(Buy, MallNavbar):
         if buy_cycles_number:
             for i in range(buy_cycles_number):
                 self.buy_more(buy_button)
+                self.device.click_record_clear()
                 time.sleep(0.5)
         if buy_res_number:
             self.buy_more(buy_button, buy_res_number)
+            self.device.click_record_clear()
             time.sleep(0.5)
-
-
-
 
 
 if __name__ == '__main__':
@@ -118,5 +115,3 @@ if __name__ == '__main__':
     t = Bondlings(c, d)
 
     t.execute_bondlings()
-
-
