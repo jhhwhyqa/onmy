@@ -36,7 +36,7 @@ page_dokan.connect(page_dokan_map,
 page_dokan_map.connect(page_dokan, action=map_enter_dokan, key="page_dokan_map->page_dokan")
 
 page_dokan.connect(page_shikigami_records, DokanAssets.I_RYOU_DOKAN_SHIKIGAMI, key="page_dokan->page_shikigami_records")
-page_shikigami_records.connect(page_dokan, GlobalGameAssets.I_UI_BACK_YELLOW, key="page_shikigami_records->page_dokan")
+page_shikigami_records.connect(page_dokan, GlobalGameAssets.I_UI_BACK_YELLOW, key="page_shikigami_records->page_dokan", cost=2)
 
 
 def priority_enter_dokan(task) -> bool:

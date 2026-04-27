@@ -108,6 +108,7 @@ class ScriptTask(GameUi, SwitchSoul, GeneralBattle, DokanAssets):
         pages.page_dokan_rank.connect(pages.page_dokan, pages.random_click, key="page_dokan_rank->page_dokan")
 
     def run(self):
+        self.before_run()
         self.conf = self.config.model.dokan
         if self.conf.dokan_config.monday_to_thursday and datetime.now().weekday() >= 4:
             logger.warning("weekend, exit")
@@ -116,6 +117,7 @@ class ScriptTask(GameUi, SwitchSoul, GeneralBattle, DokanAssets):
         # 初始化相关动态参数,从配置文件读取相关记录,如果没有当天的记录则设置为默认值
         self.conf.attack_count_config.init_attack_count(callback=self.config.save)
         unknown_page_timer = Timer(15).start()
+        self.goto_page(pages.page_dokan_map)
         try:
             while True:
                 self.screenshot()
