@@ -37,11 +37,18 @@ class ScriptTask(BaseTask):
         self.app_start()
 
     def recover_app(self):
-        if self.device.app_is_alive():
-            logger.info('Game process is still alive, use start-only recovery')
-            self.app_start()
+        if not self.device.app_is_alive():
+            logger.info('Recovery branch: game process not alive and not in foreground -> full restart')
+            self.app_restart()
             return
-        self.app_restart()
+
+        if self.device.app_is_running():
+            logger.info('Recovery branch: game process alive and in foreground -> full restart')
+            self.app_restart()
+            return
+
+        logger.info('Recovery branch: game process alive but in background -> bring to foreground')
+        self.app_start()
 
     def finish_recovery(self):
         self.set_next_run(task='Restart', success=True, finish=True, server=True)

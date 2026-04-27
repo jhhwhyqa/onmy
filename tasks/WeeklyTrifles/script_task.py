@@ -216,6 +216,7 @@ class ScriptTask(GameUi, WeeklyTriflesAssets):
                 # 随机点击直到再次召唤出现或者超时
                 while not timeout_timer.reached():
                     if not self.click(random_click(), interval=0.8):
+                        self.device.click_record_clear()
                         continue
                     self.screenshot()
                     if self.appear(self.I_BM_AGAIN, interval=0.8):
