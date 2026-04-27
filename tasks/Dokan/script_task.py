@@ -444,7 +444,6 @@ class ScriptTask(GameUi, SwitchSoul, GeneralBattle, DokanAssets):
         return res_list
 
     def start_cheering(self):
-        logger.info(f"Start battle in cd...")
         if not self.conf.dokan_config.dokan_auto_cheering_while_cd:
             return
         cd_text = self.O_DOKEN_FAIL_CD.detect_text(self.device.image)
