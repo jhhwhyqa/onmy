@@ -6,21 +6,25 @@ from cached_property import cached_property
 from module.exception import TaskEnd
 from module.logger import logger
 from module.base.timer import Timer
+import tasks.GameUi.page as pages
 
 from tasks.GameUi.game_ui import GameUi
 from tasks.GameUi.page import page_main, page_team, page_shikigami_records
 from tasks.Component.GeneralBattle.general_battle import GeneralBattle
-from tasks.Component.GeneralBattle.config_general_battle import GeneralBattleConfig
 from tasks.Component.GeneralRoom.general_room import GeneralRoom
 from tasks.Component.GeneralInvite.general_invite import GeneralInvite
 from tasks.Component.SwitchSoul.switch_soul import SwitchSoul
 from tasks.GoldYoukai.assets import GoldYoukaiAssets
-from tasks.GoldYoukai.config import GoldYoukaiConfig
 
 
 class ScriptTask(GameUi, GeneralBattle, GeneralRoom, GeneralInvite, SwitchSoul, GoldYoukaiAssets):
 
+    def before_run(self):
+        page_battle_result = self.navigator.resolve_page(pages.page_battle_result)
+        page_battle_result.recognizer = pages.any_of(self.I_GOLD_WIN, page_battle_result.recognizer)
+
     def run(self):
+        self.before_run()
         # 切换御魂
         if self.config.gold_youkai.switch_soul.enable:
             self.goto_page(page_shikigami_records)
@@ -74,31 +78,6 @@ class ScriptTask(GameUi, GeneralBattle, GeneralRoom, GeneralInvite, SwitchSoul, 
                     break
         # 退出 (要么是在组队界面要么是在庭院)
         self.gold_exit(con)
-
-
-    def battle_wait(self, random_click_swipt_enable: bool) -> bool:
-        # 重写
-        self.device.stuck_record_add('BATTLE_STATUS_S')
-        self.device.click_record_clear()
-        # 战斗过程 随机点击和滑动 防封
-        logger.info("Start battle process")
-        while 1:
-            self.screenshot()
-            if self.appear_then_click(self.I_PREPARE_HIGHLIGHT, interval=1):
-                logger.info('click prepare')
-            if self.appear(self.I_DE_WIN):
-                logger.info('Win battle')
-                self.ui_click_until_disappear(self.I_DE_WIN)
-                return True
-            if self.appear(self.I_GOLD_WIN):
-                logger.info('Win battle')
-                self.ui_click_until_disappear(self.I_GOLD_WIN)
-                return True
-
-            if self.appear(self.I_FALSE):
-                logger.warning('False battle')
-                self.ui_click_until_disappear(self.I_FALSE)
-                return False
 
     def gold_exit(self, con):
         self.goto_page(page_main)
