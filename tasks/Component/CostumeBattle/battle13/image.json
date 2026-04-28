@@ -38,8 +38,8 @@
   {
     "itemName": "de_win_13",
     "imageName": "battle13_de_win_13.png",
-    "roiFront": "390,30,46,88",
-    "roiBack": "390,30,510,290",
+    "roiFront": "577,59,73,49",
+    "roiBack": "386,0,480,231",
     "method": "Template matching",
     "threshold": 0.8,
     "description": "针对封魔的特殊"
