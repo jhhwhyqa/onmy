@@ -11,7 +11,7 @@ from pydantic import BaseModel, Field, field_validator
 
 from tasks.Component.GeneralBattle.config_general_battle import GeneralBattleConfig
 from tasks.Component.SwitchSoul.switch_soul_config import SwitchSoulConfig
-from tasks.Component.config_base import ConfigBase, Time
+from tasks.Component.config_base import ConfigBase, Time, dynamic_hide
 from tasks.Component.config_scheduler import Scheduler
 
 
@@ -68,6 +68,8 @@ class AttackAccountConfig(BaseModel):
     # 建议普通寮配置ATTACK_TWO_TWO,僵尸寮看自己喜好
     attack_dokan_master: AttackDokanMasterType = Field(default=AttackDokanMasterType.ATTACK_TWO_TWO,
                                                        description='attack_dokan_master_help')
+
+    hide_fields = dynamic_hide('remain_attack_count', 'attack_date')
 
     def init_attack_count(self, callback=None):
         today = datetime.now().strftime("%Y-%m-%d")

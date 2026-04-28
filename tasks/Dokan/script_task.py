@@ -2,6 +2,8 @@
 # @brief    Ryou Dokan Toppa (阴阳竂道馆突破功能)
 # @author   AzurTian
 # @note     draft version without full test
+import time
+
 import re
 from datetime import timedelta
 from time import sleep
@@ -67,10 +69,10 @@ class ScriptTask(GameUi, SwitchSoul, GeneralBattle, DokanAssets):
     def _handle_in_battle(self, context: BattleContext, config: GeneralBattleConfig) -> BattleAction:
         count = self.conf.attack_count_config.attack_dokan_master_count()
         if context.battle_key == 'dokan_owner':
-            if context.continuous_count == 1 and count == 1:
-                return BattleAction.EXIT_WIN
-            if context.continuous_count == 2 and count < 2:
-                return BattleAction.EXIT_WIN
+            if count <= 0:  # 不让打直接退
+                return BattleAction.QUICK_EXIT
+            if context.continuous_count == 2 and count == 1:  # 2阵但只允许打一次
+                return BattleAction.QUICK_EXIT
         return super()._handle_in_battle(context, config)
 
     def exit_battle(self, skip_first: bool = False) -> bool:
@@ -116,24 +118,26 @@ class ScriptTask(GameUi, SwitchSoul, GeneralBattle, DokanAssets):
             raise TaskEnd
         # 初始化相关动态参数,从配置文件读取相关记录,如果没有当天的记录则设置为默认值
         self.conf.attack_count_config.init_attack_count(callback=self.config.save)
-        unknown_page_timer = Timer(15).start()
+        unknown_page_timer = Timer(10)
         self.goto_page(pages.page_dokan_map)
         try:
             while True:
                 self.screenshot()
                 current_page = self.get_current_page()
                 match current_page:
+                    case None:
+                        time.sleep(0.5)
                     case pages.page_dokan_map:
-                        unknown_page_timer.reset()
                         self.run_on_dokan_map()
                     case pages.page_dokan:
-                        unknown_page_timer.reset()
                         self.run_on_dokan()
                     case pages.page_battle_prepare | pages.page_battle:
-                        unknown_page_timer.reset()
                         self.run_on_battle()
                     case _:
-                        if unknown_page_timer.reached():  # 15秒都是非道馆界面, 则尝试回到道馆
+                        if not unknown_page_timer.started():
+                            unknown_page_timer.start()
+                        if unknown_page_timer.started() and unknown_page_timer.reached():  # 10秒都是非道馆界面, 则尝试回到道馆
+                            unknown_page_timer = Timer(10)
                             self.goto_page(pages.page_dokan)
         except DokanFinishedError:
             is_dokan_activated = True
