@@ -126,6 +126,8 @@ class ScriptTask(GameUi, SwitchSoul, GeneralBattle, DokanAssets):
                 current_page = self.get_current_page()
                 match current_page:
                     case None:
+                        self.device.click_record_clear()
+                        self.device.stuck_record_clear()
                         time.sleep(0.5)
                     case pages.page_dokan_map:
                         self.run_on_dokan_map()
@@ -183,7 +185,7 @@ class ScriptTask(GameUi, SwitchSoul, GeneralBattle, DokanAssets):
             elif self.conf.dokan_config.try_start_dokan:
                 self.abandoned_toppa()
             return
-        if self.appear(self.I_RYOU_DOKAN_START_CHALLENGE):  # 非馆主且可挑战
+        if not self.appear(self.I_DOKAN_BOSS_WAITING) and self.appear(self.I_RYOU_DOKAN_START_CHALLENGE):  # 非馆主且可挑战
             self.switch_soul_in_dokan('member')
             if self.click_until_in_battle():
                 self.run_general_battle(self.conf.dokan_member_battle_conf, battle_key='dokan_member')
