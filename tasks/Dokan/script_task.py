@@ -135,6 +135,8 @@ class ScriptTask(GameUi, SwitchSoul, GeneralBattle, DokanAssets):
                         self.run_on_dokan()
                     case pages.page_battle_prepare | pages.page_battle:
                         self.run_on_battle()
+                    case pages.page_battle_result:
+                        self.click(pages.random_click(ltrb=(False, False, True, False)), interval=1.5)
                     case _:
                         if not unknown_page_timer.started():
                             unknown_page_timer.start()
