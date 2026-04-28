@@ -12,22 +12,22 @@ class FallenSunAssets:
 
 	# Image Rule Assets
 	# 选择日轮 
-	I_FALLEN_SUN = RuleImage(roi_front=(784,113,290,396), roi_back=(784,113,290,396), threshold=0.8, method="Template matching", file="./tasks/FallenSun/f/f_fallen_sun.png")
+	I_FALLEN_SUN = RuleImage(roi_front=(886,107,47,55), roi_back=(734,74,219,341), threshold=0.8, method="Template matching", file="./tasks/FallenSun/f/f_fallen_sun.png")
 	# 组队 
-	I_FORM_TEAM = RuleImage(roi_front=(939,594,96,90), roi_back=(939,594,96,90), threshold=0.8, method="Template matching", file="./tasks/FallenSun/f/f_form_team.png")
+	I_FORM_TEAM = RuleImage(roi_front=(961,598,94,58), roi_back=(930,562,165,158), threshold=0.8, method="Template matching", file="./tasks/FallenSun/f/f_form_team.png")
 	# description 
-	I_FALLEN_SUN_FIRE = RuleImage(roi_front=(1108,592,96,93), roi_back=(1108,592,96,93), threshold=0.8, method="Template matching", file="./tasks/FallenSun/f/f_fallen_sun_fire.png")
+	I_FALLEN_SUN_FIRE = RuleImage(roi_front=(1145,596,92,47), roi_back=(1110,562,155,158), threshold=0.8, method="Template matching", file="./tasks/FallenSun/f/f_fallen_sun_fire.png")
 	# description 
-	I_FALLEN_SUN_UNLOCK = RuleImage(roi_front=(557,560,31,38), roi_back=(557,560,31,38), threshold=0.8, method="Template matching", file="./tasks/FallenSun/f/f_fallen_sun_unlock.png")
+	I_FALLEN_SUN_UNLOCK = RuleImage(roi_front=(704,658,21,28), roi_back=(646,637,192,83), threshold=0.8, method="Template matching", file="./tasks/FallenSun/f/f_fallen_sun_unlock.png")
 	# description 
-	I_FALLEN_SUN_LOCK = RuleImage(roi_front=(557,561,31,37), roi_back=(557,561,31,37), threshold=0.8, method="Template matching", file="./tasks/FallenSun/f/f_fallen_sun_lock.png")
+	I_FALLEN_SUN_LOCK = RuleImage(roi_front=(705,659,19,26), roi_back=(661,641,169,79), threshold=0.6, method="Template matching", file="./tasks/FallenSun/f/f_fallen_sun_lock.png")
 	# 小小宠物，发现宝藏 
 	I_PET_PRESENT = RuleImage(roi_front=(873,184,62,147), roi_back=(873,184,62,147), threshold=0.8, method="Template matching", file="./tasks/FallenSun/f/f_pet_present.png")
 
 
 	# List Rule Assets
 	# 这个是御魂界面选择不同层数的 
-	L_LAYER_LIST = RuleList(folder="./tasks/FallenSun/res", direction="vertical", mode="ocr", roi_back=(138,130,359,500), size=(43, 87), 
+	L_LAYER_LIST = RuleList(folder="./tasks/FallenSun/res", direction="vertical", mode="ocr", roi_back=(129,103,61,584), size=(61, 100), 
 					 array=["壹", "贰", "叁", "日"])
 
 
