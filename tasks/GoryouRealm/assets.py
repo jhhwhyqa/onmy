@@ -23,11 +23,11 @@ class GoryouRealmAssets:
 
 	# Image Rule Assets
 	# 点击挑战 
-	I_GR_FIRE = RuleImage(roi_front=(1097,582,100,100), roi_back=(1097,582,100,100), threshold=0.8, method="Template matching", file="./tasks/GoryouRealm/gr/gr_gr_fire.png")
+	I_GR_FIRE = RuleImage(roi_front=(1057,584,88,89), roi_back=(1012,557,183,148), threshold=0.8, method="Template matching", file="./tasks/GoryouRealm/gr/gr_gr_fire.png")
 	# description 
-	I_GR_LOCK = RuleImage(roi_front=(559,564,27,32), roi_back=(559,564,27,32), threshold=0.8, method="Template matching", file="./tasks/GoryouRealm/gr/gr_gr_lock.png")
+	I_GR_LOCK = RuleImage(roi_front=(701,657,27,32), roi_back=(665,629,99,91), threshold=0.5, method="Template matching", file="./tasks/GoryouRealm/gr/gr_gr_lock.png")
 	# description 
-	I_GR_UNLOCK = RuleImage(roi_front=(556,562,26,33), roi_back=(556,562,26,33), threshold=0.8, method="Template matching", file="./tasks/GoryouRealm/gr/gr_gr_unlock.png")
+	I_GR_UNLOCK = RuleImage(roi_front=(705,656,20,30), roi_back=(671,636,84,73), threshold=0.8, method="Template matching", file="./tasks/GoryouRealm/gr/gr_gr_unlock.png")
 
 
 	# Ocr Rule Assets
