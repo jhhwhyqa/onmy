@@ -23,6 +23,7 @@ from module.atom.click import RuleClick
 
 class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RealmRaidAssets):
     medal_grid: ImageGrid = None
+    init_tickets: int = -1
 
     def _exit_matcher(self) -> ExitMatcher:
         return self.I_BACK_RED
@@ -157,10 +158,6 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RealmRaidAssets):
             self.screenshot()
             # 检查票数
             if not self.check_ticket(con.raid_config.number_base):
-                break
-            # 挑战次数
-            if self.current_count >= con.raid_config.number_attack:
-                logger.info(f'Current count {self.current_count}, max count {con.raid_config.number_attack}')
                 break
             # ----------------------------------------开始进攻
             medal, index = self.find_one(False)
@@ -298,6 +295,11 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RealmRaidAssets):
             return False
         elif cu + res == total and cu < base:
             logger.warning(f'Execute raid failed, ticket is not enough')
+            return False
+        self.init_tickets = cu if self.init_tickets == -1 else self.init_tickets
+        if self.init_tickets - cu >= self.config.realm_raid.raid_config.number_attack:  # 检查挑战次数
+            logger.info(f'Current count {self.init_tickets - cu}, '
+                        f'max count {self.config.realm_raid.raid_config.number_attack}')
             return False
         return True
 
