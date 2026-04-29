@@ -165,12 +165,12 @@ class ScriptTask(GameUi, SwitchSoul, GeneralBattle, DokanAssets):
             self.I_RYOU_DOKAN_REMAIN_ATTACK_COUNT_DONE,
             self.I_DOKAN_BOSS_WAITING
         ])
+        self.device.stuck_record_clear()
         if self.appear(self.I_RYOU_DOKAN_GATHERING):  # 正在集结
             logger.debug(f"Dokan is gathering...")
             self.switch_priority()  # 选择优先级
             self.switch_soul_in_dokan('member')  # 切换馆员御魂
             self.device.click_record_clear()
-            self.device.stuck_record_clear()
             return
         if not self.appear(self.I_DOKAN_BOSS_WAITING) and self.appear(self.I_RYOU_DOKAN_MASTER_BATTLE) and \
                 self.appear(self.I_RYOU_DOKAN_START_CHALLENGE):  # 馆主可挑战
@@ -192,9 +192,8 @@ class ScriptTask(GameUi, SwitchSoul, GeneralBattle, DokanAssets):
             if self.click_until_in_battle():
                 self.run_general_battle(self.conf.dokan_member_battle_conf, battle_key='dokan_member')
             return
-        if self.appear(self.I_RYOU_DOKAN_CD):  # 挑战CD中
+        if not self.appear(self.I_DOKAN_BOSS_WAITING) and self.appear(self.I_RYOU_DOKAN_CD):  # 可观战
             self.device.click_record_clear()
-            self.device.stuck_record_clear()
             self.start_cheering()
             return
         if self.appear_then_click(self.I_RYOU_DOKAN_ABANDONED_TOPPA_ABANDONED, interval=2):  # 放弃突破
