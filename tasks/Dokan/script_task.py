@@ -56,9 +56,7 @@ class ScriptTask(GameUi, SwitchSoul, GeneralBattle, DokanAssets):
         page_reward.priority = 75
 
     def _exit_matcher(self) -> ExitMatcher | None:
-        return pages.any_of(self.I_RYOU_DOKAN_GATHERING, self.I_DOKAN_BOSS_WAITING,
-                            self.I_RYOU_DOKAN_START_CHALLENGE, self.I_RYOU_DOKAN_CENTER_TOP,
-                            self.I_RYOU_DOKAN_TODAY_ATTACK_COUNT, self.I_RYOU_DOKAN_REMAIN_ATTACK_COUNT_DONE)
+        return pages.any_of(self.I_RYOU_DOKAN_CENTER_TOP, self.I_RYOU_DOKAN_REMAIN_ATTACK_COUNT_DONE)
 
     def _get_battle_behavior_scopes(self, config: GeneralBattleConfig, battle_key: str) -> dict[str, BattleBehaviorScope]:
         scopes = super()._get_battle_behavior_scopes(config, battle_key)
