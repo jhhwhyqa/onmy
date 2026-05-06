@@ -16,6 +16,7 @@ class ScriptRuntimeOwner(Protocol):
     config: Any
     device: Device
     _emulator_down: bool
+    last_task_runtime_outcome: dict[str, Any] | None
     __dict__: dict[str, Any]
 
     def wait_until(self, future: datetime) -> bool:
@@ -49,6 +50,7 @@ class ScriptRuntimeController:
             script: 调度器对象，提供运行时所需的配置、设备与等待接口。
         """
         self.script = script
+        self.server_update_wait_until: datetime | None = None
 
     @property
     def config(self):
@@ -65,6 +67,32 @@ class ScriptRuntimeController:
     @emulator_down.setter
     def emulator_down(self, value: bool) -> None:
         self.script._emulator_down = value
+
+    @staticmethod
+    def _format_datetime(value: datetime | None) -> str:
+        if value is None:
+            return 'None'
+        return value.strftime('%Y-%m-%d %H:%M:%S')
+
+    def _clear_server_update_wait_if_expired(self) -> None:
+        if self.server_update_wait_until is None:
+            return
+        if datetime.now() >= self.server_update_wait_until:
+            logger.info(
+                'Server update wait window ended at '
+                f'{self._format_datetime(self.server_update_wait_until)}, resume normal recovery'
+            )
+            self.server_update_wait_until = None
+
+    def _is_server_update_wait_active(self) -> bool:
+        self._clear_server_update_wait_if_expired()
+        return self.server_update_wait_until is not None
+
+    def _get_restart_runtime_outcome(self) -> dict[str, Any] | None:
+        outcome = getattr(self.script, 'last_task_runtime_outcome', None)
+        if not isinstance(outcome, dict):
+            return None
+        return outcome
 
     @staticmethod
     def _time_to_timedelta(value) -> timedelta:
@@ -146,19 +174,37 @@ class ScriptRuntimeController:
             logger.warning('Restart task failed during runtime recovery')
             return ScriptRuntimeDecision.FAILED
 
+        outcome = self._get_restart_runtime_outcome()
+        if outcome is not None and outcome.get('status') == 'server_update_delayed':
+            wait_until = outcome.get('wait_until')
+            if isinstance(wait_until, datetime):
+                self.server_update_wait_until = wait_until
+            logger.info(
+                'Restart recovery delayed by server update, '
+                f'reschedule scheduler and wait until {self._format_datetime(self.server_update_wait_until)}'
+            )
+            return ScriptRuntimeDecision.RESCHEDULE
+
+        self.server_update_wait_until = None
+
         if not self.device.app_is_running():
             logger.warning('Game is still not running after Restart recovery')
             return ScriptRuntimeDecision.FAILED
 
-        logger.info('Restart recovery updated scheduler state, reschedule before continuing')
+        logger.info('Restart recovery completed, reschedule before continuing')
         return ScriptRuntimeDecision.RESCHEDULE
 
-    def _ensure_game_running(self, require_main: bool = False) -> ScriptRuntimeDecision:
+    def _ensure_game_running(
+        self,
+        require_main: bool = False,
+        allow_server_update_skip: bool = False
+    ) -> ScriptRuntimeDecision:
         """
         确保模拟器和游戏都处于运行状态。
 
         Args:
             require_main: 是否要求额外回到游戏主界面。
+            allow_server_update_skip: 是否允许在停服等待窗口内跳过本轮恢复。
 
         Returns:
             ScriptRuntimeDecision: 当前分支后续应如何处理。
@@ -166,6 +212,13 @@ class ScriptRuntimeController:
         self._ensure_emulator_running('Wake emulator before ensuring game state')
 
         if not self.device.app_is_running():
+            if allow_server_update_skip and self._is_server_update_wait_active():
+                logger.info(
+                    'Server update wait window active until '
+                    f'{self._format_datetime(self.server_update_wait_until)}, '
+                    'skip Restart recovery during idle preparation'
+                )
+                return ScriptRuntimeDecision.READY
             return self._run_restart_recovery('Game is not running, recover it via Restart')
 
         if require_main:
@@ -194,7 +247,7 @@ class ScriptRuntimeController:
         """
         将空闲状态调整为“模拟器开启、游戏运行且位于主界面”。
         """
-        return self._ensure_game_running(require_main=True)
+        return self._ensure_game_running(require_main=True, allow_server_update_skip=True)
 
     def _prepare_idle_close_game(self) -> ScriptRuntimeDecision:
         """
@@ -206,7 +259,7 @@ class ScriptRuntimeController:
         """
         将空闲状态调整为“模拟器开启、游戏运行”。
         """
-        return self._ensure_game_running(require_main=False)
+        return self._ensure_game_running(require_main=False, allow_server_update_skip=True)
 
     def prepare_task_execution(self, task: str) -> ScriptRuntimeDecision:
         """
@@ -224,6 +277,13 @@ class ScriptRuntimeController:
             return ScriptRuntimeDecision.READY
 
         if not self.device.app_is_running():
+            if self._is_server_update_wait_active():
+                logger.info(
+                    'Server update wait window active until '
+                    f'{self._format_datetime(self.server_update_wait_until)}, '
+                    f'postpone task `{task}` and reschedule scheduler'
+                )
+                return ScriptRuntimeDecision.RESCHEDULE
             return self._run_restart_recovery(f'Game is not running before task `{task}`, recover it via Restart')
 
         return ScriptRuntimeDecision.READY

@@ -11,6 +11,15 @@ from tasks.base_task import BaseTask
 
 class ScriptTask(BaseTask):
 
+    def _set_runtime_outcome(self, status: str, wait_until: datetime | None = None) -> None:
+        outcome = {
+            'task': 'Restart',
+            'status': status,
+        }
+        if wait_until is not None:
+            outcome['wait_until'] = wait_until
+        self.config.task_runtime_outcome = outcome
+
     def run(self) -> None:
         """
         主要就是登录的模块
@@ -54,6 +63,7 @@ class ScriptTask(BaseTask):
         self.set_next_run(task='Restart', success=True, finish=True, server=True)
         if self.config.model.restart.restart_config.enable_daily:
             self.config.task_call('DailyTrifles')
+        self._set_runtime_outcome(status='recovered')
 
     def delay_pending_tasks(self) -> bool:
         """
@@ -63,12 +73,14 @@ class ScriptTask(BaseTask):
         datetime_now = datetime.now()
         if not (datetime_now.weekday() == 2 and 6 <= datetime_now.hour <= 8):
             return False
+        delay_target = datetime_now.replace(hour=9, minute=0, second=0, microsecond=0)
         logger.info("The game server is updating, delay the pending tasks to 9:00")
         logger.warning('Delay pending tasks')
         # running 中的必然是 Restart
         for pending_task in self.config.pending_task:
-            self.set_next_run(task=pending_task.command, target=datetime_now.replace(hour=9, minute=0, second=0, microsecond=0))
+            self.set_next_run(task=pending_task.command, target=delay_target)
         self.set_next_run(task='Restart', success=True, finish=True, server=True)
+        self._set_runtime_outcome(status='server_update_delayed', wait_until=delay_target)
         return True
 
 

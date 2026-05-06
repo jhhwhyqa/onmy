@@ -14,7 +14,7 @@ import json
 from datetime import date
 import threading
 from module.device.device import Device
-from typing import Callable
+from typing import Any, Callable
 from datetime import datetime, timedelta
 from pathlib import Path
 from cached_property import cached_property
@@ -50,6 +50,7 @@ class Script:
         # Failure count of tasks
         # Key: str, task name, value: int, failure count
         self.failure_record = {}
+        self.last_task_runtime_outcome: dict[str, Any] | None = None
         # 运行loop的线程
         self.loop_thread: Thread = None
 
@@ -328,6 +329,30 @@ class Script:
             self.config.task_call('SoulsTidy')
             time.sleep(1)
 
+    def _reset_task_runtime_outcome(self) -> None:
+        self.last_task_runtime_outcome = None
+        if 'config' in self.__dict__:
+            self.config.task_runtime_outcome = None
+
+    def _capture_task_runtime_outcome(self, command: str) -> None:
+        outcome = getattr(self.config, 'task_runtime_outcome', None)
+        self.last_task_runtime_outcome = outcome if isinstance(outcome, dict) else None
+
+        if command != 'Restart' or self.last_task_runtime_outcome is None:
+            return
+
+        status = self.last_task_runtime_outcome.get('status')
+        if status == 'server_update_delayed':
+            wait_until = self.last_task_runtime_outcome.get('wait_until')
+            logger.info(f'Restart runtime outcome: server_update_delayed (wait_until={wait_until})')
+            return
+
+        if status == 'recovered':
+            logger.info('Restart runtime outcome: recovered')
+            return
+
+        logger.info(f'Restart runtime outcome: {status}')
+
     def run(self, command: str) -> bool:
         """
         :param command:  大写驼峰命名的任务名字
@@ -336,6 +361,7 @@ class Script:
         if command == 'start' or command == 'goto_main':
             logger.error(f'Invalid command `{command}`')
 
+        self._reset_task_runtime_outcome()
         try:
             self.device.screenshot()
             module_name = 'script_task'
@@ -344,6 +370,7 @@ class Script:
             task_module = load_module(module_name, module_path)
             task_module.ScriptTask(config=self.config, device=self.device).run()
         except TaskEnd:
+            self._capture_task_runtime_outcome(command)
             return True
         except GameNotRunningError as e:
             logger.warning(e)
