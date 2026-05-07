@@ -337,6 +337,11 @@ class ScriptTask(WQExplore, SecretScriptTask, WantedQuestsAssets):
     def secret(self, goto, num=1):
         self.ui_click(goto, self.I_WQSE_FIRE)
         for i in range(num):
+            self.screenshot()
+            # 若是当周特殊秘闻则禁止连续进攻, 战斗结束之后直接退到探索页面重新进入挑战(避免当周秘闻没打结果跳转到第一层)
+            if self.appear(self.I_WQSE_SPECIAL_FIRE):
+                logger.warning('Current is special secret, exit and retry')
+                break
             self.wait_until_appear(self.I_WQSE_FIRE)
             # self.ui_click_until_disappear(self.I_WQSE_FIRE)
             # 又臭又长的对话针的是服了这个网易
@@ -356,16 +361,7 @@ class ScriptTask(WQExplore, SecretScriptTask, WantedQuestsAssets):
                         self.device.click_record_clear()
                     continue
             success = self.run_general_battle(self.battle_config, exit_matcher=self.I_WQSE_FIRE)
-        while 1:
-            self.screenshot()
-            if self.appear(self.I_CHECK_EXPLORATION):
-                break
-            if self.appear_then_click(self.I_UI_BACK_YELLOW, interval=1.5):
-                continue
-            if self.appear_then_click(self.I_UI_BACK_RED, interval=1):
-                continue
-            if self.appear_then_click(self.I_UI_BACK_BLUE, interval=1.5):
-                continue
+        self.goto_page(page_exploration)
         logger.info('Secret mission finished')
 
     def invite_random(self, add_button: RuleImage):
