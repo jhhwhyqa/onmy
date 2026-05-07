@@ -636,7 +636,7 @@ class ScriptTask(WQExplore, SecretScriptTask, WantedQuestsAssets):
 
     def is_wq_remained(self):
         # 检测是否还存在任务
-        return self.appear(self.I_WQ_LIST_TOP_BOTTOM_CHECK)
+        return self.appear(self.O_WQ_LIST_CHECK)
 
 
 

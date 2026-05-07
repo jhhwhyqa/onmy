@@ -97,5 +97,14 @@
     "method": "Default",
     "keyword": "",
     "description": ""
+  },
+  {
+    "itemName": "wq_list_check",
+    "roiFront": "11,114,92,388",
+    "roiBack": "11,114,92,388",
+    "mode": "Full",
+    "method": "Default",
+    "keyword": "悬赏封印",
+    "description": "是否有悬赏封印检查"
   }
 ]
