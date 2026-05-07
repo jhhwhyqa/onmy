@@ -3,7 +3,8 @@ from tasks.Component.GeneralBattle.assets import GeneralBattleAssets
 from tasks.Component.RightActivity.assets import RightActivityAssets
 from tasks.GameUi.action import conditional_action
 from tasks.GameUi.default_pages import random_click
-from tasks.GameUi.page import Page, page_main, sequence, page_battle, page_battle_prepare, page_reward
+from tasks.GameUi.page import (Page, page_main, sequence, page_battle, page_battle_prepare, page_reward,
+                               page_battle_result, any_of)
 from tasks.GlobalGame.assets import GlobalGameAssets
 
 # 爬塔活动主界面
@@ -37,4 +38,7 @@ page_act_ap100 = Page(ActivityShikigamiAssets.I_CLIMB_MODE_AP100)
 page_act_ap100.add_enter_failure_hooks(GlobalGameAssets.I_UI_BACK_RED)
 page_act_ap100.connect(page_act_dark, GlobalGameAssets.I_UI_BACK_YELLOW, key="page_act_ap100->page_act_2")
 page_act_dark.connect(page_act_ap100, ActivityShikigamiAssets.O_ENTER_AP100, key="page_act_dark->page_act_ap100")
-
+# BOSS爬塔页面
+page_act_boss = Page(ActivityShikigamiAssets.I_CHECK_BATTLE_BOSS)
+page_act_boss.connect(page_act, GlobalGameAssets.I_UI_BACK_YELLOW, key="page_act_boss->page_act")
+page_act.connect(page_act_boss, ActivityShikigamiAssets.I_TO_BATTLE_BOSS, key="page_act->page_act_boss")

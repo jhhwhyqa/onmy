@@ -4,7 +4,7 @@
 from time import sleep
 from datetime import datetime, timedelta
 import random
-from tasks.Component.GeneralBattle.general_battle import GeneralBattle, ExitMatcher
+from tasks.Component.GeneralBattle.general_battle import GeneralBattle, ExitMatcher, BattleContext, BattleAction
 from cached_property import cached_property
 
 from module.atom.image import RuleImage
@@ -112,7 +112,17 @@ class ScriptTask(StateMachine, GameUi, GeneralBattle, SwitchSoul, ActivityShikig
     def _exit_matcher(self) -> ExitMatcher | None:
         return self.I_ACT_FIRE
 
+    def _handle_result(self, context: BattleContext, config: GeneralBattleConfig) -> BattleAction:
+        if self.climb_type == 'boss':
+            self.appear_then_click(self.I_UI_BACK_RED, interval=1.5)
+        return super()._handle_result(context, config)
+
+    def before_run(self):
+        pages.page_battle_result = self.navigator.resolve_page(pages.page_battle_result)
+        pages.page_battle_result.recognizer = pages.any_of(self.I_UI_BACK_RED, pages.page_battle_result.recognizer)
+
     def run(self) -> None:
+        self.before_run()
         self.limit_time: timedelta = self.conf.general_climb.limit_time_v
         for climb_type in self.conf.general_climb.run_sequence_v:
             try:
@@ -139,6 +149,8 @@ class ScriptTask(StateMachine, GameUi, GeneralBattle, SwitchSoul, ActivityShikig
                             self._run_ap()
                         case pages.page_act_ap100:
                             self._run_ap100()
+                        case pages.page_act_boss:
+                            self._run_boss()
                         case pages.page_battle_prepare | pages.page_battle:
                             self.run_general_battle(cur_battle_conf, battle_key=f'act_{self.climb_type}')
                         case pages.page_reward:
@@ -232,14 +244,14 @@ class ScriptTask(StateMachine, GameUi, GeneralBattle, SwitchSoul, ActivityShikig
         if enable:
             logger.info(f'Lock {self.climb_type} team')
             match self.climb_type:
-                case 'ap':
+                case 'ap' | 'boss':
                     self.ui_click(self.I_AP_UNLOCK, stop=self.I_AP_LOCK, interval=1.5)
                 case _:
                     self.ui_click(self.I_UNLOCK, stop=self.I_LOCK, interval=1.5)
             return
         logger.info(f'Unlock {self.climb_type} team')
         match self.climb_type:
-            case 'ap':
+            case 'ap' | 'boss':
                 self.ui_click(self.I_AP_LOCK, stop=self.I_AP_UNLOCK, interval=1.5)
             case _:
                 self.ui_click(self.I_LOCK, stop=self.I_UNLOCK, interval=1.5)
@@ -257,7 +269,7 @@ class ScriptTask(StateMachine, GameUi, GeneralBattle, SwitchSoul, ActivityShikig
         if self.climb_type == 'ap':
             remain_times = self.O_REMAIN_AP.ocr_digit(self.device.image)
         if self.climb_type == 'boss':
-            remain_times = self.O_REMAIN_BOSS.ocr_digit(self.device.image)
+            cur, remain_times, total = self.O_REMAIN_BOSS.ocr_digit_counter(self.device.image)
         if self.climb_type == 'ap100':
             remain_times = self.O_REMAIN_AP100.ocr_digit(self.device.image)
         # 上一次识别的票的数量和这一次识别的数量差距大于1, 则认为票数量有误, 允许继续挑战
