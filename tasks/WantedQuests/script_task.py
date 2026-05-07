@@ -322,6 +322,8 @@ class ScriptTask(WQExplore, SecretScriptTask, WantedQuestsAssets):
         except ExploreWantedBoss:
             logger.warning('The extreme case. The quest only needs to challenge one final boss, so skip it')
             self.want_strategy_excluding.append(info_wq_list[0])
+        finally:
+            self.goto_page(page_exploration)
 
     def challenge(self, goto_btn, num):
         self.ui_click(goto_btn, self.I_WQC_FIRE)
@@ -330,9 +332,6 @@ class ScriptTask(WQExplore, SecretScriptTask, WantedQuestsAssets):
         # 锁定阵容进入战斗
         wq_config = GeneralBattleConfig(lock_team_enable=True)
         self.run_general_battle(config=wq_config, exit_matcher=self.I_WQC_FIRE)
-        self.wait_until_appear(self.I_WQC_FIRE, wait_time=4)
-        self.ui_click_until_disappear(self.I_UI_BACK_RED)
-        # 我忘记了打完后是否需要关闭 挑战界面
 
     def secret(self, goto, num=1):
         self.ui_click(goto, self.I_WQSE_FIRE)
@@ -361,7 +360,6 @@ class ScriptTask(WQExplore, SecretScriptTask, WantedQuestsAssets):
                         self.device.click_record_clear()
                     continue
             success = self.run_general_battle(self.battle_config, exit_matcher=self.I_WQSE_FIRE)
-        self.goto_page(page_exploration)
         logger.info('Secret mission finished')
 
     def invite_random(self, add_button: RuleImage):
