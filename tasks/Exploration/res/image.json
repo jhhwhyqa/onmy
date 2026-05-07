@@ -214,5 +214,14 @@
     "method": "Template matching",
     "threshold": 0.8,
     "description": "创建确认"
+  },
+  {
+    "itemName": "e_open_folder",
+    "imageName": "res_e_open_folder.png",
+    "roiFront": "1241,114,22,28",
+    "roiBack": "1212,88,68,123",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "打开探索侧边折叠"
   }
 ]

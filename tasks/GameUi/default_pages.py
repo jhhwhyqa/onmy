@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from tasks.ActivityShikigami.assets import ActivityShikigamiAssets
 from tasks.Component.SwitchAccount.assets import SwitchAccountAssets
+from tasks.Exploration.assets import ExplorationAssets
 from tasks.GameUi.action import conditional_action
 from typing import Union
 
@@ -170,6 +171,7 @@ page_town.connect(page_hyakkiyakou, GameUiAssets.I_TOWN_GOTO_HYAKKIYAKOU, key="p
 # 探索主页。
 page_exploration = Page(GameUiAssets.I_CHECK_EXPLORATION, category="global")
 page_exploration.connect(page_main, GlobalGameAssets.I_UI_BACK_YELLOW, key="page_exploration->page_main")
+page_exploration.add_enter_failure_hooks(ExplorationAssets.I_E_OPEN_FOLDER)
 page_main.connect(page_exploration, GameUiAssets.I_MAIN_GOTO_EXPLORATION, key="page_main->page_exploration")
 
 # 探索区域页面。
