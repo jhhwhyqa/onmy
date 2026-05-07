@@ -23,7 +23,7 @@
     "roiFront": "704,658,22,26",
     "roiBack": "623,645,270,64",
     "method": "Template matching",
-    "threshold": 0.8,
+    "threshold": 0.6,
     "description": "锁定"
   },
   {
@@ -32,7 +32,7 @@
     "roiFront": "705,658,19,23",
     "roiBack": "623,649,273,59",
     "method": "Template matching",
-    "threshold": 0.8,
+    "threshold": 0.6,
     "description": "解锁"
   },
   {
