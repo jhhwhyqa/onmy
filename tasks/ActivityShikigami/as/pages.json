@@ -56,7 +56,7 @@
   {
     "itemName": "as_to_pass",
     "imageName": "as_as_to_pass.png",
-    "roiFront": "575,267,38,35",
+    "roiFront": "624,505,38,35",
     "roiBack": "273,141,759,475",
     "method": "Template matching",
     "threshold": 0.65,
