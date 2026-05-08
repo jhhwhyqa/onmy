@@ -51,8 +51,10 @@ class SoloExploration(BaseExploration):
                             self.ui_click(self.I_E_AUTO_ROTATE_OFF, stop=self.I_E_AUTO_ROTATE_ON)
                     # 小纸人
                     if self.appear(self.I_BATTLE_REWARD):
-                        if self.ui_get_reward(self.I_BATTLE_REWARD):
+                        if self._config.exploration_config.collect_paper_reward and self.ui_get_reward(self.I_BATTLE_REWARD):
                             continue
+                        logger.info("Not collect paper doll reward")
+                        self.quit_explore()
                     # boss
                     if self.appear(self.I_BOSS_BATTLE_BUTTON):
                         if self.fire(self.I_BOSS_BATTLE_BUTTON):
@@ -175,8 +177,11 @@ class SoloExploration(BaseExploration):
                         self.ui_click(self.I_E_AUTO_ROTATE_OFF, stop=self.I_E_AUTO_ROTATE_ON)
                 # 小纸人
                 if self.appear(self.I_BATTLE_REWARD):
-                    if self.ui_get_reward(self.I_BATTLE_REWARD):
+                    if self._config.exploration_config.collect_paper_reward and self.ui_get_reward(
+                            self.I_BATTLE_REWARD):
                         continue
+                    logger.info("Not collect paper doll reward")
+                    self.quit_explore()
                 # 中途有人跑路
                 if not self.appear(self.I_TEAM_EMOJI):
                     if not friend_leave_timer.started():
@@ -273,8 +278,9 @@ class SoloExploration(BaseExploration):
                         self.ui_click(self.I_E_AUTO_ROTATE_OFF, stop=self.I_E_AUTO_ROTATE_ON)
                 # 小纸人
                 if self.appear(self.I_BATTLE_REWARD):
-                    if self.ui_get_reward(self.I_BATTLE_REWARD):
-                        continue
+                    logger.info("发现小纸人奖励，按配置退出探索")
+                    self.quit_explore()
+                    continue
                 if not self.appear(self.I_TEAM_EMOJI):
                     if not leader_leave_log:
                         logger.warning('Leader may have run away, wait a while...')
