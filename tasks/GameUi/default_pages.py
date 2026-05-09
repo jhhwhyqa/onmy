@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 from tasks.ActivityShikigami.assets import ActivityShikigamiAssets
+from tasks.Component.GeneralInvite.assets import GeneralInviteAssets
 from tasks.Component.SwitchAccount.assets import SwitchAccountAssets
 from tasks.Exploration.assets import ExplorationAssets
-from tasks.GameUi.action import conditional_action
+from tasks.GameUi.action import conditional_action, sequence
 from typing import Union
 
 """GameUi 全局页面定义。"""
@@ -289,3 +290,7 @@ page_reward = Page(
     priority=25
 )
 page_reward.add_enter_success_hooks(lambda _task: random_click())
+
+page_battle_team = Page(any_of(GeneralInviteAssets.I_GI_EMOJI_1, GeneralInviteAssets.I_GI_EMOJI_2,
+                               GeneralInviteAssets.I_FIRE),
+                        category="global")
