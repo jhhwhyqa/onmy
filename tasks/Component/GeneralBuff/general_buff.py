@@ -69,9 +69,9 @@ class GeneralBuff(BaseTask, GeneralBuffAssets):
             return None
         # 开始的x坐标就是文字的右边
         start_x = area[0] + area[2] + 10  # 10是文字和开关之间的间隔
-        start_y = area[1] - 5
+        start_y = area[1] - 10
         width = 80  # 开关的宽度 80够了
-        height = area[3] + 10
+        height = 45
         return int(start_x), int(start_y), int(width), int(height)
 
     def set_switch_area(self, area):
@@ -97,8 +97,10 @@ class GeneralBuff(BaseTask, GeneralBuffAssets):
             return False
         self.set_switch_area(area)
         if is_open:
+            logger.info('Start open gold50 buff')
             self.ui_click(self.I_CLOSE_RED, self.I_OPEN_YELLOW, interval=1)
             return True
+        logger.info('Start close gold50 buff')
         self.ui_click(self.I_OPEN_YELLOW, self.I_CLOSE_RED, interval=1)
         return True
 
@@ -116,8 +118,10 @@ class GeneralBuff(BaseTask, GeneralBuffAssets):
             return False
         self.set_switch_area(area)
         if is_open:
+            logger.info('Start open gold100 buff')
             self.ui_click(self.I_CLOSE_RED, self.I_OPEN_YELLOW, interval=1)
             return True
+        logger.info('Start close gold100 buff')
         self.ui_click(self.I_OPEN_YELLOW, self.I_CLOSE_RED, interval=1)
         return True
 
@@ -135,16 +139,19 @@ class GeneralBuff(BaseTask, GeneralBuffAssets):
                 logger.warning('No exp 50 buff')
                 return False
             area = self.get_area(self.O_EXP_50)
+            if area:
+                self.set_switch_area(area)
             if not area or (not self.appear(self.I_CLOSE_RED) and not self.appear(self.I_OPEN_YELLOW)):
                 self.device.swipe(p2=(530, 240), p1=(580, 320))
                 max_swipe -= 1
                 time.sleep(1)
                 continue
-            self.set_switch_area(area)
             break
         if is_open:
+            logger.info('Start open exp50 buff')
             self.ui_click(self.I_CLOSE_RED, self.I_OPEN_YELLOW, interval=1)
             return True
+        logger.info('Start close exp50 buff')
         self.ui_click(self.I_OPEN_YELLOW, self.I_CLOSE_RED, interval=1)
         return True
 
@@ -171,8 +178,10 @@ class GeneralBuff(BaseTask, GeneralBuffAssets):
                 continue
             break
         if is_open:
+            logger.info('Start open exp100 buff')
             self.ui_click(self.I_CLOSE_RED, self.I_OPEN_YELLOW, interval=1)
             return True
+        logger.info('Start close exp100 buff')
         self.ui_click(self.I_OPEN_YELLOW, self.I_CLOSE_RED, interval=1)
         return True
 
@@ -210,8 +219,10 @@ class GeneralBuff(BaseTask, GeneralBuffAssets):
             return None
         self.set_switch_area(area)
         if is_open:
+            logger.info('Start open awake buff')
             self.ui_click(self.I_CLOSE_RED, self.I_OPEN_YELLOW, interval=1)
             return True
+        logger.info('Start close awake buff')
         self.ui_click(self.I_OPEN_YELLOW, self.I_CLOSE_RED, interval=1)
         return True
 
@@ -229,8 +240,10 @@ class GeneralBuff(BaseTask, GeneralBuffAssets):
             return None
         self.set_switch_area(area)
         if is_open:
+            logger.info('Start open soul buff')
             self.ui_click(self.I_CLOSE_RED, self.I_OPEN_YELLOW, interval=1)
             return True
+        logger.info('Start close soul buff')
         self.ui_click(self.I_OPEN_YELLOW, self.I_CLOSE_RED, interval=1)
         return True
 
@@ -255,8 +268,8 @@ if __name__ == '__main__':
     from module.config.config import Config
     from module.device.device import Device
 
-    c = Config('日常1')
+    c = Config('日常2')
     d = Device(c)
     t = GeneralBuff(c, d)
 
-    t.soul(is_open=True)
+    t.awake(is_open=True)
