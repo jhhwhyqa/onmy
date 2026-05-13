@@ -130,7 +130,7 @@ class GameUiAssets:
 	# 阴阳寮页面标志 
 	I_CHECK_GUILD = RuleImage(roi_front=(1072,630,49,46), roi_back=(1072,630,49,46), threshold=0.8, method="Template matching", file="./tasks/GameUi/page/page_check_guild.png")
 	# 组队页面标志 
-	I_CHECK_TEAM = RuleImage(roi_front=(32,585,82,90), roi_back=(32,585,82,90), threshold=0.8, method="Template matching", file="./tasks/GameUi/page/page_check_team.png")
+	I_CHECK_TEAM = RuleImage(roi_front=(32,585,82,65), roi_back=(0,563,148,139), threshold=0.8, method="Template matching", file="./tasks/GameUi/page/page_check_team.png")
 	# 图鉴页面标志 
 	I_CHECK_COLLECTION = RuleImage(roi_front=(380,620,100,100), roi_back=(380,620,100,100), threshold=0.8, method="Template matching", file="./tasks/GameUi/page/page_check_collection.png")
 	# 花合战退出标志 
