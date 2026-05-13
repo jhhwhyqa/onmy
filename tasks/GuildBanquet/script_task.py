@@ -75,7 +75,7 @@ class ScriptTask(GameUi, GuildBanquetAssets):
                     if cur != total or cur == 0:
                         max_tries -= 1
                         if self.appear_then_click(self.I_BANQUET_CLEAR_ALL, interval=1.5):
-                            time.sleep(random.randrange(0.6, 2, 0.2))  # 两次点击之间稍微加点延迟
+                            time.sleep(random.randrange(6, 20, 2)/10)  # 两次点击之间稍微加点延迟
                         self.appear_then_click(self.I_BANQUET_ALL_PUT, interval=1.5)
                         continue
                     # 当前式神数量不为0且等于总数, 切换完毕

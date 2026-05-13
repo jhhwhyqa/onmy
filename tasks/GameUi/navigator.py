@@ -756,7 +756,7 @@ class GameUi(BaseTask, GameUiAssets):
                     last_detected_page_key = None
                     reset_repeated_transition_failures()
                     # 关掉未知界面后等待页面变化, 防止多次识别到未知界面
-                    time.sleep(random.randrange(0.8, 1.6, 0.1))
+                    time.sleep(random.randrange(8, 16, 1)/10)
                 elif progress_timer.reached():
                     self._log_navigation_timeout(
                         destination,
