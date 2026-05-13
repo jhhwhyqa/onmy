@@ -23,24 +23,12 @@ class ScriptTask(GameUi, SwitchSoul, MoonSea, PeacockKingdom):
 
     def run(self):
         _config = self.config.model.six_realms
-        if _config.switch_soul_config_1.enable:
+        if _config.switch_soul_config.enable:
             self.goto_page(page_shikigami_records)
-            self.run_switch_soul(_config.switch_soul_config_1.switch_group_team)
-        if _config.switch_soul_config_1.enable_switch_by_name:
+            self.run_switch_soul(_config.switch_soul_config.switch_group_team)
+        if _config.switch_soul_config.enable_switch_by_name:
             self.goto_page(page_shikigami_records)
-            self.run_switch_soul_by_name(
-                _config.switch_soul_config_1.group_name,
-                _config.switch_soul_config_1.team_name
-            )
-        if _config.switch_soul_config_2.enable:
-            self.goto_page(page_shikigami_records)
-            self.run_switch_soul(_config.switch_soul_config_2.switch_group_team)
-        if _config.switch_soul_config_2.enable_switch_by_name:
-            self.goto_page(page_shikigami_records)
-            self.run_switch_soul_by_name(
-                _config.switch_soul_config_2.group_name,
-                _config.switch_soul_config_2.team_name
-            )
+            self.run_switch_soul_by_name(_config.switch_soul_config.group_name, _config.switch_soul_config.team_name)
         self.goto_page(page_six_gates)
         logger.hr(f'{_config.six_realms_gate.six_realms_type.name}', 1)
         cnt = 0
