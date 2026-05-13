@@ -507,7 +507,6 @@ class GameUi(BaseTask, GameUiAssets):
         destination = transition.destination
 
         logger.info(f"Page switch: {source} -> {destination}")
-        logger.info(f"Operate transition: {transition.key}")
 
         action_timer = Timer(6.0).start()
         action_done = False

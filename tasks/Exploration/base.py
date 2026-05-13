@@ -338,18 +338,6 @@ class BaseExploration(GameUi, GeneralBattle, GeneralRoom, GeneralInvite, Replace
         self.activate_realm_raid(self._config.scrolls, self._config.exploration_config, current_page)
         return False
 
-    def quit_explore(self) -> bool:
-        while True:
-            self.screenshot()
-            if self.appear(self.I_E_EXPLORATION_CLICK) or \
-                    self.appear(self.I_EXPLORATION_TITLE) or \
-                    self.appear(self.I_CHECK_EXPLORATION):
-                return True
-            if self.appear_then_click(self.I_E_EXIT_CONFIRM, interval=0.8) or \
-                    self.appear_then_click(self.I_UI_BACK_YELLOW, interval=2.8):
-                continue
-        return False
-
     def fire(self, button) -> bool:
         """进入战斗"""
         self.ui_click_until_disappear(button, interval=2)

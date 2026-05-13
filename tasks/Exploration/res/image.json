@@ -223,5 +223,23 @@
     "method": "Template matching",
     "threshold": 0.8,
     "description": "打开探索侧边折叠"
+  },
+  {
+    "itemName": "e_check_exit",
+    "imageName": "res_e_check_exit.png",
+    "roiFront": "528,299,216,50",
+    "roiBack": "344,258,597,209",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "退出探索标志"
+  },
+  {
+    "itemName": "e_exit_cancel",
+    "imageName": "res_e_exit_cancel.png",
+    "roiFront": "422,380,163,49",
+    "roiBack": "422,380,163,49",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "探索退出取消"
   }
 ]

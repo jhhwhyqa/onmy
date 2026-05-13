@@ -45,10 +45,11 @@ class ScriptTask(BaseExploration):
                     if fire_button is not None:
                         self.fire(fire_button)
                         continue
-                    if self.arrive_end() and self.fire_monster_type != 'boss':  # 探索已经到底且当前不是boss
+                    # 执行滑动了且探索已经到底且当前不是boss
+                    if self.swipe(self.S_SWIPE_BACKGROUND_RIGHT, interval=1.5) and \
+                            self.arrive_end() and self.fire_monster_type != 'boss':
                         self.goto_page(pages.page_exp_entrance)
                         continue
-                    self.swipe(self.S_SWIPE_BACKGROUND_RIGHT, interval=1.5)
                 case pages.page_exploration | pages.page_exp_entrance:
                     self.collect_treasure_box()
                     self.fire_monster_type = ''  # 入口处重置怪物类型
@@ -59,7 +60,7 @@ class ScriptTask(BaseExploration):
                     if not self.unknown_page_timer.started():
                         self.unknown_page_timer.start()
                     if self.unknown_page_timer.reached():
-                        self.goto_page(pages.page_exp_main)
+                        self.goto_page(pages.page_exp_entrance)
                         self.unknown_page_timer = Timer(self.unknown_page_seconds)
 
     def run_leader(self):
@@ -89,7 +90,7 @@ class ScriptTask(BaseExploration):
                     if not self.appear(self.I_TEAM_EMOJI):  # 中途有人跑路
                         if friend_leave_timer.started() and friend_leave_timer.reached():
                             logger.warning('Mate disappeared, quit')
-                            self.quit_explore()
+                            self.goto_page(pages.page_exp_entrance)
                             continue
                         if not friend_leave_timer.started():
                             logger.warning('Mate disappear, waiting for mate')
@@ -101,10 +102,10 @@ class ScriptTask(BaseExploration):
                     if fire_button is not None:
                         self.fire(fire_button)
                         continue
-                    if self.arrive_end() and self.fire_monster_type != 'boss':  # 探索已经到底且当前不是boss
-                        self.quit_explore()
+                    if self.swipe(self.S_SWIPE_BACKGROUND_RIGHT, interval=1.5) and \
+                            self.arrive_end() and self.fire_monster_type != 'boss':  # 探索已经到底且当前不是boss
+                        self.goto_page(pages.page_exp_entrance)
                         continue
-                    self.swipe(self.S_SWIPE_BACKGROUND_RIGHT, interval=1.5)
                 case pages.page_battle_prepare | pages.page_battle:
                     self.run_general_battle(self._config.general_battle_config, exit_matcher=pages.page_exp_main)
                 case _:
@@ -144,7 +145,7 @@ class ScriptTask(BaseExploration):
                     if not self.appear(self.I_TEAM_EMOJI):  # 中途有人跑路
                         if friend_leave_timer.started() and friend_leave_timer.reached():
                             logger.warning('Mate disappeared, quit')
-                            self.quit_explore()
+                            self.goto_page(pages.page_exploration)
                             continue
                         if not friend_leave_timer.started():
                             logger.warning('Mate disappear, waiting for mate')
