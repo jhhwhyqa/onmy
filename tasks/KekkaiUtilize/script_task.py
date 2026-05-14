@@ -224,11 +224,7 @@ class ScriptTask(GameUi, ReplaceShikigami, KekkaiUtilizeAssets):
                     logger.info('No exp box remained, exit')
                     break
                 # 如果出现收取确认，表明进入到了有满级的
-                if self.appear(self.I_UI_CONFIRM):
-                    self.screenshot()
-                    if not self.appear(self.I_UI_CANCEL):
-                        logger.info('No cancel button')
-                        continue
+                if self.appear(self.I_UI_CONFIRM) and self.appear(self.I_UI_CANCEL):
                     target_button = self.I_UI_CONFIRM if exp_waste else self.I_UI_CANCEL
                     self.ui_click_until_disappear(target_button)
                     break
@@ -241,8 +237,8 @@ class ScriptTask(GameUi, ReplaceShikigami, KekkaiUtilizeAssets):
                     if cur == total:
                         logger.info('Exp box reach max do not collect')
                         break
-                    max_tries -= 1
-                    self.appear_then_click(self.I_EXP_EXTRACT, interval=1)
+                    if self.appear_then_click(self.I_EXP_EXTRACT, interval=1):
+                        max_tries -= 1
             self.goto_page(page_guild_realm)
             return True
 
