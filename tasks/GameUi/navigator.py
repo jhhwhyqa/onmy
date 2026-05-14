@@ -615,16 +615,22 @@ class GameUi(BaseTask, GameUiAssets):
         logger.warning(f"Unknown close history: {self.navigator.unknown_close_history}")
         raise GamePageUnknownError(f"Cannot goto page[{destination}]")
 
-    def get_current_page(self, skip_first_screenshot: bool = True) -> Page | None:
+    def get_current_page(self, skip_first_screenshot: bool = True, fallback: bool = False) -> Page | None:
         """获取当前稳定页面。
 
         Args:
             skip_first_screenshot: 是否复用当前截图。
+            fallback: 是否回退至识别全部注册页面
 
         Returns:
             当前稳定识别到的页面；识别失败时返回 `None`。
         """
 
+        if not fallback:
+            return self._detect_current_page(
+                skip_first_screenshot=skip_first_screenshot,
+                categories=self._default_detect_categories()
+            )
         return self._detect_current_page_with_fallback(
             skip_first_screenshot=skip_first_screenshot,
             categories=self._default_detect_categories(),
@@ -684,9 +690,8 @@ class GameUi(BaseTask, GameUiAssets):
                 action_name = self._action_name(action)
                 logger.warning("Trying to switch to supported page")
                 logger.info(f"[{time.time() - timer_start:.1f}s]Close unknown page by {action_name}")
-                self._record_unknown_close_event(f"success:{action_name}")
+                self._record_unknown_close_event(f"{action_name}")
                 return True
-        self._record_unknown_close_event("miss")
 
         @run_once
         def app_check():
