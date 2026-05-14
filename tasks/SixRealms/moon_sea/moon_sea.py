@@ -165,7 +165,7 @@ class MoonSea(MoonSeaMap, MoonSeaL101, MoonSeaL102, MoonSeaL103, MoonSeaL104, Mo
                 self.device.stuck_record_add('BATTLE_STATUS_S')
                 continue
         logger.info('Boss battle end')
-        self.ui_click_until_appear_or_timeout(random_click(ltrb=(True, True, False, True)), self.I_MSTART, timeout=10)
+        self.ui_click_until_appear_or_timeout(random_click(ltrb=(True, False, True, False)), self.I_MSTART, timeout=10)
         return True
 
 
