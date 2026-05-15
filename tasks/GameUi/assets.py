@@ -138,7 +138,7 @@ class GameUiAssets:
 	# 庭院召唤标志 
 	I_MAIN_GOTO_SUMMON = RuleImage(roi_front=(1073,174,57,65), roi_back=(571,153,586,124), threshold=0.8, method="Template matching", file="./tasks/GameUi/page/page_main_goto_summon.png")
 	# 召唤页面标志 
-	I_CHECK_SUMMON = RuleImage(roi_front=(750,580,30,28), roi_back=(750,580,350,120), threshold=0.8, method="Template matching", file="./tasks/GameUi/page/page_check_summon.png")
+	I_CHECK_SUMMON = RuleImage(roi_front=(750,580,30,28), roi_back=(578,516,419,204), threshold=0.8, method="Template matching", file="./tasks/GameUi/page/page_check_summon.png")
 	# 阴阳寮神社左上角 
 	I_CHECK_SHRIN = RuleImage(roi_front=(80,92,33,97), roi_back=(56,73,84,138), threshold=0.8, method="Template matching", file="./tasks/GameUi/page/page_check_shrin.png")
 	# 阴阳寮前往神社 

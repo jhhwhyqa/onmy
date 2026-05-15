@@ -183,14 +183,13 @@ class ScriptTask(GameUi, WeeklyTriflesAssets):
         :return:
         """
         def exit_amulet():
-            self.click(random_click(ltrb=(False, False, True, False)))
-            self.wait_until_appear(self.I_BM_CONFIRM, wait_time=3)
-            while 1:
+            while True:
                 self.screenshot()
-                if not self.appear(self.I_BM_CONFIRM):
+                if self.appear(self.I_BM_ENTER):
                     break
-                else:
-                    self.appear_then_click(self.I_BM_CONFIRM, interval=1)
+                if self.appear_then_click(self.I_BM_CONFIRM, interval=1):
+                    continue
+                self.click(random_click(ltrb=(False, False, True, False)))
             logger.info('Exit broken amulet')
 
         logger.hr('Broken amulet')
