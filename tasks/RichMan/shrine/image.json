@@ -129,7 +129,7 @@
     "itemName": "s_summon_to_shrine",
     "imageName": "shrine_s_summon_to_shrine.png",
     "roiFront": "1235,353,16,38",
-    "roiBack": "949,210,328,321",
+    "roiBack": "864,210,413,337",
     "method": "Template matching",
     "threshold": 0.8,
     "description": "召唤页面前往神龛标志"
