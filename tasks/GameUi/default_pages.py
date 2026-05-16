@@ -213,9 +213,24 @@ page_heian_kitan = Page(GameUiAssets.I_CHECK_HEIAN_KITAN, category="global")
 page_heian_kitan.connect(page_exploration, GameUiAssets.I_CHECK_HEIAN_KITAN, key="page_heian_kitan->page_exploration")
 page_exploration.connect(page_heian_kitan, GameUiAssets.I_EXPLORATION_GOTO_HEIAN_KITAN, key="page_exploration->page_heian_kitan")
 
-page_six_gates = Page(GameUiAssets.I_CHECK_SIX_GATES, category="global")
-page_six_gates.connect(page_exploration, GameUiAssets.I_SIX_GATES_GOTO_EXPLORATION, key="page_six_gates->page_exploration")
-page_exploration.connect(page_six_gates, GameUiAssets.I_EXPLORATION_GOTO_SIX_GATES, key="page_exploration->page_six_gates")
+
+def exploration_to_six_gates(task) -> bool:
+    """探索前往六道之门, 处理不同入口情况"""
+    if task.appear_then_click(GameUiAssets.I_EXPLORATION_TO_MOON_SEA) or \
+            task.appear_then_click(GameUiAssets.I_EXPLORATION_TO_INCENSE_REALM) or \
+            task.appear_then_click(GameUiAssets.I_EXPLORATION_TO_SEASONRIFT_FOREST) or \
+            task.appear_then_click(GameUiAssets.I_EXPLORATION_TO_PURE_BUDDHA_REALM) or \
+            task.appear_then_click(GameUiAssets.I_EXPLORATION_TO_MANTRA_TOWER) or \
+            task.appear_then_click(GameUiAssets.I_EXPLORATION_TO_PEACOCK_KINGDOM):
+        return True
+    return False
+
+page_six_gates = Page(any_of(GameUiAssets.I_CHECK_MOON_SEA, GameUiAssets.I_CHECK_INCENSE_REALM,
+                             GameUiAssets.I_CHECK_SEASONRIFT_FOREST, GameUiAssets.I_CHECK_PURE_BUDDHA_REALM,
+                             GameUiAssets.I_CHECK_MANTRA_TOWER, GameUiAssets.I_CHECK_PEACOCK_KINGDOM),
+                      category="global", priority=25)
+page_six_gates.connect(page_exploration, GlobalGameAssets.I_UI_BACK_BLUE, key="page_six_gates->page_exploration")
+page_exploration.connect(page_six_gates, action=exploration_to_six_gates, key="page_exploration->page_six_gates")
 
 page_bondling_fairyland = Page(GameUiAssets.I_CHECK_BONDLING_FAIRYLAND, category="global")
 page_bondling_fairyland.connect(page_exploration, GlobalGameAssets.I_UI_BACK_YELLOW, key="page_bondling_fairyland->page_exploration")
