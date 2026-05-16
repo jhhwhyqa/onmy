@@ -2,6 +2,7 @@
 
 from datetime import datetime, timedelta
 from enum import Enum
+from module.exception import RequestHumanTakeover, GameNotRunningError
 from typing import Any, Callable, Protocol
 
 from module.device.device import Device
@@ -323,7 +324,16 @@ class ScriptRuntimeController:
 
         self._ensure_emulator_running('Wake emulator before running task')
 
-        if not self.device.app_is_running():
+        try:
+            running = self.device.app_is_running()
+        except RequestHumanTakeover as e:
+            # adb 重试 3 次都连不上 → "无法确认游戏是否在前台"。
+            # 翻译为 GameNotRunningError,沿调用栈上抛,
+            # 由 Script._handle_task_exception 统一走 Restart 恢复分支。
+            raise GameNotRunningError(f'Failed to query app state before task `{task}` (likely adb disconnected): {e}') \
+                from e
+
+        if not running:
             return self._run_restart_recovery(f'Game is not running before task `{task}`, recover it via Restart')
 
         return ScriptRuntimeDecision.READY

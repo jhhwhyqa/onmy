@@ -385,71 +385,13 @@ class Script:
         try:
             self.device.screenshot()
             module_name = 'script_task'
-            module_path = str(Path.cwd() / 'tasks' / command / (module_name+'.py'))
+            module_path = str(Path.cwd() / 'tasks' / command / (module_name + '.py'))
             logger.info(f'module_path: {module_path}, module_name: {module_name}')
             task_module = load_module(module_name, module_path)
             task_module.ScriptTask(config=self.config, device=self.device).run()
-        except TaskEnd:
-            self._capture_task_runtime_outcome(command)
-            return True
-        except GameNotRunningError as e:
-            logger.warning(e)
-            self.exception_handler(e=e, command=command)
-            self.config.task_call('Restart')
-            return True
-        except (GameStuckError, GameTooManyClickError) as e:
-            logger.error(e)
-            self.save_error_log()
-            self.exception_handler(e=e, command=command)
-            logger.warning(f'Game stuck, {self.device.package} will be restarted in 10 seconds')
-            logger.warning('If you are playing by hand, please stop Alas')
-            self.config.notifier.push(title=f'{I18n.trans_zh_cn(command)}{command}', content=f"<{self.config_name}> GameStuckError or GameTooManyClickError")
-            self.config.task_call('Restart')
-            self.device.sleep(10)
-            return False
-        except GameBugError as e:
-            logger.warning(e)
-            self.save_error_log()
-            self.exception_handler(e=e, command=command)
-            logger.warning('An error has occurred in Azur Lane game client, Alas is unable to handle')
-            logger.warning(f'Restarting {self.device.package} to fix it')
-            self.config.task_call('Restart')
-            self.device.sleep(10)
-            return False
-        except GamePageUnknownError as e:
-            logger.info('Game server may be under maintenance or network may be broken, check server status now')
-            if command == 'GotoMain' and self._delay_tasks_for_server_update(
-                task=command,
-                reason='failed to goto main during morning server update window',
-            ):
-                logger.info('GotoMain failed during server update window, delayed pending tasks and reschedule')
-                return False
-            # 这个还不重要 留着坑填
-            logger.critical('Game page unknown')
-            self.save_error_log()
-            self.exception_handler(e=e, command=command)
-            self.config.notifier.push(title=f'{I18n.trans_zh_cn(command)}{command}', content=f"<{self.config_name}> GamePageUnknownError")
-            self.config.task_call('Restart')
-            self.device.sleep(10)
-            return False
-        except ScriptError as e:
-            logger.critical(e)
-            self.exception_handler(e=e, command=command)
-            logger.critical('This is likely to be a mistake of developers, but sometimes just random issues')
-            self.config.notifier.push(title=f'{I18n.trans_zh_cn(command)}{command}', content=f"<{self.config_name}> ScriptError")
-            exit(1)
-        except RequestHumanTakeover as e:
-            logger.critical(e)
-            self.exception_handler(e=e, command=command)
-            logger.critical('Request human takeover')
-            self.config.notifier.push(title=f'{I18n.trans_zh_cn(command)}{command}', content=f"<{self.config_name}> RequestHumanTakeover")
-            exit(1)
         except Exception as e:
-            logger.exception(e)
-            self.exception_handler(e=e, command=command)
-            self.save_error_log()
-            self.config.notifier.push(title=f'{I18n.trans_zh_cn(command)}{command}', content=f"<{self.config_name}> Exception occured")
-            exit(1)
+            return self._handle_task_exception(e, command)
+        return False
 
     def loop(self):
         """
@@ -477,34 +419,24 @@ class Script:
                 with _log_switch_lock:
                     logger.set_file_logger(self.config_name, do_cleanup=True)
                 start_day = date.today()
-            # Check update event from GUI
-            # if self.stop_event is not None:
-            #     if self.stop_event.is_set():
-            #         logger.info("Update event detected")
-            #         logger.info(f"Alas [{self.config_name}] exited.")
-            #         break
 
-            # Check game server maintenance
-            # self.checker.wait_until_available()
-            # if self.checker.is_recovered():
-            #     # There is an accidental bug hard to reproduce
-            #     # Sometimes, config won't be updated due to blocking
-            #     # even though it has been changed
-            #     # So update it once recovered
-            #     del_cached_property(self, 'config')
-            #     logger.info('Server or network is recovered. Restart game client')
-            #     self.config.task_call('Restart')
-
-            # Get task
-            task = self.get_next_task()
-            # Skip first restart
-            if self.is_first_task and task == 'Restart':
-                logger.info('Skip task `Restart` at scheduler start')
-                self.config.task_delay(task='Restart', success=True, server=True)
+            task = ""
+            try:
+                # Get task
+                task = self.get_next_task()
+                # Skip first restart
+                if self.is_first_task and task == 'Restart':
+                    logger.info('Skip task `Restart` at scheduler start')
+                    self.config.task_delay(task='Restart', success=True, server=True)
+                    del_cached_property(self, 'config')
+                    continue
+                decision = self.runtime.prepare_task_execution(task)
+            except Exception as e:
+                self._handle_task_exception(e, task)
+                # 本轮 prepare 失败,重新调度
                 del_cached_property(self, 'config')
                 continue
 
-            decision = self.runtime.prepare_task_execution(task)
             if decision == ScriptRuntimeDecision.RESCHEDULE:
                 logger.info(f'Runtime preparation for `{task}` requested reschedule, reload config and retry scheduling')
                 del_cached_property(self, 'config')
@@ -558,6 +490,98 @@ class Script:
                 continue
             else:
                 break
+
+    def _handle_task_exception(self, e: Exception, command: str) -> bool:
+        """
+        统一处理任务执行 / 准备阶段抛出的异常。
+        Returns:
+            True  -> 视为正常结束或已自动恢复 (例如已 task_call('Restart')),
+                     调度器继续推进
+            False -> 视为失败,脚本继续运行
+        对致命异常 (ScriptError / RequestHumanTakeover / 未识别 Exception)
+        在内部直接 exit(1)。
+        """
+        if isinstance(e, TaskEnd):
+            self._capture_task_runtime_outcome(command)
+            return True
+
+        if isinstance(e, GameNotRunningError):
+            logger.warning(e)
+            self.exception_handler(e=e, command=command)
+            self.config.task_call('Restart')
+            return True
+
+        if isinstance(e, (GameStuckError, GameTooManyClickError)):
+            logger.error(e)
+            self.save_error_log()
+            self.exception_handler(e=e, command=command)
+            logger.warning(f'Game stuck, {self.device.package} will be restarted in 10 seconds')
+            logger.warning('If you are playing by hand, please stop Alas')
+            self.config.notifier.push(title=f'{I18n.trans_zh_cn(command)}{command}',
+                                      content=f"<{self.config_name}> GameStuckError or GameTooManyClickError")
+            self.config.task_call('Restart')
+            self.device.sleep(10)
+            return False
+
+        if isinstance(e, GameBugError):
+            logger.warning(e)
+            self.save_error_log()
+            self.exception_handler(e=e, command=command)
+            logger.warning('An error has occurred in Azur Lane game client, Alas is unable to handle')
+            logger.warning(f'Restarting {self.device.package} to fix it')
+            self.config.task_call('Restart')
+            self.device.sleep(10)
+            return False
+
+        if isinstance(e, GamePageUnknownError):
+            logger.info('Game server may be under maintenance or network may be broken, check server status now')
+            if command == 'GotoMain' and self._delay_tasks_for_server_update(
+                    task=command,
+                    reason='failed to goto main during morning server update window',
+            ):
+                logger.info('GotoMain failed during server update window, delayed pending tasks and reschedule')
+                return False
+            logger.critical('Game page unknown')
+            self.save_error_log()
+            self.exception_handler(e=e, command=command)
+            self.config.notifier.push(
+                title=f'{I18n.trans_zh_cn(command)}{command}',
+                content=f"<{self.config_name}> GamePageUnknownError",
+            )
+            self.config.task_call('Restart')
+            self.device.sleep(10)
+            return False
+
+        if isinstance(e, ScriptError):
+            logger.critical(e)
+            self.exception_handler(e=e, command=command)
+            logger.critical('This is likely to be a mistake of developers, but sometimes just random issues')
+            self.config.notifier.push(
+                title=f'{I18n.trans_zh_cn(command)}{command}',
+                content=f"<{self.config_name}> ScriptError",
+            )
+            exit(1)
+
+        if isinstance(e, RequestHumanTakeover):
+            logger.critical(e)
+            self.exception_handler(e=e, command=command)
+            logger.critical('Request human takeover')
+            self.config.notifier.push(
+                title=f'{I18n.trans_zh_cn(command)}{command}',
+                content=f"<{self.config_name}> RequestHumanTakeover",
+            )
+            exit(1)
+
+        # generic
+        logger.exception(e)
+        self.exception_handler(e=e, command=command)
+        self.save_error_log()
+        self.config.notifier.push(
+            title=f'{I18n.trans_zh_cn(command)}{command}',
+            content=f"<{self.config_name}> Exception occured",
+        )
+        exit(1)
+        return False
 
     def start_loop(self) -> None:
         """
