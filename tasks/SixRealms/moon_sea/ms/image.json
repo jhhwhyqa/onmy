@@ -133,5 +133,23 @@
     "method": "Template matching",
     "threshold": 0.8,
     "description": "召唤商店弹窗"
+  },
+  {
+    "itemName": "ms_skill_unlock",
+    "imageName": "ms_ms_skill_unlock.png",
+    "roiFront": "538,137,211,50",
+    "roiBack": "1029,190,105,152",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "技能解锁标志"
+  },
+  {
+    "itemName": "ms_check_map",
+    "imageName": "ms_ms_check_map.png",
+    "roiFront": "1119,15,144,230",
+    "roiBack": "1088,0,192,286",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "月之海地图标志"
   }
 ]

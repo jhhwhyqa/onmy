@@ -51,6 +51,10 @@ page_ms_battle_land.connect(page_ms_challenge, SixRealmsAssets.C_NPC_FIRE_RIGHT,
 page_ms_challenge.connect(page_ms_battle_land, GlobalGameAssets.I_UI_BACK_BLUE, key="page_ms_challenge->page_ms_battle_land")
 page_ms_main.connect(page_ms_battle_land, SixRealmsAssets.I_MS_LAND_FIRE, key="page_ms_main->page_ms_battle_land")
 
+# 月之海地图
+page_ms_map = Page(SixRealmsAssets.I_MS_CHECK_MAP, category="six_realms")
+page_ms_map.connect(page_ms_main, GlobalGameAssets.I_UI_BACK_BLUE, key="page_ms_map->page_ms_main")
+
 # 主界面退出弹窗
 page_ms_exit = Page(SixRealmsAssets.I_EXIT_SIXREALMS, category="six_realms", priority=88)
 page_ms_exit.connect(page_moon_sea, SixRealmsAssets.I_EXIT_SIXREALMS, key="page_ms_exit->page_moon_sea")

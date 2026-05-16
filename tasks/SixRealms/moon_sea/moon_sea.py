@@ -28,6 +28,7 @@ class MoonSea(BaseMoonSea):
             pages.page_ms_star_land: self.run_on_ms_star,
             pages.page_ms_battle_land: self.run_on_ms_battle,
             pages.page_ms_challenge: self.run_on_ms_challenge,
+            pages.page_ms_map: lambda : self.goto_page(pages.page_ms_main),
             pages.page_ms_exit: lambda : self.click(random_click(ltrb=(True, False, False, False)), interval=1.2),
             pages.page_ms_prepare_exit: lambda : self.goto_page(pages.page_ms_prepare),
             pages.page_ms_open_store: lambda : self.goto_page(pages.page_ms_main),

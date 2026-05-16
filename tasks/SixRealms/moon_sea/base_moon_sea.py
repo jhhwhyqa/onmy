@@ -20,11 +20,12 @@ class BaseMoonSea(GameUi, GeneralBattle, BaseTask, SixRealmsAssets):
         pages.page_battle.recognizer = pages.any_of(self.I_BOSS_SKIP, pages.page_battle.recognizer)
         pages.page_battle_result = self.navigator.resolve_page(pages.page_battle_result)
         pages.page_battle_result.recognizer = pages.any_of(self.I_BOSS_BATTLE_AGAIN, self.I_BOSS_BATTLE_GIVEUP,
-                                                           self.I_SELECT_3, self.I_SKILL_REFRESH,
+                                                           self.I_SELECT_3, self.I_SKILL_REFRESH, self.I_UI_CONFIRM_SAMLL,
                                                            pages.page_battle_result.recognizer)
         pages.page_reward = self.navigator.resolve_page(pages.page_reward)
         pages.page_reward.recognizer = pages.any_of(self.I_COIN, self.I_SR_DOUBLE_REWARD_USE, self.I_BOSS_GET_EXP,
-                                                    self.I_BOSS_SHARE, self.I_BOSS_SHUTU, pages.page_reward.recognizer)
+                                                    self.I_BOSS_SHARE, self.I_BOSS_SHUTU, self.I_MS_SKILL_UNLOCK,
+                                                    pages.page_reward.recognizer)
 
     def _handle_in_battle(self, context: BattleContext, config: GeneralBattleConfig) -> BattleAction:
         if self.appear_then_click(self.I_BOSS_SKIP, interval=0.8):
@@ -37,6 +38,10 @@ class BaseMoonSea(GameUi, GeneralBattle, BaseTask, SixRealmsAssets):
         if self.appear(self.I_BOSS_BATTLE_GIVEUP):
             context.is_win = False
             self.click(self.I_BOSS_BATTLE_GIVEUP, interval=0.8)
+            return BattleAction.CONTINUE
+        # 放弃之后的2次弹窗确认
+        if self.appear(self.I_UI_CONFIRM_SAMLL):
+            self.click(self.I_UI_CONFIRM_SAMLL, interval=0.8)
             return BattleAction.CONTINUE
         # 选择一个技能
         if self.appear(self.I_SELECT_3, interval=1.5) and self.appear(self.I_SKILL_REFRESH):

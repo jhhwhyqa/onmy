@@ -59,6 +59,10 @@ class SixRealmsAssets:
 	I_MS_CHECK_EXIT_PREPARE = RuleImage(roi_front=(528,288,210,57), roi_back=(436,223,414,249), threshold=0.8, method="Template matching", file="./tasks/SixRealms/moon_sea/ms/ms_ms_check_exit_prepare.png")
 	# 召唤商店弹窗 
 	I_MS_CHECK_OPEN_STORE = RuleImage(roi_front=(441,289,397,58), roi_back=(423,227,437,263), threshold=0.8, method="Template matching", file="./tasks/SixRealms/moon_sea/ms/ms_ms_check_open_store.png")
+	# 技能解锁标志 
+	I_MS_SKILL_UNLOCK = RuleImage(roi_front=(538,137,211,50), roi_back=(1029,190,105,152), threshold=0.8, method="Template matching", file="./tasks/SixRealms/moon_sea/ms/ms_ms_skill_unlock.png")
+	# 月之海地图标志 
+	I_MS_CHECK_MAP = RuleImage(roi_front=(1119,15,144,230), roi_back=(1088,0,192,286), threshold=0.8, method="Template matching", file="./tasks/SixRealms/moon_sea/ms/ms_ms_check_map.png")
 
 
 	# Image Rule Assets
