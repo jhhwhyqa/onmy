@@ -36,15 +36,6 @@
     "description": "description"
   },
   {
-    "itemName": "boss_use_double",
-    "imageName": "ms_boss_use_double.png",
-    "roiFront": "669,417,126,53",
-    "roiBack": "651,407,164,71",
-    "method": "Template matching",
-    "threshold": 0.8,
-    "description": "description"
-  },
-  {
     "itemName": "boss_get_exp",
     "imageName": "ms_boss_get_exp.png",
     "roiFront": "561,109,171,45",
@@ -88,5 +79,14 @@
     "method": "Template matching",
     "threshold": 0.8,
     "description": "description"
+  },
+  {
+    "itemName": "boss_fire_prepare",
+    "imageName": "ms_boss_fire_prepare.png",
+    "roiFront": "849,624,48,57",
+    "roiBack": "829,597,103,104",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "boss备战"
   }
 ]

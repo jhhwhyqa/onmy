@@ -4,22 +4,17 @@
 from datetime import datetime, timedelta
 
 from pathlib import Path
-
-from tasks.GameUi.page import page_main, page_soul_zones, page_shikigami_records
-from module.logger import logger
 from module.exception import TaskEnd
-
 
 from tasks.SixRealms.config import SixRealmsType
 from tasks.Component.SwitchSoul.switch_soul import SwitchSoul
-from tasks.GameUi.game_ui import GameUi
-from tasks.GameUi.page import page_main, page_six_gates
+from tasks.GameUi.page import page_main, page_shikigami_records
 from tasks.SixRealms.moon_sea.moon_sea import MoonSea
 from module.logger import logger
 from tasks.SixRealms.peacock_kingdom.peacock_kingdom import PeacockKingdom
 
 
-class ScriptTask(GameUi, SwitchSoul, MoonSea, PeacockKingdom):
+class ScriptTask(SwitchSoul, MoonSea, PeacockKingdom):
 
     def run(self):
         _config = self.config.model.six_realms
@@ -29,17 +24,14 @@ class ScriptTask(GameUi, SwitchSoul, MoonSea, PeacockKingdom):
         if _config.switch_soul_config.enable_switch_by_name:
             self.goto_page(page_shikigami_records)
             self.run_switch_soul_by_name(_config.switch_soul_config.group_name, _config.switch_soul_config.team_name)
-        self.goto_page(page_six_gates)
-        logger.hr(f'{_config.six_realms_gate.six_realms_type.name}', 1)
         cnt = 0
         while True:
-            if cnt >= self._conf.limit_count:
+            if cnt >= _config.six_realms_gate.limit_count:
                 logger.info('Run out of count, exit')
                 break
-            if datetime.now() - self.start_time >= self._conf.limit_time_v:
+            if datetime.now() - self.start_time >= _config.six_realms_gate.limit_time_v:
                 logger.info('Run out of time, exit')
                 break
-            logger.hr("General battle start", 2)
             start_time = datetime.now()
             match _config.six_realms_gate.six_realms_type:
                 case SixRealmsType.MOON_SEA:

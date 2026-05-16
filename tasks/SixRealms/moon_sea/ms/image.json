@@ -1,23 +1,5 @@
 [
   {
-    "itemName": "menter",
-    "imageName": "ms_menter.png",
-    "roiFront": "346,167,30,100",
-    "roiBack": "346,167,30,100",
-    "method": "Template matching",
-    "threshold": 0.8,
-    "description": "进入月之海"
-  },
-  {
-    "itemName": "mshuten",
-    "imageName": "ms_mshuten.png",
-    "roiFront": "46,609,70,65",
-    "roiBack": "46,609,70,65",
-    "method": "Template matching",
-    "threshold": 0.8,
-    "description": "酒吞"
-  },
-  {
     "itemName": "mshouzu_select",
     "imageName": "ms_mshouzu_select.png",
     "roiFront": "544,179,199,438",
@@ -51,7 +33,7 @@
     "roiBack": "1080,548,182,150",
     "method": "Template matching",
     "threshold": 0.8,
-    "description": "description"
+    "description": "主选式神确定"
   },
   {
     "itemName": "mstart_uncheck",
@@ -81,15 +63,6 @@
     "description": ""
   },
   {
-    "itemName": "prepare_battle",
-    "imageName": "ms_prepare_battle.png",
-    "roiFront": "33,640,48,54",
-    "roiBack": "33,640,48,54",
-    "method": "Template matching",
-    "threshold": 0.8,
-    "description": "左下角备战"
-  },
-  {
     "itemName": "mconinue",
     "imageName": "ms_mconinue.png",
     "roiFront": "1121,578,100,100",
@@ -117,15 +90,6 @@
     "description": "唤息"
   },
   {
-    "itemName": "back_exit",
-    "imageName": "ms_back_exit.png",
-    "roiFront": "11,18,51,47",
-    "roiBack": "0,0,100,100",
-    "method": "Template matching",
-    "threshold": 0.8,
-    "description": "左上角退出"
-  },
-  {
     "itemName": "m_store_activity",
     "imageName": "ms_m_store_activity.png",
     "roiFront": "1121,596,72,57",
@@ -141,7 +105,7 @@
     "roiBack": "1079,535,196,177",
     "method": "Template matching",
     "threshold": 0.8,
-    "description": "description"
+    "description": "第二阵容确定"
   },
   {
     "itemName": "exit_sixrealms",
@@ -151,5 +115,23 @@
     "method": "Template matching",
     "threshold": 0.8,
     "description": "暂时离开六道之门"
+  },
+  {
+    "itemName": "ms_check_exit_prepare",
+    "imageName": "ms_ms_check_exit_prepare.png",
+    "roiFront": "528,288,210,57",
+    "roiBack": "436,223,414,249",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "退出准备界面弹窗"
+  },
+  {
+    "itemName": "ms_check_open_store",
+    "imageName": "ms_ms_check_open_store.png",
+    "roiFront": "441,289,397,58",
+    "roiBack": "423,227,437,263",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "召唤商店弹窗"
   }
 ]

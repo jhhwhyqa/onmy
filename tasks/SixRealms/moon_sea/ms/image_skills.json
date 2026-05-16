@@ -33,7 +33,7 @@
     "roiBack": "140,542,163,100",
     "method": "Template matching",
     "threshold": 0.8,
-    "description": "description"
+    "description": "第一个选择按钮"
   },
   {
     "itemName": "select_1",
@@ -42,7 +42,7 @@
     "roiBack": "382,544,196,100",
     "method": "Template matching",
     "threshold": 0.8,
-    "description": "description"
+    "description": "第2个选择按钮"
   },
   {
     "itemName": "select_2",
@@ -51,7 +51,7 @@
     "roiBack": "666,546,196,100",
     "method": "Template matching",
     "threshold": 0.8,
-    "description": "description"
+    "description": "第三个选择按钮"
   },
   {
     "itemName": "select_3",
