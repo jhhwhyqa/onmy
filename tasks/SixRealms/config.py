@@ -35,4 +35,5 @@ class SixRealms(ConfigBase):
     scheduler: Scheduler = Field(default_factory=Scheduler)
     six_realms_gate: SixRealmsGate = Field(default_factory=SixRealmsGate)
     switch_soul_config: SwitchSoulConfig = Field(default_factory=SwitchSoulConfig)
+    pk_switch_soul_conf: SwitchSoulConfig = Field(default_factory=SwitchSoulConfig)
 

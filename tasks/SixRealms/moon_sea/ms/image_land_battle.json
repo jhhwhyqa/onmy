@@ -21,7 +21,7 @@
     "itemName": "battle_team_unlock",
     "imageName": "ms_battle_team_unlock.png",
     "roiFront": "962,676,21,21",
-    "roiBack": "943,655,64,60",
+    "roiBack": "943,641,63,74",
     "method": "Template matching",
     "threshold": 0.8,
     "description": "解锁标志"
@@ -30,7 +30,7 @@
     "itemName": "battle_team_lock",
     "imageName": "ms_battle_team_lock.png",
     "roiFront": "961,675,21,23",
-    "roiBack": "949,662,48,50",
+    "roiBack": "949,649,54,63",
     "method": "Template matching",
     "threshold": 0.8,
     "description": "锁定标志"

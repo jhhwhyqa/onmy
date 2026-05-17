@@ -1,8 +1,14 @@
 from tasks.GameUi.assets import GameUiAssets
-from tasks.GameUi.default_pages import page_exploration, page_six_gates
+from tasks.GameUi.default_pages import (page_exploration, page_six_gates, random_click, page_battle, page_battle_prepare,
+                                        page_battle_result, page_reward)
 from tasks.GameUi.page_definition import Page
 from tasks.GlobalGame.assets import GlobalGameAssets
 from tasks.SixRealms.assets import SixRealmsAssets
+
+# 准备界面退出弹窗
+page_sr_prepare_exit = Page(SixRealmsAssets.I_MS_CHECK_EXIT_PREPARE, priority=88)
+# 商店打开弹窗
+page_sr_open_store = Page(SixRealmsAssets.I_MS_CHECK_OPEN_STORE, priority=88)
 
 # ----------------月之海----------------
 def handle_enter_moon_sea(task) -> bool:

@@ -63,6 +63,8 @@ class SixRealmsAssets:
 	I_MS_SKILL_UNLOCK = RuleImage(roi_front=(538,137,211,50), roi_back=(1029,190,105,152), threshold=0.8, method="Template matching", file="./tasks/SixRealms/moon_sea/ms/ms_ms_skill_unlock.png")
 	# 月之海地图标志 
 	I_MS_CHECK_MAP = RuleImage(roi_front=(1119,15,144,230), roi_back=(1088,0,192,286), threshold=0.8, method="Template matching", file="./tasks/SixRealms/moon_sea/ms/ms_ms_check_map.png")
+	# 月之海主界面标志 
+	I_MS_CHECK_MAIN = RuleImage(roi_front=(99,16,97,47), roi_back=(99,16,97,47), threshold=0.8, method="Template matching", file="./tasks/SixRealms/moon_sea/ms/ms_ms_check_main.png")
 
 
 	# Image Rule Assets
@@ -107,9 +109,9 @@ class SixRealmsAssets:
 	# 点击挑战 
 	I_BATTLE_FIRE = RuleImage(roi_front=(1129,585,100,100), roi_back=(1080,551,174,144), threshold=0.8, method="Template matching", file="./tasks/SixRealms/moon_sea/ms/ms_battle_fire.png")
 	# 解锁标志 
-	I_BATTLE_TEAM_UNLOCK = RuleImage(roi_front=(962,676,21,21), roi_back=(943,655,64,60), threshold=0.8, method="Template matching", file="./tasks/SixRealms/moon_sea/ms/ms_battle_team_unlock.png")
+	I_BATTLE_TEAM_UNLOCK = RuleImage(roi_front=(962,676,21,21), roi_back=(943,641,63,74), threshold=0.8, method="Template matching", file="./tasks/SixRealms/moon_sea/ms/ms_battle_team_unlock.png")
 	# 锁定标志 
-	I_BATTLE_TEAM_LOCK = RuleImage(roi_front=(961,675,21,23), roi_back=(949,662,48,50), threshold=0.8, method="Template matching", file="./tasks/SixRealms/moon_sea/ms/ms_battle_team_lock.png")
+	I_BATTLE_TEAM_LOCK = RuleImage(roi_front=(961,675,21,23), roi_back=(949,649,54,63), threshold=0.8, method="Template matching", file="./tasks/SixRealms/moon_sea/ms/ms_battle_team_lock.png")
 
 
 	# Image Rule Assets
@@ -176,6 +178,118 @@ class SixRealmsAssets:
 	O_EXTRA_COIN_NUM = RuleOcr(roi=(591,331,109,101), area=(591,331,109,101), mode="Digit", method="Default", keyword="", name="extra_coin_num")
 	# 商店刷新次数 
 	O_STORE_REFRESH_TIME = RuleOcr(roi=(538,661,110,27), area=(538,661,110,27), mode="Single", method="Default", keyword="", name="store_refresh_time")
+
+
+	# Image Rule Assets
+	# 开始确定 
+	I_PK_START_CONFIRM = RuleImage(roi_front=(1127,578,87,93), roi_back=(1102,557,146,142), threshold=0.8, method="Template matching", file="./tasks/SixRealms/peacock_kingdom/pk/pk_pk_start_confirm.png")
+	# 开启 
+	I_PK_START = RuleImage(roi_front=(1111,578,119,122), roi_back=(1092,548,175,170), threshold=0.8, method="Template matching", file="./tasks/SixRealms/peacock_kingdom/pk/pk_pk_start.png")
+	# 确定之后的开启 
+	I_PK_START_CONFIRM2 = RuleImage(roi_front=(1119,564,121,134), roi_back=(1092,548,175,170), threshold=0.8, method="Template matching", file="./tasks/SixRealms/peacock_kingdom/pk/pk_pk_start_confirm2.png")
+	# 退出主界面 
+	I_PK_EXIT_MAIN = RuleImage(roi_front=(516,316,56,55), roi_back=(474,293,333,135), threshold=0.8, method="Template matching", file="./tasks/SixRealms/peacock_kingdom/pk/pk_pk_exit_main.png")
+	# 继续 
+	I_PK_CONTINUE = RuleImage(roi_front=(1111,578,119,122), roi_back=(1092,548,175,170), threshold=0.8, method="Template matching", file="./tasks/SixRealms/peacock_kingdom/pk/pk_pk_continue.png")
+	# 孔雀国地图 
+	I_PK_CHECK_MAP = RuleImage(roi_front=(1120,19,142,233), roi_back=(1103,0,177,271), threshold=0.8, method="Template matching", file="./tasks/SixRealms/peacock_kingdom/pk/pk_pk_check_map.png")
+	# 战斗中的六道轰雷 
+	I_PK_BATTLE_THUNDER = RuleImage(roi_front=(79,94,29,30), roi_back=(12,83,205,52), threshold=0.8, method="Template matching", file="./tasks/SixRealms/peacock_kingdom/pk/pk_pk_battle_thunder.png")
+	# 选择祈愿之舞 
+	I_PK_START_THIRD_SKILL = RuleImage(roi_front=(1006,601,85,41), roi_back=(1006,601,85,41), threshold=0.8, method="Template matching", file="./tasks/SixRealms/peacock_kingdom/pk/pk_pk_start_third_skill.png")
+	# 孔雀国主界面标志 
+	I_PK_CHECK_MAIN = RuleImage(roi_front=(93,18,112,48), roi_back=(93,18,112,48), threshold=0.8, method="Template matching", file="./tasks/SixRealms/peacock_kingdom/pk/pk_pk_check_main.png")
+
+
+	# Image Rule Assets
+	# boss备战 
+	I_PK_BOSS_PREPARE = RuleImage(roi_front=(852,633,56,59), roi_back=(827,611,100,100), threshold=0.8, method="Template matching", file="./tasks/SixRealms/peacock_kingdom/pk/pk_pk_boss_prepare.png")
+	#  
+	I_PK_BOSS_UNLOCK = RuleImage(roi_front=(1129,530,20,25), roi_back=(1129,530,20,25), threshold=0.95, method="Template matching", file="./tasks/SixRealms/peacock_kingdom/pk/pk_pk_boss_unlock.png")
+	#  
+	I_PK_BOSS_LOCK = RuleImage(roi_front=(1129,530,20,25), roi_back=(1129,530,20,25), threshold=0.95, method="Template matching", file="./tasks/SixRealms/peacock_kingdom/pk/pk_pk_boss_lock.png")
+	#  
+	I_PK_BOSS_FIRE = RuleImage(roi_front=(1108,592,103,90), roi_back=(1108,592,103,90), threshold=0.8, method="Template matching", file="./tasks/SixRealms/peacock_kingdom/pk/pk_pk_boss_fire.png")
+	# 孔雀国boss分享 
+	I_KP_BOSS_SHARE = RuleImage(roi_front=(1161,626,59,62), roi_back=(1142,609,100,100), threshold=0.8, method="Template matching", file="./tasks/SixRealms/peacock_kingdom/pk/pk_kp_boss_share.png")
+
+
+	# Image Rule Assets
+	# 神秘之屿 
+	I_PK_LAND_MYSTERY = RuleImage(roi_front=(380,354,24,82), roi_back=(107,144,1041,439), threshold=0.8, method="Template matching", file="./tasks/SixRealms/peacock_kingdom/pk/pk_pk_land_mystery.png")
+	# 混沌之屿 
+	I_PK_LAND_CHAOS = RuleImage(roi_front=(912,432,24,82), roi_back=(107,144,1041,439), threshold=0.8, method="Template matching", file="./tasks/SixRealms/peacock_kingdom/pk/pk_pk_land_chaos.png")
+	# 绽放之屿 
+	I_PK_LAND_BLOOM = RuleImage(roi_front=(646,338,24,82), roi_back=(107,144,1041,439), threshold=0.8, method="Template matching", file="./tasks/SixRealms/peacock_kingdom/pk/pk_pk_land_bloom.png")
+	# 鏖战之屿 
+	I_PK_LAND_FIRE = RuleImage(roi_front=(286,280,24,82), roi_back=(107,144,1041,439), threshold=0.8, method="Template matching", file="./tasks/SixRealms/peacock_kingdom/pk/pk_pk_land_fire.png")
+	# 宁息商店 
+	I_PK_LAND_STORE = RuleImage(roi_front=(463,430,24,82), roi_back=(107,144,1041,439), threshold=0.8, method="Template matching", file="./tasks/SixRealms/peacock_kingdom/pk/pk_pk_land_store.png")
+
+
+	# Image Rule Assets
+	# 普通怪物 
+	I_PK_BATTLE_COMMON = RuleImage(roi_front=(719,223,35,40), roi_back=(703,210,66,72), threshold=0.8, method="Template matching", file="./tasks/SixRealms/peacock_kingdom/pk/pk_pk_battle_common.png")
+	# 挑战 
+	I_PK_BATTLE_FIRE = RuleImage(roi_front=(1120,578,97,94), roi_back=(1120,578,97,94), threshold=0.8, method="Template matching", file="./tasks/SixRealms/peacock_kingdom/pk/pk_pk_battle_fire.png")
+
+
+	# Image Rule Assets
+	# 绽放之屿离开 
+	I_PK_BLOOM_EXIT = RuleImage(roi_front=(1153,630,62,60), roi_back=(1141,615,84,98), threshold=0.8, method="Template matching", file="./tasks/SixRealms/peacock_kingdom/pk/pk_pk_bloom_exit.png")
+
+
+	# Image Rule Assets
+	# 幸运宝箱 
+	I_PK_CHAOS_BOX = RuleImage(roi_front=(680,298,90,98), roi_back=(662,274,133,143), threshold=0.8, method="Template matching", file="./tasks/SixRealms/peacock_kingdom/pk/pk_pk_chaos_box.png")
+	# 混沌之屿离开 
+	I_PK_CHAOS_EXIT = RuleImage(roi_front=(1158,632,54,53), roi_back=(1158,632,54,53), threshold=0.8, method="Template matching", file="./tasks/SixRealms/peacock_kingdom/pk/pk_pk_chaos_exit.png")
+	# 精英标志 
+	I_PK_CHAOS_ELITE_FLAG = RuleImage(roi_front=(684,531,97,99), roi_back=(684,531,97,99), threshold=0.8, method="Template matching", file="./tasks/SixRealms/peacock_kingdom/pk/pk_pk_chaos_elite_flag.png")
+
+
+	# Image Rule Assets
+	# 仿造 
+	I_PK_MYSTERY_IMITATE = RuleImage(roi_front=(1154,607,81,89), roi_back=(1133,591,129,125), threshold=0.8, method="Template matching", file="./tasks/SixRealms/peacock_kingdom/pk/pk_pk_mystery_imitate.png")
+
+
+	# Image Rule Assets
+	# 商店离开 
+	I_PK_STORE_EXIT = RuleImage(roi_front=(1196,611,54,54), roi_back=(1196,611,54,54), threshold=0.8, method="Template matching", file="./tasks/SixRealms/peacock_kingdom/pk/pk_pk_store_exit.png")
+	# 商店刷新 
+	I_PK_STORE_REFRESH = RuleImage(roi_front=(591,595,53,52), roi_back=(566,577,110,80), threshold=0.8, method="Template matching", file="./tasks/SixRealms/peacock_kingdom/pk/pk_pk_store_refresh.png")
+	# 商店稳定标志 
+	I_PK_STORE_STABLE_FLAG = RuleImage(roi_front=(1059,257,29,31), roi_back=(1059,257,29,31), threshold=0.7, method="Template matching", file="./tasks/SixRealms/peacock_kingdom/pk/pk_pk_store_stable_flag.png")
+	# 商店轰雷技能 
+	I_PK_STORE_SKILL_THUNDER = RuleImage(roi_front=(1076,135,41,38), roi_back=(697,91,482,626), threshold=0.8, method="Template matching", file="./tasks/SixRealms/peacock_kingdom/pk/pk_pk_store_skill_thunder.png")
+
+
+	# Image Rule Assets
+	# 六道轰雷技能 
+	I_PK_SKILL_ROARING_THUNDER = RuleImage(roi_front=(734,174,62,55), roi_back=(113,145,960,119), threshold=0.8, method="Template matching", file="./tasks/SixRealms/peacock_kingdom/pk/pk_pk_skill_roaring_thunder.png")
+	# 技能刷新 
+	I_PK_SKILL_REFRESH = RuleImage(roi_front=(1189,622,50,52), roi_back=(1168,602,92,88), threshold=0.8, method="Template matching", file="./tasks/SixRealms/peacock_kingdom/pk/pk_pk_skill_refresh.png")
+	# 力量强化 
+	I_PK_SKILL_POWER = RuleImage(roi_front=(273,246,39,54), roi_back=(202,220,871,102), threshold=0.8, method="Template matching", file="./tasks/SixRealms/peacock_kingdom/pk/pk_pk_skill_power.png")
+	# 魅力强化 
+	I_PK_SKILL_CHARM = RuleImage(roi_front=(982,245,39,54), roi_back=(202,220,871,102), threshold=0.8, method="Template matching", file="./tasks/SixRealms/peacock_kingdom/pk/pk_pk_skill_charm.png")
+	# 怪力乱神 
+	I_PK_SKILL_STRANGE_POWER = RuleImage(roi_front=(923,175,62,55), roi_back=(113,145,960,119), threshold=0.8, method="Template matching", file="./tasks/SixRealms/peacock_kingdom/pk/pk_pk_skill_strange_power.png")
+	#  
+	I_PK_SELECT_0 = RuleImage(roi_front=(245,500,91,41), roi_back=(245,500,91,41), threshold=0.8, method="Template matching", file="./tasks/SixRealms/peacock_kingdom/pk/pk_pk_select_0.png")
+	#  
+	I_PK_SELECT_1 = RuleImage(roi_front=(600,498,91,41), roi_back=(600,498,91,41), threshold=0.8, method="Template matching", file="./tasks/SixRealms/peacock_kingdom/pk/pk_pk_select_1.png")
+	#  
+	I_PK_SELECT_2 = RuleImage(roi_front=(955,499,91,41), roi_back=(955,499,91,41), threshold=0.8, method="Template matching", file="./tasks/SixRealms/peacock_kingdom/pk/pk_pk_select_2.png")
+	#  
+	I_PK_SELECT_3 = RuleImage(roi_front=(423,498,91,41), roi_back=(423,498,91,41), threshold=0.8, method="Template matching", file="./tasks/SixRealms/peacock_kingdom/pk/pk_pk_select_3.png")
+	#  
+	I_PK_SELECT_4 = RuleImage(roi_front=(779,499,91,41), roi_back=(779,499,91,41), threshold=0.8, method="Template matching", file="./tasks/SixRealms/peacock_kingdom/pk/pk_pk_select_4.png")
+
+
+	# Ocr Rule Assets
+	# 商店刷新次数 
+	O_PK_STORE_REFRESH_TIME = RuleOcr(roi=(585,660,114,29), area=(585,660,114,29), mode="Single", method="Default", keyword="", name="pk_store_refresh_time")
 
 
 	# Click Rule Assets

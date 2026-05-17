@@ -151,5 +151,14 @@
     "method": "Template matching",
     "threshold": 0.8,
     "description": "月之海地图标志"
+  },
+  {
+    "itemName": "ms_check_main",
+    "imageName": "ms_ms_check_main.png",
+    "roiFront": "99,16,97,47",
+    "roiBack": "99,16,97,47",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "月之海主界面标志"
   }
 ]
