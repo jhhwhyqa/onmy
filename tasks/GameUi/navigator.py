@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import random
 from module.base.decorator import run_once
+from tasks.Exploration.assets import ExplorationAssets
 from tasks.GlobalGame.assets import GlobalGameAssets
 
 """GameUi 导航运行时。"""
@@ -21,7 +22,6 @@ from module.base.timer import Timer
 from module.exception import GamePageUnknownError, GameNotRunningError
 from module.logger import logger
 from tasks.ActivityShikigami.assets import ActivityShikigamiAssets
-from tasks.Component.GeneralBattle.assets import GeneralBattleAssets
 from tasks.GameUi.action import ActionSequence, ConditionalAction
 from tasks.GameUi.assets import GameUiAssets
 from tasks.GameUi.common import infer_tasks_category_from_parts, infer_tasks_category_from_path
@@ -45,6 +45,7 @@ class GameUi(BaseTask, GameUiAssets):
         ActivityShikigamiAssets.I_SKIP_BUTTON,
         GlobalGameAssets.I_UI_CONFIRM_SAMLL,
         GlobalGameAssets.I_UI_CONFIRM,
+        ExplorationAssets.I_E_EXIT_CONFIRM,
         GameUiAssets.I_BACK_DAILY,
         GlobalGameAssets.I_UI_BACK_YELLOW,
         SixRealmsAssets.I_EXIT_SIXREALMS,
@@ -287,7 +288,7 @@ class GameUi(BaseTask, GameUiAssets):
         if isinstance(action, ActionSequence):
             return f"ActionSequence[{len(action.actions)}]"
         if callable(action):
-            return getattr(action, "__name__", action.__class__.__name__)
+            return str(getattr(action, "__name__", action.__class__.__name__))
         return repr(action)
 
     def _execute_action(self, action, *, interval: float | None = None, skip_first_screenshot: bool = True) -> bool:
@@ -683,14 +684,19 @@ class GameUi(BaseTask, GameUiAssets):
         """
 
         self.maybe_screenshot(skip_first_screenshot)
-        timer_start = time.time()
+        logger.warning("Try switch to a supported page")
         for action in [*self.navigator.local_unknown_closers, *self.DEFAULT_UNKNOWN_CLOSERS]:
+            action_name = self._action_name(action)
+            # 若最后3次执行的都是该动作，则跳过该动作尝试其他动作
+            if len(self.navigator.unknown_close_history) >= 3 and \
+                    self.navigator.unknown_close_history[-3:] == [action_name] * 3:
+                continue
             if self._execute_action(action, interval=1.5, skip_first_screenshot=False):
-                action_name = self._action_name(action)
-                logger.warning("Trying to switch to supported page")
-                logger.info(f"[{time.time() - timer_start:.1f}s]Close unknown page by {action_name}")
                 self._record_unknown_close_event(f"{action_name}")
+                # 关掉未知界面后等待页面变化, 防止多次识别到未知界面
+                time.sleep(random.randrange(8, 16, 1) / 10)
                 return True
+        self._record_unknown_close_event(f"None")
 
         @run_once
         def app_check():
@@ -753,8 +759,6 @@ class GameUi(BaseTask, GameUiAssets):
                     last_progress_signature = ("close_unknown", destination.key)
                     last_detected_page_key = None
                     reset_repeated_transition_failures()
-                    # 关掉未知界面后等待页面变化, 防止多次识别到未知界面
-                    time.sleep(random.randrange(8, 16, 1)/10)
                 elif progress_timer.reached():
                     self._log_navigation_timeout(
                         destination,
