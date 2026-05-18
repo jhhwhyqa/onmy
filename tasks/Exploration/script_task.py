@@ -53,6 +53,7 @@ class ScriptTask(BaseExploration):
                 case pages.page_exploration | pages.page_exp_entrance:
                     self.collect_treasure_box()
                     self.fire_monster_type = ''  # 入口处重置怪物类型
+                    self.device.click_record_clear()
                     self.goto_page(pages.page_exp_main)
                 case pages.page_battle_prepare | pages.page_battle:
                     self.run_general_battle(self._config.general_battle_config, exit_matcher=pages.page_exp_main)
@@ -78,6 +79,7 @@ class ScriptTask(BaseExploration):
                 case None:
                     time.sleep(0.5)
                 case pages.page_exp_entrance:
+                    self.device.click_record_clear()
                     self.enter_team()
                 case pages.page_battle_team:
                     if self.run_invite(self._config.invite_config, self.current_count == 0):
