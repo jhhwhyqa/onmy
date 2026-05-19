@@ -118,5 +118,7 @@
   "MoonSea": "月之海椒图",
   "PeacockKingdom": "孔雀国觉",
   "costume_shikigami_10": "今宵胧明",
-  "pk_switch_soul_conf": "孔雀国御魂切换"
+  "pk_switch_soul_conf": "孔雀国御魂切换",
+  "enable_switch_layer_soul": "是否切换十层的御魂",
+  "enable_switch_layer_soul_help": "使用八岐大蛇任务御魂的配置"
 }

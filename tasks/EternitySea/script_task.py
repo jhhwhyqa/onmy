@@ -142,10 +142,6 @@ class ScriptTask(
 
     def run_member(self):
         logger.info('Start run member')
-        # self.goto_page(page_soul_zones)
-        # self.orochi_enter()
-        # self.check_lock(self.config.orochi.general_battle_config.lock_team_enable)
-
         # 进入战斗流程
         self.device.stuck_record_add('BATTLE_STATUS_S')
         while 1:
