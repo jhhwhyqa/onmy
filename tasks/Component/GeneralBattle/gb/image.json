@@ -81,15 +81,6 @@
     "description": "左下角的位置指针"
   },
   {
-    "itemName": "statistics",
-    "imageName": "gb_statistics.png",
-    "roiFront": "61,644,33,28",
-    "roiBack": "61,644,33,28",
-    "method": "Template matching",
-    "threshold": 0.8,
-    "description": "description"
-  },
-  {
     "itemName": "exit",
     "imageName": "gb_exit.png",
     "roiFront": "14,12,43,41",
@@ -119,11 +110,11 @@
   {
     "itemName": "reward_statistics",
     "imageName": "gb_reward_statistics.png",
-    "roiFront": "51,629,54,59",
-    "roiBack": "51,629,54,59",
+    "roiFront": "59,49,34,35",
+    "roiBack": "24,23,111,684",
     "method": "Template matching",
     "threshold": 0.8,
-    "description": "结算时左下角统计图标"
+    "description": "结算时的统计图标"
   },
   {
     "itemName": "reward_gold",
@@ -198,19 +189,10 @@
     "description": "description"
   },
   {
-    "itemName": "de_gold",
-    "imageName": "gb_de_gold.png",
-    "roiFront": "61,52,30,25",
-    "roiBack": "45,33,65,64",
-    "method": "Template matching",
-    "threshold": 0.8,
-    "description": "封魔的金币"
-  },
-  {
     "itemName": "green_marker",
     "imageName": "gb_green_marker.png",
-    "roiFront": "0,0,1280,720",
-    "roiBack": "0,0,1280,720",
+    "roiFront": "0,0,1279,714",
+    "roiBack": "0,0,1279,714",
     "method": "Template matching",
     "threshold": 0.8,
     "description": "绿标"

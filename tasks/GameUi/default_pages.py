@@ -290,6 +290,7 @@ page_battle_result.add_enter_success_hooks(lambda _task: random_click())
 page_reward = Page(
     any_of(
         GeneralBattleAssets.I_REWARD,
+        GeneralBattleAssets.I_REWARD_STATISTICS,
         GeneralBattleAssets.I_REWARD_GOLD,
         GeneralBattleAssets.I_REWARD_EXP_SOUL_4,
         GeneralBattleAssets.I_REWARD_GOLD_SNAKE_SKIN,
