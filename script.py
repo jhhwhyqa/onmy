@@ -349,20 +349,21 @@ class Script:
     def _capture_task_runtime_outcome(self, command: str) -> None:
         outcome = getattr(self.config, 'task_runtime_outcome', None)
         self.last_task_runtime_outcome = outcome if isinstance(outcome, dict) else None
-
-        if command != 'Restart' or self.last_task_runtime_outcome is None:
+        if self.last_task_runtime_outcome is None:
             return
-
         status = self.last_task_runtime_outcome.get('status')
         if status == 'server_update_delayed':
             wait_until = self.last_task_runtime_outcome.get('wait_until')
-            logger.info(f'Restart runtime outcome: server_update_delayed (wait_until={wait_until})')
+            logger.info(f'{command} runtime outcome: server_update_delayed (wait_until={wait_until})')
+            if isinstance(wait_until, datetime):
+                self.runtime.server_update_wait_until = wait_until
+                self.runtime.server_update_wait_log_until = None
             return
-
+        if command != 'Restart':
+            return
         if status == 'recovered':
             logger.info('Restart runtime outcome: recovered')
             return
-
         logger.info(f'Restart runtime outcome: {status}')
 
     def _delay_tasks_for_server_update(self, task: str, reason: str) -> bool:

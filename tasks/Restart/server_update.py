@@ -36,10 +36,14 @@ def delay_pending_tasks_for_server_update(config, reason: str) -> datetime:
     logger.warning('Delay pending tasks')
 
     config.update_scheduler()
-    delayed = set()
-    for pending_task in getattr(config, 'pending_task', []):
-        command = pending_task.command
-        if command in delayed:
+    delayed: set[str] = set()
+    candidates = list(getattr(config, 'pending_task', []))
+    candidates.extend(getattr(config, 'waiting_task', []))
+    for task in candidates:
+        command = task.command
+        if command in delayed or command == 'Restart':
+            continue
+        if not isinstance(task.next_run, datetime) or task.next_run >= delay_target:
             continue
         config.task_delay(task=command, server=False, target=delay_target)
         delayed.add(command)
