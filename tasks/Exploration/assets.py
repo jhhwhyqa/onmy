@@ -95,8 +95,6 @@ class ExplorationAssets:
 	I_RED_CLOSE = RuleImage(roi_front=(1027,129,41,42), roi_back=(1021,121,54,55), threshold=0.6, method="Template matching", file="./tasks/Exploration/res/res_red_close.png")
 	# description 
 	I_E_EXIT_CONFIRM = RuleImage(roi_front=(694,380,163,49), roi_back=(694,380,163,49), threshold=0.8, method="Template matching", file="./tasks/Exploration/res/res_e_exit_confirm.png")
-	# 宝箱 
-	I_TREASURE_BOX_CLICK = RuleImage(roi_front=(36,369,42,32), roi_back=(0,79,110,637), threshold=0.7, method="Template matching", file="./tasks/Exploration/res/res_treasure_box_click.png")
 	# 困28滚动到最后 
 	I_SWIPE_END = RuleImage(roi_front=(994,234,119,100), roi_back=(968,196,311,165), threshold=0.8, method="Template matching", file="./tasks/Exploration/res/res_swipe_end.png")
 	# 队伍的表情标志 
@@ -111,6 +109,10 @@ class ExplorationAssets:
 	I_E_CHECK_EXIT = RuleImage(roi_front=(528,299,216,50), roi_back=(344,258,597,209), threshold=0.8, method="Template matching", file="./tasks/Exploration/res/res_e_check_exit.png")
 	# 探索退出取消 
 	I_E_EXIT_CANCEL = RuleImage(roi_front=(422,380,163,49), roi_back=(422,380,163,49), threshold=0.8, method="Template matching", file="./tasks/Exploration/res/res_e_exit_cancel.png")
+	# 探索界面大宝箱 
+	I_E_REWARD_BOX_BIG = RuleImage(roi_front=(31,385,51,39), roi_back=(1,73,108,553), threshold=0.8, method="Template matching", file="./tasks/Exploration/res/res_e_reward_box_big.png")
+	# 探索入口&主界面小宝箱 
+	I_E_REWARD_BOX_SMALL = RuleImage(roi_front=(234,626,43,32), roi_back=(0,597,327,100), threshold=0.8, method="Template matching", file="./tasks/Exploration/res/res_e_reward_box_small.png")
 
 
 	# Long Click Rule Assets

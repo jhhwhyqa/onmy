@@ -171,15 +171,6 @@
     "description": "description"
   },
   {
-    "itemName": "treasure_box_click",
-    "imageName": "res_treasure_box_click.png",
-    "roiFront": "36,369,42,32",
-    "roiBack": "0,79,110,637",
-    "method": "Template matching",
-    "threshold": 0.7,
-    "description": "宝箱"
-  },
-  {
     "itemName": "swipe_end",
     "imageName": "res_swipe_end.png",
     "roiFront": "994,234,119,100",
@@ -241,5 +232,23 @@
     "method": "Template matching",
     "threshold": 0.8,
     "description": "探索退出取消"
+  },
+  {
+    "itemName": "e_reward_box_big",
+    "imageName": "res_e_reward_box_big.png",
+    "roiFront": "31,385,51,39",
+    "roiBack": "1,73,108,553",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "探索界面大宝箱"
+  },
+  {
+    "itemName": "e_reward_box_small",
+    "imageName": "res_e_reward_box_small.png",
+    "roiFront": "234,626,43,32",
+    "roiBack": "0,597,327,100",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "探索入口&主界面小宝箱"
   }
 ]

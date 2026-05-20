@@ -375,9 +375,15 @@ class BaseExploration(GameUi, GeneralBattle, GeneralRoom, GeneralInvite, Replace
 
     def collect_treasure_box(self) -> bool:
         """收集宝箱奖励"""
-        if self.appear(self.I_TREASURE_BOX_CLICK):  # 宝箱
-            logger.info('Treasure box appear, get it.')
-            self.ui_click_until_disappear(self.I_TREASURE_BOX_CLICK)
+        if self.appear(self.I_E_REWARD_BOX_SMALL):  # 小宝箱
+            logger.info('Treasure box small appear, get it.')
+            self.ui_click(self.I_E_REWARD_BOX_SMALL, self.I_REWARD, interval=0.8)
+            self.ui_click_until_disappear(self.I_REWARD, interval=0.8)
+            return True
+        if self.appear(self.I_E_REWARD_BOX_BIG):  # 大宝箱
+            logger.info('Treasure box big appear, get it.')
+            self.ui_click(self.I_E_REWARD_BOX_BIG, self.I_REWARD, interval=0.8)
+            self.ui_click_until_disappear(self.I_REWARD, interval=0.8)
             return True
         return False
 

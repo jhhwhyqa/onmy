@@ -8,10 +8,22 @@ from module.base.timer import Timer
 from tasks.Exploration.base import BaseExploration, Scene
 from tasks.Exploration.config import AutoRotate, UserStatus, ExplorationLevel
 import tasks.Exploration.page as pages
+from tasks.GameUi.page_definition import Page
 
 
 class ScriptTask(BaseExploration):
-    
+
+    def confirm_page(self, page: Page, skip_first_screenshot: bool = True) -> bool:
+        """探索页面跳转更改为单帧确认"""
+        self.maybe_screenshot(skip_first_screenshot)
+        return self.match_page_once(page)
+
+    def arrive_end(self) -> bool:
+        # 28章直接匹配
+        if self.config.exploration.exploration_config.exploration_level == ExplorationLevel.EXPLORATION_28:
+            return self.appear(self.I_SWIPE_END)
+        return super().arrive_end()
+
     def run(self):
         logger.hr('exploration')
         self.pre_process()
@@ -46,7 +58,7 @@ class ScriptTask(BaseExploration):
                         self.fire(fire_button)
                         continue
                     # 执行滑动了且探索已经到底且当前不是boss
-                    if self.swipe(self.S_SWIPE_BACKGROUND_RIGHT, interval=1.5) and \
+                    if self.swipe(self.S_SWIPE_BACKGROUND_RIGHT, interval=1) and \
                             self.arrive_end() and self.fire_monster_type != 'boss':
                         self.goto_page(pages.page_exp_entrance)
                         continue
@@ -104,7 +116,7 @@ class ScriptTask(BaseExploration):
                     if fire_button is not None:
                         self.fire(fire_button)
                         continue
-                    if self.swipe(self.S_SWIPE_BACKGROUND_RIGHT, interval=1.5) and \
+                    if self.swipe(self.S_SWIPE_BACKGROUND_RIGHT, interval=1) and \
                             self.arrive_end() and self.fire_monster_type != 'boss':  # 探索已经到底且当前不是boss
                         self.goto_page(pages.page_exp_entrance)
                         continue
