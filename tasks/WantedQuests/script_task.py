@@ -4,6 +4,7 @@
 from datetime import timedelta, time, datetime
 from time import sleep
 
+from tasks.GameUi.default_pages import page_battle_prepare, page_battle
 from tasks.GameUi.matcher import any_of
 from typing import List, Callable, Optional
 
@@ -82,13 +83,22 @@ class ScriptTask(WQExplore, SecretScriptTask, WantedQuestsAssets):
                 sleep(1)
                 continue
             error_count = 0
-            # 打开悬赏界面
-            self.ui_click(self.O_WQ_TEXT_ALL, self.I_TRACE_TRUE, interval=1.2)
+            if not self.open_wq_info():
+                continue
             self.execute_mission(total - cu)
             sleep(1.5)
-
         self.next_run()
         raise TaskEnd('WantedQuests')
+
+    def open_wq_info(self) -> bool:
+        """打开对应怪物悬赏详情界面"""
+        timeout_timer = Timer(5).start()
+        while not timeout_timer.reached():
+            self.screenshot()
+            if self.appear(self.I_TRACE_TRUE):
+                return True
+            self.click(self.O_WQ_TEXT_ALL, interval=1.2)
+        return False
 
     def next_run(self):
         before_end: time = self.get_config().before_end
@@ -338,7 +348,7 @@ class ScriptTask(WQExplore, SecretScriptTask, WantedQuestsAssets):
             # 若是当周特殊秘闻则禁止连续进攻, 战斗结束之后直接退到探索页面重新进入挑战(避免当周秘闻没打结果跳转到第一层)
             if self.appear(self.I_WQSE_SPECIAL_FIRE):
                 logger.warning('Current is special secret, exit and retry')
-                break
+                return 
             # 又臭又长的对话针的是服了这个网易
             click_count = 0
             while 1:
@@ -355,7 +365,9 @@ class ScriptTask(WQExplore, SecretScriptTask, WantedQuestsAssets):
                         click_count = 0
                         self.device.click_record_clear()
                     continue
-            self.run_general_battle(self.battle_config, exit_matcher=any_of(self.I_UI_BACK_RED, self.I_WQSE_SPECIAL_FIRE))
+            if self.get_current_page() in [page_battle_prepare, page_battle]:
+                self.run_general_battle(self.battle_config, exit_matcher=any_of(self.I_UI_BACK_RED,
+                                                                                self.I_WQSE_SPECIAL_FIRE))
         logger.info('Secret mission finished')
 
     def invite_random(self, add_button: RuleImage):
