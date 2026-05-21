@@ -67,9 +67,9 @@ class ScriptTask(WQExplore, SecretScriptTask, WantedQuestsAssets):
                 logger.info("get reward")
                 self.ui_get_reward(self.I_WQ_BOX)
                 continue
-            if self.appear(self.I_TREASURE_BOX_CLICK):
+            if self.appear(self.I_E_REWARD_BOX_BIG):
                 logger.info("get treasure")
-                self.ui_get_reward(self.I_TREASURE_BOX_CLICK)
+                self.ui_get_reward(self.I_E_REWARD_BOX_BIG)
                 continue
             if error_count > 3:
                 logger.warning('failed too many times, exit')
