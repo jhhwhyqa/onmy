@@ -74,7 +74,7 @@
   {
     "itemName": "guild_honor_gift",
     "imageName": "guild_guild_honor_gift.png",
-    "roiFront": "577,224,56,49",
+    "roiFront": "569,212,74,73",
     "roiBack": "315,164,584,370",
     "method": "Template matching",
     "threshold": 0.8,

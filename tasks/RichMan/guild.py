@@ -57,7 +57,7 @@ class Guild(Buy, GameUi, RichManAssets):
         if number == 0:
             logger.warning('No mystery amulet can buy')
             return False
-        self.buy_more(self.I_GUILD_HONOR_GIFT, number)
+        self.buy_more(self.I_GUILD_HONOR_GIFT)
         time.sleep(0.5)
         return True
 
@@ -112,13 +112,13 @@ class Guild(Buy, GameUi, RichManAssets):
         self.O_GUILD_REMAIN.roi[0] = image.roi_front[0] - 38
         self.O_GUILD_REMAIN.roi[1] = image.roi_front[1] + 83
         logger.info(f'Image roi {image.roi_front}')
-        logger.info(f'Image roi {self.O_GUILD_REMAIN.roi}')
+        logger.info(f'GUILD REMAIN roi {self.O_GUILD_REMAIN.roi}')
         self.screenshot()
         result = self.O_GUILD_REMAIN.ocr(self.device.image)
         logger.warning(result)
         result = result.replace('？', '2').replace('?', '2').replace(':', '；')
         try:
-            result = re.findall(r'本周剩余数量(\d+)', result)[0]
+            result = re.findall(r'本周[剩刺][余条]数量(\d+)', result)[0]
             result = int(result)
         except:
             result = 0
@@ -130,10 +130,10 @@ if __name__ == '__main__':
     from module.config.config import Config
     from module.device.device import Device
 
-    c = Config('oas1')
+    c = Config('日常1')
     d = Device(c)
     t = Guild(c, d)
 
     # t._guild_skin_ticket(5)
-    t.execute_guild(con=c.rich_man.guild_store)
+    t._guild_honor_gift()
 

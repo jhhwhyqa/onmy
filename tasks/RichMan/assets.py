@@ -28,7 +28,7 @@ class RichManAssets:
 	# 购买黑碎检查 
 	I_GUILD_CHECK_SCRAP = RuleImage(roi_front=(592,248,90,88), roi_back=(593,249,90,88), threshold=0.6, method="Template matching", file="./tasks/RichMan/guild/guild_guild_check_scrap.png")
 	# 功勋礼包 
-	I_GUILD_HONOR_GIFT = RuleImage(roi_front=(577,224,56,49), roi_back=(315,164,584,370), threshold=0.8, method="Template matching", file="./tasks/RichMan/guild/guild_guild_honor_gift.png")
+	I_GUILD_HONOR_GIFT = RuleImage(roi_front=(569,212,74,73), roi_back=(315,164,584,370), threshold=0.8, method="Template matching", file="./tasks/RichMan/guild/guild_guild_honor_gift.png")
 
 
 	# Ocr Rule Assets
