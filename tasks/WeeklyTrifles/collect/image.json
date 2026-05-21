@@ -1,18 +1,9 @@
 [
   {
-    "itemName": "wt_shikiagmi",
-    "imageName": "collect_wt_shikiagmi.png",
-    "roiFront": "280,620,920,100",
-    "roiBack": "280,620,920,100",
-    "method": "Template matching",
-    "threshold": 0.8,
-    "description": "点击“式神”"
-  },
-  {
     "itemName": "wt_scroll",
     "imageName": "collect_wt_scroll.png",
-    "roiFront": "1128,615,77,67",
-    "roiBack": "1128,615,77,67",
+    "roiFront": "175,620,60,53",
+    "roiBack": "4,591,270,120",
     "method": "Template matching",
     "threshold": 0.8,
     "description": "点击式神绘卷"

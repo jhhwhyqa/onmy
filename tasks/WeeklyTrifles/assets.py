@@ -54,10 +54,8 @@ class WeeklyTriflesAssets:
 
 
 	# Image Rule Assets
-	# 点击“式神” 
-	I_WT_SHIKIAGMI = RuleImage(roi_front=(280,620,920,100), roi_back=(280,620,920,100), threshold=0.8, method="Template matching", file="./tasks/WeeklyTrifles/collect/collect_wt_shikiagmi.png")
 	# 点击式神绘卷 
-	I_WT_SCROLL = RuleImage(roi_front=(1128,615,77,67), roi_back=(1128,615,77,67), threshold=0.8, method="Template matching", file="./tasks/WeeklyTrifles/collect/collect_wt_scroll.png")
+	I_WT_SCROLL = RuleImage(roi_front=(175,620,60,53), roi_back=(4,591,270,120), threshold=0.8, method="Template matching", file="./tasks/WeeklyTrifles/collect/collect_wt_scroll.png")
 	# 点击分享 
 	I_WT_COLLECT = RuleImage(roi_front=(1170,606,78,83), roi_back=(1170,606,78,83), threshold=0.8, method="Template matching", file="./tasks/WeeklyTrifles/collect/collect_wt_collect.png")
 	# 百鬼夜行图 

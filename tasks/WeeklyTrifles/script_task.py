@@ -9,9 +9,10 @@ from module.logger import logger
 from module.base.timer import Timer
 
 from tasks.GameUi.game_ui import GameUi
-from tasks.GameUi.page import page_main, page_collection, page_area_boss, page_secret_zones, page_summon, random_click
-from tasks.WeeklyTrifles.config import Trifles
+from tasks.GameUi.page import page_main, page_area_boss, page_secret_zones, page_summon, random_click
 from tasks.WeeklyTrifles.assets import WeeklyTriflesAssets
+from tasks.WeeklyTrifles.page import page_shikigami_scroll
+
 
 class ScriptTask(GameUi, WeeklyTriflesAssets):
 
@@ -63,19 +64,7 @@ class ScriptTask(GameUi, WeeklyTriflesAssets):
         :return:
         """
         logger.hr('Share collect')
-        self.goto_page(page_collection)
-        # 一路进去
-        while 1:
-            self.screenshot()
-            if self.appear(self.I_WT_COLLECT):
-                break
-            if self.appear_then_click(self.I_WT_SHIKIAGMI, interval=1):
-                continue
-            if self.appear_then_click(self.I_WT_SCROLL, interval=1):
-                continue
-        # 确认的是百鬼夜行图
-        self.ui_click(self.I_WT_SCROLL_2, self.I_WT_SCROLL_1)
-        logger.info('Confirm the picture is 百妖风物鉴')
+        self.goto_page(page_shikigami_scroll)
         # 点击分享
         while 1:
             self.screenshot()

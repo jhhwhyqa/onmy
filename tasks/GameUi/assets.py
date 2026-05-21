@@ -150,7 +150,7 @@ class GameUiAssets:
 	# 组队页面标志 
 	I_CHECK_TEAM = RuleImage(roi_front=(32,585,82,65), roi_back=(0,563,148,139), threshold=0.8, method="Template matching", file="./tasks/GameUi/page/page_check_team.png")
 	# 图鉴页面标志 
-	I_CHECK_COLLECTION = RuleImage(roi_front=(380,620,100,100), roi_back=(380,620,100,100), threshold=0.8, method="Template matching", file="./tasks/GameUi/page/page_check_collection.png")
+	I_CHECK_COLLECTION = RuleImage(roi_front=(380,620,100,100), roi_back=(371,608,880,112), threshold=0.8, method="Template matching", file="./tasks/GameUi/page/page_check_collection.png")
 	# 花合战退出标志 
 	I_BACK_DAILY = RuleImage(roi_front=(33,13,39,50), roi_back=(33,13,39,50), threshold=0.8, method="Template matching", file="./tasks/GameUi/page/page_back_daily.png")
 	# 庭院召唤标志 
