@@ -4,8 +4,9 @@
 import random
 from time import sleep
 from datetime import time, datetime, timedelta
+from tasks.Component.GeneralBattle.config_general_battle import GeneralBattleConfig
 
-from tasks.Component.GeneralBattle.general_battle import BattleAction, GeneralBattle, ExitMatcher
+from tasks.Component.GeneralBattle.general_battle import BattleAction, GeneralBattle, ExitMatcher, BattleContext
 from tasks.Component.GeneralInvite.general_invite import GeneralInvite
 from tasks.Component.GeneralBuff.general_buff import GeneralBuff
 from tasks.Component.GeneralRoom.general_room import GeneralRoom
@@ -28,10 +29,18 @@ class ScriptTask(GeneralBattle, GeneralInvite, GeneralBuff, GeneralRoom, GameUi,
         reward_page = self.navigator.resolve_page(page_reward)
         if reward_page is None:
             return
-        reward_page.recognizer = any_of(self.I_GREED_GHOST, self.I_PET_PRESENT, reward_page.recognizer)
+        reward_page.recognizer = any_of(self.I_GI_SURE, self.I_GREED_GHOST, self.I_PET_PRESENT,
+                                        reward_page.recognizer)
 
     def _exit_matcher(self) -> ExitMatcher | None:
         return any_of(self.I_GI_EMOJI_1, self.I_GI_EMOJI_2, self.I_CHECK_EXPLORATION)
+
+    def _handle_reward(self, context: BattleContext, config: GeneralBattleConfig) -> BattleAction:
+        # 无论胜利与否, 都会出现是否邀请一次队友, 区别在于, 失败的话不会出现那个勾选默认邀请的框
+        if self.config.orochi.orochi_config.user_status == UserStatus.LEADER and \
+            self.check_and_invite(self.config.orochi.invite_config.default_invite):
+            return BattleAction.CONTINUE
+        return super()._handle_reward(context, config)
 
     def run(self) -> bool:
         self.switch_orochi_souls()
@@ -117,34 +126,20 @@ class ScriptTask(GeneralBattle, GeneralInvite, GeneralBuff, GeneralRoom, GameUi,
         self.create_room()
         self.ensure_private()
         self.create_ensure()
-
         # 邀请队友
         success = True
         is_first = True
         # 这个时候我已经进入房间了哦
         while 1:
             self.screenshot()
-            # 无论胜利与否, 都会出现是否邀请一次队友
-            # 区别在于，失败的话不会出现那个勾选默认邀请的框
-            if self.check_and_invite(self.config.orochi.invite_config.default_invite):
-                continue
-
-            # 检查猫咪奖励
-            if self.appear_then_click(self.I_PET_PRESENT, action=self.C_RANDOM_RIGHT, interval=1):
-                continue
-
             if self.current_count >= self.limit_count:
                 if self.is_in_room():
                     logger.info('Orochi count limit out')
                     break
-
             if datetime.now() - self.start_time >= self.limit_time:
                 if self.is_in_room():
                     logger.info('Orochi time limit out')
                     break
-
-
-
             # 如果没有进入房间那就不需要后面的邀请
             if not self.is_in_room():
                 if self.is_room_dead():
@@ -152,7 +147,6 @@ class ScriptTask(GeneralBattle, GeneralInvite, GeneralBuff, GeneralRoom, GameUi,
                     success = False
                     break
                 continue
-
             # 点击挑战
             if not is_first:
                 if self.run_invite(config=self.config.orochi.invite_config):
@@ -165,7 +159,6 @@ class ScriptTask(GeneralBattle, GeneralInvite, GeneralBuff, GeneralRoom, GameUi,
                     logger.warning('Invite failed and exit this orochi task')
                     success = False
                     break
-
             # 第一次会邀请队友
             if is_first:
                 if not self.run_invite(config=self.config.orochi.invite_config, is_first=True):
