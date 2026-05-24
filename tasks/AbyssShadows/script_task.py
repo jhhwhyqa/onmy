@@ -123,11 +123,10 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, AbyssShadowsAssets):
             pass
         logger.info("Abyss shadows process done")
 
-        # 使用 check_current_area 确认是否在狭间活动页面
+        # 使用 check_current_area 确认是否在狭间活动页面(防止剩余敌人被击杀，卡在区域选择页面)
         current_area = self.check_current_area()
         if current_area is None:
             logger.warning("不在狭间活动页面")
-            return
         else:
             logger.info(f"当前在狭间活动页面，区域: {current_area.name}")
         
