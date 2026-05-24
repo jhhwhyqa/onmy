@@ -180,60 +180,34 @@ class BaseExploration(GameUi, GeneralBattle, GeneralRoom, GeneralInvite, Replace
 
         return True
 
-    def enter_settings_and_do_operations(self):
-        # 打开设置
-        while 1:
-            self.screenshot()
-            if self.appear(self.I_E_OPEN_SETTINGS):
-                logger.info("Open settings")
-                break
-            if self.is_in_battle():
-                logger.warning('Opening settings failed due to now in battle')
-                return
-            if self.click(self.C_CLICK_SETTINGS, interval=2):
-                continue
-
+    def fill_shikigami(self):
+        """填充式神(最后回到探索主界面)"""
         # 候补出战数量识别
-        self.screenshot()
-        if not self.appear(self.I_E_OPEN_SETTINGS):
-            logger.warning('Opening settings failed due to now in battle')
-            return
         cu, res, total = self.O_E_ALTERNATE_NUMBER.ocr(self.device.image)
         if cu >= 40:
             logger.info("Alternate number is enough")
-            self.ui_click_until_disappear(self.I_E_SURE_BUTTON)
+            self.goto_page(pages.page_exp_main)
             return
-        else:
-            self.add_shiki()
-
-    def add_shiki(self, screenshot=True):
-        if screenshot:
-            self.screenshot()
-            if not self.appear(self.I_E_OPEN_SETTINGS):
-                logger.warning('Opening settings failed due to now in battle')
-                return
         choose_rarity = self._config.exploration_config.choose_rarity
         rarity = ShikigamiClass.N if choose_rarity == ChooseRarity.N else ShikigamiClass.MATERIAL
         self.click(self.C_CLICK_STANDBY_TEAM)  # 先点击候补出战区域
         self.switch_shikigami_class(rarity)  # 切换式神类别
-
         # 移动至未候补的狗粮
         while True:
             # 慢一点
             time.sleep(0.5)
             self.screenshot()
             if not self.appear(self.I_E_OPEN_SETTINGS):
-                logger.warning('Opening settings failed due to now in battle')
+                logger.warning('Opening settings failed')
                 return
             if self.appear(self.I_E_RATATE_EXSIT):
                 self.swipe(self.S_SWIPE_SHIKI_TO_LEFT)
             else:
                 break
         while True:
-            # 候补出战数量识别
             self.screenshot()
             if not self.appear(self.I_E_OPEN_SETTINGS):
-                logger.warning('Opening settings failed due to now in battle')
+                logger.warning('Opening settings failed')
                 return
             cu, res, total = self.O_E_ALTERNATE_NUMBER.ocr(self.device.image)
             if cu >= 40:
@@ -241,11 +215,9 @@ class BaseExploration(GameUi, GeneralBattle, GeneralRoom, GeneralInvite, Replace
             self.swipe(self.S_SWIPE_SHIKI_TO_LEFT_ONE)
             # 慢一点
             time.sleep(0.5)
-            self.screenshot()
             self.click(self.L_ROTATE_1)
             self.device.click_record_clear()
-
-        self.appear_then_click(self.I_E_SURE_BUTTON)
+        self.goto_page(pages.page_exp_main)
 
     # 找up按钮
     def search_up_fight(self, up_type: UpType = None) -> Optional[RuleImage | RuleGif]:
@@ -352,18 +324,23 @@ class BaseExploration(GameUi, GeneralBattle, GeneralRoom, GeneralInvite, Replace
         self._match_end.refresh()  # 防止同一张图多次打怪导致误以为探索结束
         return True
 
-    def switch_rotate(self):
-        """切换轮换类型并添加式神"""
+    def switch_rotate(self) -> bool:
+        """切换轮换类型并添加式神 True(执行了切换)/False"""
         match self._config.exploration_config.auto_rotate:
             case AutoRotate.yes:
                 if self.appear(self.I_E_AUTO_ROTATE_OFF):  # 轮换关闭/式神不够了则需要打开并添加式神
-                    self.enter_settings_and_do_operations()
-                    self.ui_click(self.I_E_AUTO_ROTATE_OFF, stop=self.I_E_AUTO_ROTATE_ON)
+                    self.click(self.C_CLICK_SETTINGS, interval=2)
+                    return True
             case AutoRotate.no:  # 不是自动添加候补式神则关闭轮换
-                self.ui_click(self.I_E_AUTO_ROTATE_ON, stop=self.I_E_AUTO_ROTATE_OFF)
+                if self.appear_then_click(self.I_E_AUTO_ROTATE_ON, interval=0.8):
+                    return True
+        return False
 
     def arrive_end(self) -> bool:
-        """是否到达探索的最后方, 需要先调用截图"""
+        """是否到达探索的最后方, 需要先调用截图(滑动超过6次直接判定已经到达底部)"""
+        if self.device.click_record.count(self.S_SWIPE_BACKGROUND_RIGHT.name) >= 6:
+            self.device.click_record_clear()
+            return True
         return self._match_end.stable(self.device.image, refresh_after_stable=True, frame_id=self.device.image_frame_id)
 
     def get_fire_button(self) -> Optional[RuleImage | RuleGif]:

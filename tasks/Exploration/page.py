@@ -22,3 +22,8 @@ page_exp_main = Page(any_of(ExplorationAssets.I_E_SETTINGS_BUTTON, ExplorationAs
 page_exp_main.connect(page_exp_exit, GlobalGameAssets.I_UI_BACK_YELLOW, key="page_exp_main->page_exp_exit")
 page_exp_entrance.connect(page_exp_main, ExplorationAssets.I_E_EXPLORATION_CLICK, key="page_exp_entrance->page_exp_main")
 page_exp_exit.connect(page_exp_main, ExplorationAssets.I_E_EXIT_CANCEL, key="page_exp_exit->page_exp_main")
+
+# 探索设置界面
+page_exp_settings = Page(ExplorationAssets.I_E_OPEN_SETTINGS, priority=75)
+page_exp_settings.connect(page_exp_main, ExplorationAssets.I_E_SURE_BUTTON, key="page_exp_settings->page_exp_main")
+page_exp_main.connect(page_exp_settings, ExplorationAssets.C_CLICK_SETTINGS, key="page_exp_main->page_exp_settings")

@@ -49,10 +49,15 @@ class ScriptTask(BaseExploration):
             match current_page:
                 case None:
                     time.sleep(0.5)
+                case pages.page_exp_settings:
+                    self.fill_shikigami()
+                    if self._config.exploration_config.auto_rotate == AutoRotate.yes:
+                        self.appear_then_click(self.I_E_AUTO_ROTATE_OFF, interval=0.8)
                 case pages.page_exp_main:
                     if self.collect_reward():
                         continue
-                    self.switch_rotate()
+                    if self.switch_rotate():
+                        continue
                     fire_button = self.get_fire_button()
                     if fire_button is not None:
                         self.fire(fire_button)
@@ -65,7 +70,6 @@ class ScriptTask(BaseExploration):
                 case pages.page_exploration | pages.page_exp_entrance:
                     self.collect_treasure_box()
                     self.fire_monster_type = ''  # 入口处重置怪物类型
-                    self.device.click_record_clear()
                     self.goto_page(pages.page_exp_main)
                 case pages.page_battle_prepare | pages.page_battle:
                     self.run_general_battle(self._config.general_battle_config, exit_matcher=pages.page_exp_main)
@@ -90,8 +94,11 @@ class ScriptTask(BaseExploration):
             match current_page:
                 case None:
                     time.sleep(0.5)
+                case pages.page_exp_settings:
+                    self.fill_shikigami()
+                    if self._config.exploration_config.auto_rotate == AutoRotate.yes:
+                        self.appear_then_click(self.I_E_AUTO_ROTATE_OFF, interval=0.8)
                 case pages.page_exp_entrance:
-                    self.device.click_record_clear()
                     self.enter_team()
                 case pages.page_battle_team:
                     if self.run_invite(self._config.invite_config, self.current_count == 0):
@@ -111,7 +118,8 @@ class ScriptTask(BaseExploration):
                             friend_leave_timer.start()
                         continue
                     friend_leave_timer = Timer(leave_time_seconds)
-                    self.switch_rotate()
+                    if self.switch_rotate():
+                        continue
                     fire_button = self.get_fire_button()
                     if fire_button is not None:
                         self.fire(fire_button)
@@ -153,6 +161,10 @@ class ScriptTask(BaseExploration):
             match current_page:
                 case None | pages.page_battle_team:
                     time.sleep(0.5)
+                case pages.page_exp_settings:
+                    self.fill_shikigami()
+                    if self._config.exploration_config.auto_rotate == AutoRotate.yes:
+                        self.appear_then_click(self.I_E_AUTO_ROTATE_OFF, interval=0.8)
                 case pages.page_exp_main:
                     if self.collect_reward():
                         continue
