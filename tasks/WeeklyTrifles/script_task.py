@@ -11,7 +11,7 @@ from module.base.timer import Timer
 from tasks.GameUi.game_ui import GameUi
 from tasks.GameUi.page import page_main, page_area_boss, page_secret_zones, page_summon, random_click
 from tasks.WeeklyTrifles.assets import WeeklyTriflesAssets
-from tasks.WeeklyTrifles.page import page_shikigami_scroll
+from tasks.WeeklyTrifles.page import page_shikigami_share
 
 
 class ScriptTask(GameUi, WeeklyTriflesAssets):
@@ -64,15 +64,13 @@ class ScriptTask(GameUi, WeeklyTriflesAssets):
         :return:
         """
         logger.hr('Share collect')
-        self.goto_page(page_shikigami_scroll)
+        self.goto_page(page_shikigami_share)
         # 点击分享
         while 1:
             self.screenshot()
             if self.appear(self.I_WT_QR_CODE):
                 break
             if self.appear_then_click(self.I_WT_COLLECT_WECHAT, interval=1):
-                continue
-            if self.appear_then_click(self.I_WT_COLLECT, interval=5):
                 continue
         logger.info('Click share')
         get_timer = Timer(3)
