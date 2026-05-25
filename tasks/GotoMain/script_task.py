@@ -23,13 +23,6 @@ class ScriptTask(GameUi):
 
     def run(self) -> None:
         self.device.stuck_record_clear()
-
-        # 停服窗口期(早 07:00–09:00)前置拦截：避免反复登录失败后才走到 GamePageUnknownError 分支
-        if is_server_update_window() and self._delay_for_server_update(
-            reason='skip goto_main during morning server update window'
-        ):
-            raise TaskEnd('Goto main skipped due to server update window')
-
         try:
             self.goto_page(page_main)
         except (GamePageUnknownError, GameStuckError, GameTooManyClickError, GameNotRunningError) as e:
@@ -38,9 +31,9 @@ class ScriptTask(GameUi):
                 reason=f'{type(e).__name__} during goto_main inside server update window'
             ):
                 raise TaskEnd('Goto main aborted due to server update window')
-            raise
+            raise e
 
-        raise TaskEnd('Goto main end')
+        raise TaskEnd
 
     def _delay_for_server_update(self, reason: str) -> bool:
         delay_target = delay_pending_tasks_for_server_update(self.config, reason=reason)
