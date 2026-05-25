@@ -93,32 +93,34 @@ def convert_to_general_battle_config(boss_type: str, demon_battle_conf: 'DemonBa
 
 
 class DemonBattleConfig(BaseModel):
-    demon_shinkirou_enable: bool = Field(default=False, description='是否切换蜃气楼预设')
+    demon_kiryou_utahime_enable: bool = Field(default=False)
+    demon_kiryou_utahime: str = Field(default="-1,-1", description="鬼灵歌姬预设")
+    demon_shinkirou_enable: bool = Field(default=False)
     demon_shinkirou: str = Field(default="-1,-1", description="蜃气楼预设")
-    demon_tsuchigumo_enable: bool = Field(default=False, description='是否切换土蜘蛛预设')
+    demon_tsuchigumo_enable: bool = Field(default=False)
     demon_tsuchigumo: str = Field(default="-1,-1", description="土蜘蛛预设")
-    demon_gashadokuro_enable: bool = Field(default=False, description='是否切换荒骷髅预设')
+    demon_gashadokuro_enable: bool = Field(default=False)
     demon_gashadokuro: str = Field(default="-1,-1", description="荒骷髅预设")
-    demon_namazu_enable: bool = Field(default=False, description='是否切换地震鲶预设')
+    demon_namazu_enable: bool = Field(default=False)
     demon_namazu: str = Field(default="-1,-1", description="地震鲶预设")
-    demon_oboroguruma_enable: bool = Field(default=False, description='是否切换胧车预设')
+    demon_oboroguruma_enable: bool = Field(default=False)
     demon_oboroguruma: str = Field(default="-1,-1", description="胧车预设")
-    demon_nightly_aramitama_enable: bool = Field(default=False, description='是否切换夜荒魂预设')
+    demon_nightly_aramitama_enable: bool = Field(default=False)
     demon_nightly_aramitama: str = Field(default="-1,-1", description="夜荒魂预设")
 
 
 class BestDemonBattleConfig(BaseModel):
-    best_demon_shinkirou_enable: bool = Field(default=False, description='是否切换极蜃气楼预设')
+    best_demon_shinkirou_enable: bool = Field(default=False)
     best_demon_shinkirou: str = Field(default="-1,-1", description="极蜃气楼预设")
-    best_demon_tsuchigumo_enable: bool = Field(default=False, description='是否切换极土蜘蛛预设')
+    best_demon_tsuchigumo_enable: bool = Field(default=False)
     best_demon_tsuchigumo: str = Field(default="-1,-1", description="极土蜘蛛预设")
-    best_demon_gashadokuro_enable: bool = Field(default=False, description='是否切换极荒骷髅预设')
+    best_demon_gashadokuro_enable: bool = Field(default=False)
     best_demon_gashadokuro: str = Field(default="-1,-1", description="极荒骷髅预设")
-    best_demon_namazu_enable: bool = Field(default=False, description='是否切换极地震鲶预设')
+    best_demon_namazu_enable: bool = Field(default=False)
     best_demon_namazu: str = Field(default="-1,-1", description="极地震鲶预设")
-    best_demon_oboroguruma_enable: bool = Field(default=False, description='是否切换极胧车预设')
+    best_demon_oboroguruma_enable: bool = Field(default=False)
     best_demon_oboroguruma: str = Field(default="-1,-1", description="极胧车预设")
-    best_demon_nightly_aramitama_enable: bool = Field(default=False, description='是否切换极夜荒魂预设')
+    best_demon_nightly_aramitama_enable: bool = Field(default=False)
     best_demon_nightly_aramitamau: str = Field(default="-1,-1", description="极夜荒魂预设")
 
     hide_fields = dynamic_hide('best_demon_oboroguruma_enable', 'best_demon_oboroguruma',

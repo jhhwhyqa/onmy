@@ -120,5 +120,18 @@
   "costume_shikigami_10": "今宵胧明",
   "pk_switch_soul_conf": "孔雀国御魂切换",
   "enable_switch_layer_soul": "是否切换十层的御魂",
-  "enable_switch_layer_soul_help": "使用八岐大蛇任务御魂的配置"
+  "enable_switch_layer_soul_help": "使用八岐大蛇任务御魂的配置",
+  "demon_battle_config": "逢魔战斗配置",
+  "best_demon_battle_config": "极逢魔战斗配置",
+  "demon_kiryou_utahime_enable": "启用切换鬼灵歌姬预设",
+  "demon_shinkirou_enable": "启用切换蜃气楼预设",
+  "demon_tsuchigumo_enable": "启用切换土蜘蛛预设",
+  "demon_gashadokuro_enable": "启用切换荒骷髅预设",
+  "demon_namazu_enable": "启用切换地震鲶预设",
+  "demon_oboroguruma_enable": "启用切换胧车预设",
+  "demon_nightly_aramitama_enable": "启用切换夜荒魂预设",
+  "best_demon_shinkirou_enable": "启用切换极蜃气楼预设",
+  "best_demon_tsuchigumo_enable": "启用切换极土蜘蛛预设",
+  "best_demon_gashadokuro_enable": "启用切换极荒骷髅预设",
+  "best_demon_namazu_enable": "启用切换极地震鲶预设"
 }
