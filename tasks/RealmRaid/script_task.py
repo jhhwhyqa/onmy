@@ -10,7 +10,7 @@ from tasks.Component.GeneralBattle.general_battle import ExitMatcher, GeneralBat
 from tasks.GameUi.game_ui import GameUi
 from tasks.GameUi.page import page_realm_raid, page_main, page_shikigami_records
 from tasks.RealmRaid.assets import RealmRaidAssets
-from tasks.RealmRaid.config import RealmRaid, RaidMode, AttackNumber, WhenAttackFail
+from tasks.RealmRaid.config import RealmRaid, AttackNumber, WhenAttackFail
 from tasks.Component.SwitchSoul.switch_soul import SwitchSoul
 
 
@@ -29,99 +29,6 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RealmRaidAssets):
         return self.I_BACK_RED
 
     def run(self):
-        self.run_2()
-
-    def is_ticket(self) -> bool:
-        """
-        如果没有票了，那么就返回False
-        :return:
-        """
-        self.wait_until_appear(self.I_BACK_RED)
-        self.screenshot()
-        cu, res, total = self.O_NUMBER.ocr(self.device.image)
-        if cu == 0 and cu + res == total:
-            logger.warning(f'Execute round failed, no ticket')
-            return False
-        return True
-
-    def medal_fire(self) -> bool:
-        """
-        点击勋章
-        :return:
-        """
-        # 点击勋章的挑战 和挑战
-        time.sleep(0.2)
-        is_click = False
-        while 1:
-            self.screenshot()
-
-            if self.appear(self.I_FIRE, threshold=0.8):
-                break
-
-            if self.appear_then_click(self.I_SOUL_RAID, interval=1.5):
-                while 1:
-                    self.screenshot()
-                    if self.appear_then_click(self.I_SOUL_RAID, interval=1.5):
-                        continue
-                    if not self.appear(self.I_SOUL_RAID, threshold=0.6):
-                        break
-                continue
-
-            target = self.medal_grid.find_anyone(self.device.image, frame_id=self.device.image_frame_id)
-            if target:
-                self.appear_then_click(target, interval=2)  # 点击勋章,但是设置为两秒的间隔，适应不同的模拟器速度
-                is_click = not is_click
-
-            if is_click:
-                continue
-        logger.info(f'Click Medal')
-
-        # 点击挑战
-        self.wait_until_appear(self.I_FIRE)
-        while 1:
-            self.screenshot()
-            if self.appear_then_click(self.I_FIRE, interval=2):
-                continue
-            if not self.appear(self.I_FIRE, threshold=0.8):
-                break
-        logger.info(f'Click {self.I_FIRE.name}')
-
-    def execute_round(self, config: RealmRaid) -> bool:
-        """
-        执行一轮 除非票不够，一直到到九次
-        :return:
-        """
-        # 如果没有票了，就退出
-        if not self.is_ticket():
-            return False
-
-        # 判断是退四打九还是全部打
-        if config.raid_config.raid_mode == RaidMode.NORMAL:
-            logger.info(f'Execute round, retreat four attack nine')
-            self.medal_fire()
-            self.run_general_battle(config=self.build_quick_exit_config(config.general_battle_config))
-
-            self.medal_fire()
-            self.run_general_battle(config=self.build_quick_exit_config(config.general_battle_config))
-
-            self.medal_fire()
-            self.run_general_battle(config=self.build_quick_exit_config(config.general_battle_config))
-
-            self.medal_fire()
-            self.run_general_battle(config=self.build_quick_exit_config(config.general_battle_config))
-
-        # 打九次
-        for i in range(9):
-            if not self.is_ticket():
-                return False
-            self.medal_fire()
-            self.run_general_battle(config.general_battle_config)
-            self.wait_until_appear(self.I_BACK_RED)
-
-        return True
-
-    # ------------------------------------------------------------------------------------------------------------------
-    def run_2(self):
         con = self.config.realm_raid
         if con.switch_soul_config.enable:
             self.goto_page(page_shikigami_records)
@@ -148,7 +55,6 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RealmRaidAssets):
         frog = self.is_frog(True)
         if frog:
             logger.info(f'Frog raid')
-
 
         # 开始循环
         success = True
@@ -224,10 +130,64 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RealmRaidAssets):
                 logger.info('Battle lost and exit')
                 break
 
-        self.ui_click(self.I_BACK_RED, self.I_CHECK_EXPLORATION)
         self.goto_page(page_main)
         self.set_next_run(task='RealmRaid', success=success, finish=True)
         raise TaskEnd
+
+    def is_ticket(self) -> bool:
+        """
+        如果没有票了，那么就返回False
+        :return:
+        """
+        self.wait_until_appear(self.I_BACK_RED)
+        self.screenshot()
+        cu, res, total = self.O_NUMBER.ocr(self.device.image)
+        if cu == 0 and cu + res == total:
+            logger.warning(f'Execute round failed, no ticket')
+            return False
+        return True
+
+    def medal_fire(self) -> bool:
+        """
+        点击勋章
+        :return:
+        """
+        # 点击勋章的挑战 和挑战
+        time.sleep(0.2)
+        is_click = False
+        while 1:
+            self.screenshot()
+
+            if self.appear(self.I_FIRE, threshold=0.8):
+                break
+
+            if self.appear_then_click(self.I_SOUL_RAID, interval=1.5):
+                while 1:
+                    self.screenshot()
+                    if self.appear_then_click(self.I_SOUL_RAID, interval=1.5):
+                        continue
+                    if not self.appear(self.I_SOUL_RAID, threshold=0.6):
+                        break
+                continue
+
+            target = self.medal_grid.find_anyone(self.device.image, frame_id=self.device.image_frame_id)
+            if target:
+                self.appear_then_click(target, interval=2)  # 点击勋章,但是设置为两秒的间隔，适应不同的模拟器速度
+                is_click = not is_click
+
+            if is_click:
+                continue
+        logger.info(f'Click Medal')
+
+        # 点击挑战
+        self.wait_until_appear(self.I_FIRE)
+        while 1:
+            self.screenshot()
+            if self.appear_then_click(self.I_FIRE, interval=2):
+                continue
+            if not self.appear(self.I_FIRE, threshold=0.8):
+                break
+        logger.info(f'Click {self.I_FIRE.name}')
 
     # ----------------------------------------------------------------------------------------------------------------------
     # 2023.7.21 改版个人突破
@@ -409,17 +369,18 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RealmRaidAssets):
             self.screenshot()
         # 由于更改识别顺序，退出战斗之后，需要先等待回到个人突破界面，即识别到红色退出按钮，再进行奖励判断
         self.wait_until_appear(self.I_BACK_RED)
+        self.ui_click_until_disappear(self.I_SOUL_RAID, interval=1.2)
         text = self.O_TEXT.ocr(self.device.image)
         # 识别突破卷区域，如果识别到了且其中含有文字，即有聊天框遮挡则进入循环，等待三胜奖励出现并点击，循环退出条件为识别到票（即*/*的形式）
-        if text != "":
-            if re.search(r'[\u4e00-\u9fff]', text):
-                while 1:
-                    self.screenshot()
-                    result = self.O_TEXT.ocr(self.device.image)
-                    if not re.search(r'[\u4e00-\u9fff]', result) and re.search(r'(\d+)/(\d+)', result):
-                        return True
-                    if self.appear_then_click(self.I_SOUL_RAID, interval=1.5):
-                        continue
+        if text != "" and re.search(r'[\u4e00-\u9fff]', text):
+            while 1:
+                self.screenshot()
+                result = self.O_TEXT.ocr(self.device.image)
+                if not re.search(r'[\u4e00-\u9fff]', result) and re.search(r'(\d+)/(\d+)', result):
+                    return True
+                if self.appear_then_click(self.I_SOUL_RAID, interval=1.5):
+                    continue
+        return False
 
     def check_refresh(self, screenshot: bool=True) -> bool:
         """
@@ -445,6 +406,7 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RealmRaidAssets):
                 return True
             if self.appear_then_click(self.I_FRESH_ENSURE, interval=1):
                 continue
+        return False
 
     def fire(self, order: int) -> bool:
         """
