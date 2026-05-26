@@ -133,5 +133,22 @@
   "best_demon_shinkirou_enable": "启用切换极蜃气楼预设",
   "best_demon_tsuchigumo_enable": "启用切换极土蜘蛛预设",
   "best_demon_gashadokuro_enable": "启用切换极荒骷髅预设",
-  "best_demon_namazu_enable": "启用切换极地震鲶预设"
+  "best_demon_namazu_enable": "启用切换极地震鲶预设",
+  "enable_switch_pass": "是否切换门票爬塔御魂",
+  "pass_group_team": "门票组号,队伍号",
+  "pass_group_team_help": "组号[1-7],队伍号[1-4]",
+  "enable_switch_pass_by_name": "是否通过ocr切换门票御魂",
+  "pass_group_team_name": "门票组名,队伍名",
+  "enable_switch_ap": "是否切换体力爬塔御魂",
+  "ap_group_team": "体力组号,队伍号",
+  "enable_switch_ap_by_name": "是否通过ocr切换体力御魂",
+  "ap_group_team_name": "体力组名,队伍名",
+  "enable_switch_boss": "是否切换首领爬塔御魂",
+  "boss_group_team": "首领组号,队伍号",
+  "enable_switch_boss_by_name": "是否通过ocr切换首领御魂",
+  "boss_group_team_name": "首领组名,队伍名",
+  "enable_switch_ap100": "是否切换100体爬塔御魂",
+  "ap100_group_team": "100体组号,队伍号",
+  "enable_switch_ap100_by_name": "是否通过ocr切换100体御魂",
+  "ap100_group_team_name": "100体组名,队伍名"
 }

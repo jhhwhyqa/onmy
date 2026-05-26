@@ -1,15 +1,14 @@
-
 import random
 from cached_property import cached_property
 from module.base.protect import random_sleep
 from module.base.timer import Timer
 from module.logger import logger
-from tasks.ActivityShikigami.script_task import ScriptTask
+from tasks.ActivityShikigami.base_act import BaseAct
 from tasks.DemonEncounter.data.answer import Answer
 from tasks.Quiz.debug import Debugger, remove_symbols
 
 
-class RichManScriptTask(ScriptTask, Debugger):
+class RichManAct(BaseAct, Debugger):
 
     @cached_property
     def answer(self) -> Answer:
@@ -28,7 +27,7 @@ class RichManScriptTask(ScriptTask, Debugger):
         already_passed = False
         while True:
             self.screenshot()
-            self.put_status()
+            self.update_status()
             if self.appear(self.I_RM_NO_TICKET, interval=2) or click_ticket > no_tickets:
                 logger.warning(f'Click ticket {click_ticket} times, no tickets left')
                 break
@@ -44,7 +43,7 @@ class RichManScriptTask(ScriptTask, Debugger):
                 logger.info('Already passed')
             if already_passed and self.appear(self.I_RM_BOSS, interval=1.2):  # 已经通关了且出现首领则退出,否则还要打
                 logger.info('Boss passed, exit')
-                self.appear_then_click(self.I_BACK_YOLLOW, interval=1.2)
+                self.appear_then_click(self.I_UI_BACK_YELLOW, interval=1.2)
                 continue
             already_passed = False
             if self.appear_then_click(self.I_UI_CONFIRM, interval=2):
@@ -115,14 +114,14 @@ class RichManScriptTask(ScriptTask, Debugger):
                 self.click([self.O_RM_ANSWER_1, self.O_RM_ANSWER_2, self.O_RM_ANSWER_3][index - 1], interval=1)
                 self.device.click_record_clear()
                 continue
-            if self.appear(self.I_RICH_MAN_FIRE, interval=2):  # 开始战斗
+            if self.appear(self.I_ACT_FIRE, interval=2):  # 开始战斗
                 click_ticket = 0
                 if not switch_souled:
                     self.switch_soul(self.I_BATTLE_MAIN_TO_RECORDS)
                     switch_souled = True
                 if self.conf.general_climb.random_sleep:
                     random_sleep(probability=0.2)
-                self.click(self.I_RICH_MAN_FIRE)
+                self.click(self.I_ACT_FIRE)
                 click_fire += 1
                 self.run_general_battle(self.conf.pass_battle_conf, f"act_{self.climb_type}")
                 continue
