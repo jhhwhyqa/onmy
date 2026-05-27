@@ -290,7 +290,11 @@ class ScriptRuntimeController:
     def _prepare_idle_goto_main(self) -> ScriptRuntimeDecision:
         """
         将空闲状态调整为“模拟器开启、游戏运行且位于主界面”。
+        停服窗口内改为关闭游戏，避免停留在停服弹窗。
         """
+        if self._is_server_update_wait_active():
+            logger.info('Server update active, close game instead of going to main')
+            return self._ensure_game_closed()
         return self._ensure_game_running(require_main=True, allow_server_update_skip=True)
 
     def _prepare_idle_close_game(self) -> ScriptRuntimeDecision:
