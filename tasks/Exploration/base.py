@@ -108,9 +108,10 @@ class BaseExploration(GameUi, GeneralBattle, GeneralRoom, GeneralInvite, Replace
             self.close_buff()
 
     def post_process(self):
-        self.goto_page(pages.page_main)
+        self.goto_page(pages.page_exploration)
         con = self._config.exploration_config
         if con.buff_gold_50_click or con.buff_gold_100_click or con.buff_exp_50_click or con.buff_exp_100_click:
+            self.goto_page(pages.page_main)
             self.open_buff()
             self.gold_50(is_open=False)
             self.gold_100(is_open=False)
@@ -366,17 +367,19 @@ class BaseExploration(GameUi, GeneralBattle, GeneralRoom, GeneralInvite, Replace
 
     def collect_paper_man_reward(self) -> bool:
         """收集小纸人奖励, 若未开启则自动退出"""
-        if self.appear(self.I_BATTLE_REWARD):  # 小纸人
-            if self._config.exploration_config.collect_paper_reward:
-                self.ui_get_reward(self.I_BATTLE_REWARD)
-            else:
-                logger.info("Not collect paper doll reward")
-                self.goto_page(pages.page_exp_entrance)
+        # 已经打过boss了且设置了不收集小纸人奖励则直接返回
+        if self.fire_monster_type == 'boss' and not self._config.exploration_config.collect_paper_reward:
+            logger.info("Not collect paper doll reward")
+            self.goto_page(pages.page_exp_entrance)
+            return True
+        # 没打boss或者收集纸人奖励, 且出现了纸人则处理掉落奖励
+        if self.appear(self.I_BATTLE_REWARD) and self._config.exploration_config.collect_paper_reward:
+            self.ui_get_reward(self.I_BATTLE_REWARD)
             return True
         return False
 
     def collect_reward(self) -> bool:
-        """处理掉落奖励"""
+        """处理掉落奖励(True表示进行了操作, False表示没有操作)"""
         return self.collect_treasure_box() or self.collect_paper_man_reward()
 
     def enter_team(self) -> bool:
