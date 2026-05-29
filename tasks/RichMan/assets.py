@@ -15,8 +15,6 @@ class RichManAssets:
 	I_GUILD_SHRINE = RuleImage(roi_front=(869,623,64,62), roi_back=(869,623,64,62), threshold=0.8, method="Template matching", file="./tasks/RichMan/guild/guild_guild_shrine.png")
 	# 功勋商店 
 	I_GUILD_STORE = RuleImage(roi_front=(651,420,212,161), roi_back=(651,420,212,180), threshold=0.8, method="Template matching", file="./tasks/RichMan/guild/guild_guild_store.png")
-	# description 
-	I_GUILD_CLOSE_RED = RuleImage(roi_front=(1029,120,53,57), roi_back=(1029,120,53,57), threshold=0.8, method="Template matching", file="./tasks/RichMan/guild/guild_guild_close_red.png")
 	# 蓝票 
 	I_GUILD_BLUE = RuleImage(roi_front=(794,186,74,73), roi_back=(315,164,584,370), threshold=0.8, method="Template matching", file="./tasks/RichMan/guild/guild_guild_blue.png")
 	# 黑蛋碎片 
@@ -29,6 +27,8 @@ class RichManAssets:
 	I_GUILD_CHECK_SCRAP = RuleImage(roi_front=(592,248,90,88), roi_back=(593,249,90,88), threshold=0.6, method="Template matching", file="./tasks/RichMan/guild/guild_guild_check_scrap.png")
 	# 功勋礼包 
 	I_GUILD_HONOR_GIFT = RuleImage(roi_front=(569,212,74,73), roi_back=(315,164,584,370), threshold=0.8, method="Template matching", file="./tasks/RichMan/guild/guild_guild_honor_gift.png")
+	# 寮商店标志 
+	I_RM_CHECK_GUILD_STORE = RuleImage(roi_front=(519,66,193,38), roi_back=(483,34,257,100), threshold=0.8, method="Template matching", file="./tasks/RichMan/guild/guild_rm_check_guild_store.png")
 
 
 	# Ocr Rule Assets

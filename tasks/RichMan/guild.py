@@ -15,17 +15,21 @@ from tasks.GameUi.game_ui import GameUi
 from tasks.Component.Buy.buy import Buy
 from tasks.RichMan.assets import RichManAssets
 from tasks.RichMan.config import GuildStore
+from tasks.RichMan.page import page_guild_store
 
 
 class Guild(Buy, GameUi, RichManAssets):
 
-    def execute_guild(self, con: GuildStore = None):
+    def _default_detect_categories(self) -> set[str]:
+        categories = super()._default_detect_categories()
+        categories.add("guild")
+        return categories
 
+    def execute_guild(self, con: GuildStore = None):
         if not con.enable:
             return
         logger.hr('Start guild', 1)
-        self.goto_page(page_shirin)
-        self.ui_click(self.I_GUILD_STORE, self.I_GUILD_CLOSE_RED, interval=1.1)
+        self.goto_page(page_guild_store)
         logger.info('Enter guild store success')
         time.sleep(0.5)
         swipe_cnt, max_swipe = 0, random.randint(4, 6)
