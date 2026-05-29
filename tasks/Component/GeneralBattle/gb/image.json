@@ -241,5 +241,14 @@
     "method": "Template matching",
     "threshold": 0.8,
     "description": "战斗数据统计"
+  },
+  {
+    "itemName": "gb_skin_confirm",
+    "imageName": "gb_gb_skin_confirm.png",
+    "roiFront": "594,447,90,55",
+    "roiBack": "594,447,90,55",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "皮肤碎片确定按钮"
   }
 ]

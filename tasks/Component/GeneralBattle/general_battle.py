@@ -31,6 +31,7 @@ from tasks.GameUi.page_definition import Page
 # 推荐优先复用调用方战后原本就会 `wait_until_appear(...)` 的稳定特征。
 ExitMatcher = Union[Matcher | RecognizerLike | Page]
 BattleInspectionAction = Callable[["BattleContext"], None]
+PREPARE_CLICK_DELAY = 3.0
 
 
 @dataclass
@@ -78,7 +79,7 @@ class BattleTimedInspection:
 
         if not self.timer.started():
             self.timer.start()
-            return False
+            return True
         if not self.timer.reached_and_reset():
             return False
         self.action(context)
@@ -105,6 +106,8 @@ class BattleContext:
     behavior_scopes: dict[str, "BattleBehaviorScope"]
     # 当前调用 battle 阶段生效的具名定时巡检项。
     timed_battle_inspections: dict[str, BattleTimedInspection]
+    # 锁定阵容时准备页延迟点击计时器；只统计连续停留在准备页的窗口。
+    prepare_click_timer: Timer
     # 当前调用需要开启的 buff 配置；供 handler 和子类覆写逻辑直接读取。
     buff: Union[BuffClass | list[BuffClass] | None] = None
     # 最近一次稳定识别到的战斗页面；用于驱动连战和超时逻辑。
@@ -307,6 +310,7 @@ class GeneralBattle(GeneralBuff, GeneralBattleAssets):
             round_behavior_state=BattleBehaviorState(),
             behavior_scopes=self._get_battle_behavior_scopes(config, battle_key),
             timed_battle_inspections=self._build_timed_battle_inspections(config, battle_key),
+            prepare_click_timer=Timer(PREPARE_CLICK_DELAY),
             buff=buff,
             quick_exit=bool(config.quick_exit),
         )
@@ -473,6 +477,7 @@ class GeneralBattle(GeneralBuff, GeneralBattleAssets):
         context.quick_exit = bool(config.quick_exit)
         context.continuous_count = continuous_count
         context.round_behavior_state = BattleBehaviorState()
+        context.prepare_click_timer.clear()
 
     def _reset_timed_battle_inspection_timers(self, context: BattleContext) -> None:
         """统一重置当前 battle 生效巡检项的 timer。"""
@@ -485,6 +490,28 @@ class GeneralBattle(GeneralBuff, GeneralBattleAssets):
 
         for inspection in context.timed_battle_inspections.values():
             inspection.tick(context)
+
+    def _reset_prepare_click_timer(self, context: BattleContext) -> None:
+        """重置准备页延迟点击计时器。"""
+        if context.prepare_click_timer.started():
+            context.prepare_click_timer.clear()
+
+    def _sync_prepare_click_timer(self, context: BattleContext, page: Page | None) -> None:
+        """离开准备页时清空延迟点击计时，确保只统计连续停留时长。"""
+        if page == page_battle_prepare:
+            return
+        self._reset_prepare_click_timer(context)
+
+    def _prepare_click_ready(self, context: BattleContext, config: GeneralBattleConfig) -> bool:
+        """判断当前轮是否允许点击准备按钮。"""
+        if not config.lock_team_enable:
+            self._reset_prepare_click_timer(context)
+            return True
+        if not context.prepare_click_timer.started():
+            logger.info(f"Lock team enabled, after {PREPARE_CLICK_DELAY:.1f}s click prepare")
+            context.prepare_click_timer.start()
+            return False
+        return context.prepare_click_timer.reached()
 
     def _inspection_recover_auto_mode(self, context: BattleContext) -> None:
         """默认 battle 巡检项：检测手动并恢复自动。"""
@@ -589,7 +616,8 @@ class GeneralBattle(GeneralBuff, GeneralBattleAssets):
             behavior_name="buff",
             action=lambda: self.check_and_open_buff(context.buff),
         )
-        self.appear_then_click(self.I_PREPARE_HIGHLIGHT, interval=0.8)
+        if self._prepare_click_ready(context, config):
+            self.appear_then_click(self.I_PREPARE_HIGHLIGHT, interval=0.8)
         return BattleAction.CONTINUE
 
     def _handle_in_battle(self, context: BattleContext, config: GeneralBattleConfig) -> BattleAction:
@@ -604,7 +632,7 @@ class GeneralBattle(GeneralBuff, GeneralBattleAssets):
         """
         if context.quick_exit:
             return BattleAction.QUICK_EXIT
-        if context.last_page != page_battle:
+        if context.last_page not in (page_battle, page_battle_prepare):
             self._reset_timed_battle_inspection_timers(context)
         self._tick_timed_battle_inspections(context)
         self._run_battle_behavior_once(
@@ -645,6 +673,7 @@ class GeneralBattle(GeneralBuff, GeneralBattleAssets):
         context.reward_no_battle_ts = None
         # TODO: 部分副本奖励界面不一定是战斗成功, 需要重写
         context.is_win = True
+        self.appear_then_click(self.I_GB_SKIN_CONFIRM, interval=0.8)
         self.click(random_click(), interval=0.8)
         self.device.click_record_clear()
         return BattleAction.CONTINUE
@@ -668,7 +697,7 @@ class GeneralBattle(GeneralBuff, GeneralBattleAssets):
             and exit_matcher is not None
             and self._evaluate_exit_matcher(exit_matcher)
         ):
-            logger.info("Exit matcher hit, battle confirmed ended")
+            logger.info("Exit matcher hit")
             return BattleAction.EXIT_WIN if context.is_win else BattleAction.EXIT_LOSE
         if context.last_page not in {page_battle_result, page_reward} and context.reward_no_battle_ts is None:
             return BattleAction.CONTINUE
@@ -762,6 +791,7 @@ class GeneralBattle(GeneralBuff, GeneralBattleAssets):
                 page = GameUi.detect_page_in(self, page_battle_prepare, page_battle, page_battle_result,
                                              page_reward, include_global=False)
                 context.reward_no_battle_ts = None if page else context.reward_no_battle_ts
+                self._sync_prepare_click_timer(context, page)
                 self._ensure_battle_stuck_guard(context, page)
                 match page:
                     case None:
@@ -804,18 +834,12 @@ class GeneralBattle(GeneralBuff, GeneralBattleAssets):
             return False
         while True:
             self.screenshot()
-            if self.appear(self.I_EXIT_ENSURE):
+            if self.appear(self.I_FALSE):
                 break
-            if self.appear_then_click(self.I_EXIT, interval=1.5):
+            if self.appear_then_click(self.I_EXIT_ENSURE, interval=0.5):
                 continue
-        while True:
-            self.screenshot()
-            if self.appear_then_click(self.I_EXIT_ENSURE, interval=1):
+            if self.appear_then_click(self.I_EXIT, interval=6):
                 continue
-            if self.appear_then_click(self.I_FALSE, interval=1.5):
-                continue
-            if not self.appear(self.I_EXIT):
-                break
         logger.info('Exit battle success')
         return True
 

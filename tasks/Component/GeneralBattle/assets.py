@@ -116,6 +116,8 @@ class GeneralBattleAssets:
 	I_BATTLE_INFO = RuleImage(roi_front=(230,12,37,39), roi_back=(210,1,147,72), threshold=0.8, method="Template matching", file="./tasks/Component/GeneralBattle/gb/gb_battle_info.png")
 	# 战斗数据统计 
 	I_BATTLE_STATE_INFO = RuleImage(roi_front=(725,51,67,31), roi_back=(483,18,337,102), threshold=0.8, method="Template matching", file="./tasks/Component/GeneralBattle/gb/gb_battle_state_info.png")
+	# 皮肤碎片确定按钮 
+	I_GB_SKIN_CONFIRM = RuleImage(roi_front=(594,447,90,55), roi_back=(594,447,90,55), threshold=0.8, method="Template matching", file="./tasks/Component/GeneralBattle/gb/gb_gb_skin_confirm.png")
 
 
 	# Image Rule Assets
