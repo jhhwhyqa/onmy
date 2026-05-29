@@ -656,8 +656,9 @@ class GeneralBattle(GeneralBuff, GeneralBattleAssets):
         """
         context.reward_no_battle_ts = None
         context.is_win = not self.appear(self.I_FALSE, threshold=0.8)
+        if context.last_page != page_battle_result:
+            self.device.click_record_clear()
         self.click(random_click(), interval=0.8)
-        self.device.click_record_clear()
         return BattleAction.CONTINUE
 
     def _handle_reward(self, context: BattleContext, config: GeneralBattleConfig) -> BattleAction:
@@ -674,8 +675,9 @@ class GeneralBattle(GeneralBuff, GeneralBattleAssets):
         # TODO: 部分副本奖励界面不一定是战斗成功, 需要重写
         context.is_win = True
         self.appear_then_click(self.I_GB_SKIN_CONFIRM, interval=0.8)
+        if context.last_page != page_reward:
+            self.device.click_record_clear()
         self.click(random_click(), interval=0.8)
-        self.device.click_record_clear()
         return BattleAction.CONTINUE
 
     def _handle_missing_battle_page(self, context: BattleContext, config: GeneralBattleConfig,
