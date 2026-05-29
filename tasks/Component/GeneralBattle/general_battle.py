@@ -508,7 +508,7 @@ class GeneralBattle(GeneralBuff, GeneralBattleAssets):
             self._reset_prepare_click_timer(context)
             return True
         if not context.prepare_click_timer.started():
-            logger.info(f"Lock team enabled, after {PREPARE_CLICK_DELAY:.1f}s click prepare")
+            logger.info(f"Lock team enabled, click prepare later")
             context.prepare_click_timer.start()
             return False
         return context.prepare_click_timer.reached()
@@ -834,12 +834,13 @@ class GeneralBattle(GeneralBuff, GeneralBattleAssets):
             return False
         while True:
             self.screenshot()
+            if self.appear_then_click(self.I_EXIT_ENSURE):
+                continue
             if self.appear(self.I_FALSE):
                 break
-            if self.appear_then_click(self.I_EXIT_ENSURE, interval=0.5):
-                continue
             if self.appear_then_click(self.I_EXIT, interval=6):
                 continue
+        self.ui_click_until_disappear(self.I_EXIT_ENSURE, interval=0.8)
         logger.info('Exit battle success')
         return True
 
