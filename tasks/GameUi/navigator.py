@@ -717,6 +717,28 @@ class GameUi(BaseTask, GameUiAssets):
         rotation_check()
         return False
 
+    def _finalize_arrival(self, destination: Page, confirm_wait: float, start_time: float) -> bool:
+        """统一处理到达目标页后的收尾动作。
+
+        到达判定已由调用方完成（跳转边到达等待的两帧确认，或当前页刷新返回的两帧确认结果），
+        本方法不再重复确认，只负责收尾：刷新当前页缓存、幂等触发进入成功钩子、按需等待、输出到达日志。
+
+        Args:
+            destination: 已确认到达的目标页面。
+            confirm_wait: 到达后额外等待的确认时间。
+            start_time: 本次导航开始时间戳，用于输出耗时。
+
+        Returns:
+            固定返回 True，表示已到达目标页面。
+        """
+
+        self.navigator.current_page = destination
+        self._run_enter_success_hooks_if_needed(destination)
+        if confirm_wait > 0:
+            Timer(confirm_wait, count=int(confirm_wait // 0.5)).start().wait()
+        logger.attr(f'{time.time() - start_time:.1f}s', f"Page arrived {destination}")
+        return True
+
     def goto_page(self, destination: Page, confirm_wait: float = 0, skip_first_screenshot: bool = True,
                   timeout: int = 30) -> bool | None:
         """导航到目标页面。
@@ -776,12 +798,9 @@ class GameUi(BaseTask, GameUiAssets):
                 last_detected_page_key = current.key
                 reset_repeated_transition_failures()
 
-            if current == destination and self.confirm_page(destination, skip_first_screenshot=False):
-                self._run_enter_success_hooks_if_needed(destination)
-                if confirm_wait > 0:
-                    Timer(confirm_wait, count=int(confirm_wait // 0.5)).start().wait()
-                logger.attr(f'{time.time() - start_time:.1f}s', f"Page arrived {destination}")
-                return True
+            if current == destination:
+                # current 来自 _refresh_current_page，其返回已是两帧稳定确认的结果，无需再次 confirm。
+                return self._finalize_arrival(destination, confirm_wait, start_time)
 
             path = self._build_path(current, destination)
             if not path:
@@ -830,7 +849,8 @@ class GameUi(BaseTask, GameUiAssets):
                 reset_repeated_transition_failures()
 
             if advanced and self.navigator.current_page == destination:
-                continue
+                # _execute_transition 的到达等待已对目标页完成两帧确认，直接收尾返回，避免回环重复确认。
+                return self._finalize_arrival(destination, confirm_wait, start_time)
             if progress_timer.reached():
                 self._log_navigation_timeout(
                     destination,
