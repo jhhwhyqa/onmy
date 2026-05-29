@@ -4,6 +4,7 @@
 import time
 import re
 from cached_property import cached_property
+from tasks.GameUi.default_pages import page_exploration
 
 from tasks.base_task import BaseTask
 from tasks.Component.GeneralBattle.general_battle import ExitMatcher, GeneralBattle
@@ -130,7 +131,7 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RealmRaidAssets):
                 logger.info('Battle lost and exit')
                 break
 
-        self.goto_page(page_main)
+        self.goto_page(page_exploration)
         self.set_next_run(task='RealmRaid', success=success, finish=True)
         raise TaskEnd
 
