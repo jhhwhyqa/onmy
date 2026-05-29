@@ -2,6 +2,7 @@ from module.atom.gif import RuleGif
 from module.atom.image import RuleImage
 from module.logger import logger
 from tasks.Exploration import page as pages
+from tasks.Exploration.base import BaseExploration
 from tasks.Exploration.config import UpType
 from tasks.Exploration.script_task import ScriptTask as ExplorationScriptTask
 from tasks.Exploration.version import HighLight
@@ -36,7 +37,7 @@ class WQExplore(ExplorationScriptTask, HighLight):
         return need_exit
 
     def arrive_end(self) -> bool:
-        arrived_end = super().arrive_end()
+        arrived_end = BaseExploration.arrive_end(self)
         self._explor_cnt += 1 if arrived_end else 0
         return arrived_end
 
