@@ -193,29 +193,43 @@ class BaseExploration(GameUi, GeneralBattle, GeneralRoom, GeneralInvite, Replace
         rarity = ShikigamiClass.N if choose_rarity == ChooseRarity.N else ShikigamiClass.MATERIAL
         self.click(self.C_CLICK_STANDBY_TEAM)  # 先点击候补出战区域
         self.switch_shikigami_class(rarity)  # 切换式神类别
-        # 移动至未候补的狗粮
+        pre = -1
         while True:
-            # 慢一点
             time.sleep(0.5)
             self.screenshot()
             if not self.appear(self.I_E_OPEN_SETTINGS):
                 logger.warning('Opening settings failed')
                 return
-            if self.appear(self.I_E_RATATE_EXSIT):
+            cur, res, total = self.O_E_ALTERNATE_NUMBER.ocr(self.device.image)
+            if cur >= 40:
+                logger.info(f'Alternate number is enough, exit')
+                break
+            # 连续向后滑动超过6次还能识别到候补狗粮(1. 滑动的不够× 2. 没新狗粮了)
+            if self.device.click_record.count(self.S_SWIPE_SHIKI_TO_LEFT.name) >= 6 or \
+                    self.device.click_record.count(self.S_SWIPE_SHIKI_TO_LEFT_ONE.name) >= 6:
+                if cur > 0: # 上了一部分狗粮, 先用着
+                    logger.warning(f'Alternate number is not enough, current: {cur}')
+                    break
+                # 滑动很多次了, 结果也没成功上狗粮, 要么滑的不够(基本不可能)要么没狗粮(大概率)
+                # TODO: 1. 增加选项狗粮不够时继续打 2. 去召唤界面换狗粮(这里还有问题是否去商店买厕纸)
+                raise GameStuckError(f"Alternate number is not enough")
+            # 识别到右侧候补狗粮, 则大幅度向右移动
+            if self.appear(self.I_E_ROTATE_EXIST_RIGHT):
                 self.swipe(self.S_SWIPE_SHIKI_TO_LEFT)
-            else:
-                break
-        while True:
-            self.screenshot()
-            if not self.appear(self.I_E_OPEN_SETTINGS):
-                logger.warning('Opening settings failed')
-                return
-            cu, res, total = self.O_E_ALTERNATE_NUMBER.ocr(self.device.image)
-            if cu >= 40:
-                break
-            self.swipe(self.S_SWIPE_SHIKI_TO_LEFT_ONE)
-            # 慢一点
-            time.sleep(0.5)
+                continue
+            # 识别到候补狗粮, 则滑动一部分
+            if self.appear(self.I_E_RATATE_EXSIT):
+                self.swipe(self.S_SWIPE_SHIKI_TO_LEFT_ONE)
+                continue
+            # 没识别到候补狗粮(没狗粮/已经全满级)导致不滑动了, 但是上狗粮后数量又没变
+            if pre == cur:
+                if cur > 0:  # 上了一部分狗粮, 先用着
+                    logger.warning(f'Alternate number is not enough, current: {cur}')
+                    break
+                # TODO: 同上一个todo
+                raise GameStuckError(f"Alternate number is not enough")
+            pre = cur
+            # 长按上狗粮
             self.click(self.L_ROTATE_1)
             self.device.click_record_clear()
         self.goto_page(pages.page_exp_main)
@@ -390,18 +404,8 @@ if __name__ == "__main__":
     from module.config.config import Config
     from module.device.device import Device
 
-    config = Config('oas1')
+    config = Config('绘卷oas2')
     device = Device(config)
     t = BaseExploration(config, device)
     t.screenshot()
-
-    # IMAGE_FILE = r"C:\Users\萌萌哒\Desktop\QQ20240818-163854.png"
-    # image = load_image(IMAGE_FILE)
-    # t.device.image = image
-    while 1:
-    # print(t.search_up_fight(UpType.EXP))
-        t.screenshot()
-        print(t.I_UP_DARUMA.test_match(t.device.image))
-        time.sleep(0.2)
-    from PIL import Image
-    # Image.fromarray(t.device.image.astype(np.uint8)).show()
+    t.fill_shikigami()

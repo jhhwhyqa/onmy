@@ -113,6 +113,8 @@ class ExplorationAssets:
 	I_E_REWARD_BOX_BIG = RuleImage(roi_front=(31,385,51,39), roi_back=(1,73,108,553), threshold=0.8, method="Template matching", file="./tasks/Exploration/res/res_e_reward_box_big.png")
 	# 探索入口&主界面小宝箱 
 	I_E_REWARD_BOX_SMALL = RuleImage(roi_front=(234,626,43,32), roi_back=(0,597,327,100), threshold=0.8, method="Template matching", file="./tasks/Exploration/res/res_e_reward_box_small.png")
+	# 右侧候补标志 
+	I_E_ROTATE_EXIST_RIGHT = RuleImage(roi_front=(829,580,33,35), roi_back=(700,574,450,46), threshold=0.8, method="Template matching", file="./tasks/Exploration/res/res_e_ratate_exsit.png")
 
 
 	# Long Click Rule Assets

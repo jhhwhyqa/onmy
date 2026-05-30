@@ -250,5 +250,14 @@
     "method": "Template matching",
     "threshold": 0.8,
     "description": "探索入口&主界面小宝箱"
+  },
+  {
+    "itemName": "e_rotate_exist_right",
+    "imageName": "res_e_ratate_exsit.png",
+    "roiFront": "829,580,33,35",
+    "roiBack": "700,574,450,46",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "右侧候补标志"
   }
 ]
