@@ -27,6 +27,9 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, GoryouRealmAssets):
         if con.switch_soul_config.enable:
             self.goto_page(page_shikigami_records)
             self.run_switch_soul(con.switch_soul_config.switch_group_team)
+        if con.switch_soul_config.enable_switch_by_name:
+            self.goto_page(page_shikigami_records)
+            self.run_switch_soul_by_name(con.switch_soul_config.group_name, con.switch_soul_config.team_name)
         self.goto_page(page_goryou_realm)
         match_click = {
             GoryouClass.Dark_Divine_Dragon: self.C_GR_C_1,
