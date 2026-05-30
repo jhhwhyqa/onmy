@@ -16,6 +16,7 @@ from module.atom.image import RuleImage
 from module.atom.ocr import RuleOcr
 from module.base.timer import Timer
 from module.base.utils import color_similar, get_color
+from module.exception import GameStuckError
 from module.logger import logger
 from tasks.Component.GeneralBattle.assets import GeneralBattleAssets
 from tasks.Component.GeneralBattle.config_general_battle import GeneralBattleConfig, GreenMarkType, GreenMarkEnum
@@ -584,6 +585,18 @@ class GeneralBattle(GeneralBuff, GeneralBattleAssets):
             logger.warning(f"Battle timeout reached: {context.battle_timer.limit}s")
             context.quick_exit = True
 
+    def _in_settlement_stage(self, context: BattleContext, page: Page | None) -> bool:
+        """判断当前是否处于结算收尾阶段
+        Args:
+            context: 当前战斗上下文对象。
+            page: 当前帧识别到的战斗页面；`None` 表示未识别到任何战斗页。
+
+        Returns:
+            bool: 当前帧或最近一次稳定识别页面属于结算/奖励页时返回 `True`。
+        """
+        settlement = {page_battle_result, page_reward}
+        return page in settlement or context.last_page in settlement
+
     def _handle_prepare(self, context: BattleContext, config: GeneralBattleConfig) -> BattleAction:
         """处理准备页逻辑。
 
@@ -594,8 +607,6 @@ class GeneralBattle(GeneralBuff, GeneralBattleAssets):
         Returns:
             BattleAction: 当前轮准备页处理后的动作决策。
         """
-        if context.quick_exit:
-            return BattleAction.QUICK_EXIT
         if context.last_page in {page_battle, page_battle_result, page_reward}:
             if not config.continuous_battle:
                 return BattleAction.EXIT_WIN if context.is_win else BattleAction.EXIT_LOSE
@@ -630,8 +641,6 @@ class GeneralBattle(GeneralBuff, GeneralBattleAssets):
         Returns:
             BattleAction: 当前轮战斗中处理后的动作决策。
         """
-        if context.quick_exit:
-            return BattleAction.QUICK_EXIT
         if context.last_page not in (page_battle, page_battle_prepare):
             self._reset_timed_battle_inspection_timers(context)
         self._tick_timed_battle_inspections(context)
@@ -693,19 +702,18 @@ class GeneralBattle(GeneralBuff, GeneralBattleAssets):
         Returns:
             BattleAction: 根据结算收尾状态推导出的动作决策。
         """
-        if (
-            context.last_page in {page_battle_result, page_reward}
-            and not config.continuous_battle
-            and exit_matcher is not None
-            and self._evaluate_exit_matcher(exit_matcher)
-        ):
+        # 非连战且设置了退出检测器, 则根据退出检测器检测是否已经退出
+        if not config.continuous_battle and exit_matcher is not None and self._evaluate_exit_matcher(exit_matcher):
             logger.info("Exit matcher hit")
             return BattleAction.EXIT_WIN if context.is_win else BattleAction.EXIT_LOSE
-        if context.last_page not in {page_battle_result, page_reward} and context.reward_no_battle_ts is None:
+        # 上个页面还是战斗中的页面但此时是未知界面, 且奖励计时也未开启, 则认为当前是页面抖动继续战斗(式神助战...)
+        if context.last_page in {page_battle_prepare, page_battle} and context.reward_no_battle_ts is None:
             return BattleAction.CONTINUE
+        # 上个页面为战斗结算/奖励页面, 此时识别不到页面, 则开始超时计时
         if context.reward_no_battle_ts is None:
             context.reward_no_battle_ts = time.time()
             return BattleAction.CONTINUE
+        # 若超时则认为战斗已经结束
         if time.time() - context.reward_no_battle_ts >= 2.5:
             return BattleAction.EXIT_WIN if context.is_win else BattleAction.EXIT_LOSE
         return BattleAction.CONTINUE
@@ -748,8 +756,22 @@ class GeneralBattle(GeneralBuff, GeneralBattleAssets):
             return False
         if action == BattleAction.QUICK_EXIT:
             self.device.screenshot_interval_set()
-            self.exit_battle()
+            if not self.exit_battle():
+                raise GameStuckError("Quick exit requested but exit button not found")
         return None
+
+    @property
+    def gb_page_handle_dict(self) -> dict[Page, Callable[[BattleContext, GeneralBattleConfig], BattleAction]]:
+        """
+        Returns:
+            dict[Page, Callable]: 战斗页面到对应 handler 的映射。
+        """
+        return {
+            page_battle_prepare: self._handle_prepare,
+            page_battle: self._handle_in_battle,
+            page_battle_result: self._handle_result,
+            page_reward: self._handle_reward,
+        }
 
     def run_general_battle(
         self,
@@ -795,23 +817,15 @@ class GeneralBattle(GeneralBuff, GeneralBattleAssets):
                 context.reward_no_battle_ts = None if page else context.reward_no_battle_ts
                 self._sync_prepare_click_timer(context, page)
                 self._ensure_battle_stuck_guard(context, page)
-                match page:
-                    case None:
+                if context.quick_exit and not self._in_settlement_stage(context, page):
+                    action = BattleAction.QUICK_EXIT
+                else:
+                    handle = self.gb_page_handle_dict.get(page, None)
+                    if handle is None:
                         action = self._handle_missing_battle_page(context, config, resolved_exit_matcher)
-                    case current if current == page_battle_prepare:
-                        self.device.screenshot_interval_set()
-                        action = self._handle_prepare(context, config)
-                    case current if current == page_battle:
-                        self.device.screenshot_interval_set('combat')
-                        action = self._handle_in_battle(context, config)
-                    case current if current == page_battle_result:
-                        self.device.screenshot_interval_set()
-                        action = self._handle_result(context, config)
-                    case current if current == page_reward:
-                        self.device.screenshot_interval_set()
-                        action = self._handle_reward(context, config)
-                    case _:
-                        action = BattleAction.CONTINUE
+                    else:
+                        self.device.screenshot_interval_set('combat' if page == page_battle else None)
+                        action = handle(context, config)
                 resolved = self._resolve_action(action)
                 if resolved is not None:
                     return resolved
