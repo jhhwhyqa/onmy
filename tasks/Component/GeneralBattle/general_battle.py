@@ -739,11 +739,12 @@ class GeneralBattle(GeneralBuff, GeneralBattleAssets):
         self._reset_round_context(context, config, continuous_count=next_count)
         return BattleAction.CONTINUE
 
-    def _resolve_action(self, action: BattleAction) -> bool | None:
+    def _resolve_action(self, action: BattleAction, context: BattleContext) -> bool | None:
         """统一处理内部动作枚举并解析最终返回值。
 
         Args:
             action: 当前处理得到的动作枚举。
+            context: 当前战斗上下文对象。
 
         Returns:
             bool | None: `True/False` 表示战斗结束结果，`None` 表示继续主循环。
@@ -756,7 +757,7 @@ class GeneralBattle(GeneralBuff, GeneralBattleAssets):
             return False
         if action == BattleAction.QUICK_EXIT:
             self.device.screenshot_interval_set()
-            if not self.exit_battle():
+            if context.last_page and not self.exit_battle():
                 raise GameStuckError("Quick exit requested but exit button not found")
         return None
 
@@ -826,7 +827,7 @@ class GeneralBattle(GeneralBuff, GeneralBattleAssets):
                     else:
                         self.device.screenshot_interval_set('combat' if page == page_battle else None)
                         action = handle(context, config)
-                resolved = self._resolve_action(action)
+                resolved = self._resolve_action(action, context)
                 if resolved is not None:
                     return resolved
                 context.last_page = page if page else context.last_page
