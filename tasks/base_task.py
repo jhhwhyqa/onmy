@@ -748,7 +748,7 @@ class BaseTask(GlobalGameAssets, CostumeBase):
             self.screenshot()
             if not self.appear(click):
                 break
-            elif self.appear_then_click(click, interval=interval):
+            if self.appear(click) and self.click(click, interval=interval):
                 appear_and_clicked = True
         return appear_and_clicked
 
