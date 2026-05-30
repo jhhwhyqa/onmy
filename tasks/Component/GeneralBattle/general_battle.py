@@ -836,7 +836,7 @@ class GeneralBattle(GeneralBuff, GeneralBattleAssets):
             return False
         while True:
             self.screenshot()
-            if self.appear_then_click(self.I_EXIT_ENSURE):
+            if self.appear_then_click(self.I_EXIT_ENSURE, interval=0.8):
                 continue
             if self.appear(self.I_FALSE):
                 break
