@@ -33,6 +33,7 @@ from tasks.GameUi.page_definition import Page
 ExitMatcher = Union[Matcher | RecognizerLike | Page]
 BattleInspectionAction = Callable[["BattleContext"], None]
 PREPARE_CLICK_DELAY = 3.0
+QUICK_EXIT_WAIT_TIMEOUT = 5.0
 
 
 @dataclass
@@ -119,6 +120,8 @@ class BattleContext:
     reward_no_battle_ts: float | None = None
     # 当前调用是否已进入快速退出路径；该状态只在本次调用内有效。
     quick_exit: bool = False
+    # quick_exit 的退出按钮等待窗口；用于容忍页面尚未加载完成时的短暂失败。
+    quick_exit_timer: Timer | None = None
     # 最近一次结算页解析出的胜负结果；用于退出时返回最终布尔值。
     is_win: bool = False
 
@@ -476,6 +479,7 @@ class GeneralBattle(GeneralBuff, GeneralBattleAssets):
         context.last_page = None
         context.reward_no_battle_ts = None
         context.quick_exit = bool(config.quick_exit)
+        context.quick_exit_timer = None
         context.continuous_count = continuous_count
         context.round_behavior_state = BattleBehaviorState()
         context.prepare_click_timer.clear()
@@ -757,8 +761,16 @@ class GeneralBattle(GeneralBuff, GeneralBattleAssets):
             return False
         if action == BattleAction.QUICK_EXIT:
             self.device.screenshot_interval_set()
-            if context.last_page and not self.exit_battle():
-                raise GameStuckError("Quick exit requested but exit button not found")
+            if context.quick_exit_timer is None:
+                context.quick_exit_timer = Timer(QUICK_EXIT_WAIT_TIMEOUT).start()
+            if self.exit_battle():
+                context.quick_exit = False
+                context.quick_exit_timer = None
+                return None
+            if context.quick_exit_timer.reached():
+                raise GameStuckError(
+                    f"Quick exit requested but exit button not found within {QUICK_EXIT_WAIT_TIMEOUT}s",
+                )
         return None
 
     @property
