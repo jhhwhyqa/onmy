@@ -221,7 +221,7 @@
     "roiFront": "1073,174,57,65",
     "roiBack": "571,153,586,124",
     "method": "Template matching",
-    "threshold": 0.8,
+    "threshold": 0.7,
     "description": "庭院召唤标志"
   },
   {

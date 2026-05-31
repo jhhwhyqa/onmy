@@ -154,7 +154,7 @@ class GameUiAssets:
 	# 花合战退出标志 
 	I_BACK_DAILY = RuleImage(roi_front=(33,13,39,50), roi_back=(33,13,39,50), threshold=0.8, method="Template matching", file="./tasks/GameUi/page/page_back_daily.png")
 	# 庭院召唤标志 
-	I_MAIN_GOTO_SUMMON = RuleImage(roi_front=(1073,174,57,65), roi_back=(571,153,586,124), threshold=0.8, method="Template matching", file="./tasks/GameUi/page/page_main_goto_summon.png")
+	I_MAIN_GOTO_SUMMON = RuleImage(roi_front=(1073,174,57,65), roi_back=(571,153,586,124), threshold=0.7, method="Template matching", file="./tasks/GameUi/page/page_main_goto_summon.png")
 	# 召唤页面标志 
 	I_CHECK_SUMMON = RuleImage(roi_front=(750,580,30,28), roi_back=(578,516,419,204), threshold=0.8, method="Template matching", file="./tasks/GameUi/page/page_check_summon.png")
 	# 阴阳寮神社左上角 
