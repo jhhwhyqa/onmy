@@ -325,11 +325,11 @@ class ScriptTask(WQExplore, SecretScriptTask, WantedQuestsAssets):
         wq_info_txt = info_rule.ocr(self.device.image)
         wq_info_txt = wq_info_txt.replace('：', ':').replace('（', '(').replace('）', ')')
         import re
-        match = re.match(r"^(.+?)\(?[数教]量:\s*(\d+)\)?$", wq_info_txt)
+        match = re.search(r"(.+?)\s*\(?[数教]量[:：]\s*(\d+)", wq_info_txt)
         if not match:
             logger.warning(f'Unknown wq info: {wq_info_txt}')
             return None
-        wq_dest, wq_number = match.group(1), int(match.group(2))
+        wq_dest, wq_number = match.group(1).strip(), int(match.group(2))
         do_num = num_want // wq_number + (num_want % wq_number > 0)
         return WQInfo(wq_type, wq_dest, wq_number, goto_btn_rule, do_num)
 
@@ -651,12 +651,52 @@ class ScriptTask(WQExplore, SecretScriptTask, WantedQuestsAssets):
 
 
 if __name__ == '__main__':
-    from module.config.config import Config
-    from module.device.device import Device
     import re
+    # 原始版本
+    strict_pattern = re.compile(r"^(.+?)\(?[数教]量:\s*(\d+)\)?$")
+    # OCR容错版本
+    ocr_pattern = re.compile(r"(.+?)\s*\(?[数教]量[:：]\s*(\d+)")
+    test_cases = [
+        "第十章(数量:2)",
+        '第十章(数量:2)"',
+        '第十章(数量:2""',
+        "第十章 数量:2",
+        "第十章 数量：2",
+        "第十章(数量：2)",
+        "第十章 (数量: 2)",
+        "第十章(教量:2)",
+        "第十章(数量:2abc)",
+        "第十章(数量:20)",
+        "第十章数量:2",
+        "第十章",
+        "",
+    ]
+    test_cases.extend([
+        "第十章（数量：2）",  # 中文括号
+        "第十章(数最:2)",  # OCR错字
+        "第十章(数量:Z)",  # OCR数字识别失败
+        "第十章(数量:2 )",
+        "第十章(数量: 2)",
+        "第十章(数量:02)",
+        "第十章(数量:2.”)",
+        "第十章(数量:2。)",
+    ])
 
-    c = Config('oas1')
-    d = Device(c)
-    t = ScriptTask(c, d)
+    def test(pattern, text):
+        match = pattern.search(text)
+        if not match:
+            return "❌ 不匹配"
+        return (
+            f"✅ 匹配 "
+            f"dest=[{match.group(1).strip()}], "
+            f"number=[{int(match.group(2))}]"
+        )
 
-    t.run()
+    for text in test_cases:
+        print("=" * 60)
+        print(f"输入: {repr(text)}")
+        print("\n【严格模式】")
+        print(test(strict_pattern, text))
+        print("\n【OCR容错模式】")
+        print(test(ocr_pattern, text))
+        print()
