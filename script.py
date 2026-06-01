@@ -33,6 +33,7 @@ from module.image.rpc import ensure_image_server_ready
 from module.ocr.rpc import ensure_ocr_server_ready
 from module.script import ScriptRuntimeController, ScriptRuntimeDecision
 from tasks.Restart.server_update import delay_pending_tasks_for_server_update, is_server_update_window
+from module.server.log_service import build_error_log_dir_name
 
 _log_switch_lock = threading.Lock()#线程锁
 
@@ -91,8 +92,15 @@ class Script:
 
     def save_error_log(self):
         """
-        Save last 60 screenshots in ./log/error/<timestamp>
-        Save logs to ./log/error/<timestamp>/log.txt
+        保存错误现场到 ./log/error/<script_name>_<timestamp_ms>。
+
+        保存内容包括:
+        - 最近一段截图, 文件名为时间戳 PNG。
+        - 当前脚本日志的截取内容, 文件名为 log.txt。
+
+        说明:
+        - 新错误目录名会带上脚本名, 便于前端区分不同脚本产生的错误。
+        - 目录名和脚本名都会经过统一净化, 避免路径注入。
         """
         from module.base.utils import save_image
         from module.handler.sensitive_info import (handle_sensitive_image,
@@ -100,7 +108,9 @@ class Script:
         if self.config.script.error.save_error:
             if not os.path.exists('./log/error'):
                 os.mkdir('./log/error')
-            folder = f'./log/error/{int(time.time() * 1000)}'
+            # 用统一规则生成错误目录名, 目录格式为 <script_name>_<timestamp_ms>。
+            folder_name = build_error_log_dir_name(self.config_name, int(time.time() * 1000))
+            folder = f'./log/error/{folder_name}'
             logger.warning(f'Saving error: {folder}')
             os.mkdir(folder)
             for data in self.device.screenshot_deque:
