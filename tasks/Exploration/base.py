@@ -384,7 +384,20 @@ class BaseExploration(GameUi, GeneralBattle, GeneralRoom, GeneralInvite, Replace
         # 已经打过boss了且设置了不收集小纸人奖励则直接返回
         if self.fire_monster_type == 'boss' and not self._config.exploration_config.collect_paper_reward:
             logger.info("Not collect paper doll reward")
-            self.goto_page(pages.page_exp_entrance)
+            self.goto_page(pages.page_exp_exit) # 前往探索退出弹窗
+            self.click(self.I_E_EXIT_CONFIRM, interval=1)   # 确认退出探索
+            # 等待回到入口或者探索界面
+            for i in range(10):
+                self.screenshot()
+                current_page = self.get_current_page()
+                # 如果在探索页面则前往章节入口
+                if current_page == pages.page_exploration:
+                    self.goto_page(pages.page_exp_entrance)
+                    break
+                # 如果在章节入口页面则直接跳出循环
+                if current_page == pages.page_exp_entrance:
+                    break
+                time.sleep(0.2)
             return True
         # 没打boss或者收集纸人奖励, 且出现了纸人则处理掉落奖励
         if self.appear(self.I_BATTLE_REWARD) and self._config.exploration_config.collect_paper_reward:
