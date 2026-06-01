@@ -711,7 +711,8 @@ class GeneralBattle(GeneralBuff, GeneralBattleAssets):
             logger.info("Exit matcher hit")
             return BattleAction.EXIT_WIN if context.is_win else BattleAction.EXIT_LOSE
         # 上个页面还是战斗中的页面但此时是未知界面, 且奖励计时也未开启, 则认为当前是页面抖动继续战斗(式神助战...)
-        if context.last_page in {page_battle_prepare, page_battle} and context.reward_no_battle_ts is None:
+        if context.last_page is None or (context.last_page in {page_battle_prepare, page_battle} and
+                                         context.reward_no_battle_ts is None):
             return BattleAction.CONTINUE
         # 上个页面为战斗结算/奖励页面, 此时识别不到页面, 则开始超时计时
         if context.reward_no_battle_ts is None:
