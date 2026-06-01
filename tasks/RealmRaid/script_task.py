@@ -9,10 +9,11 @@ from tasks.GameUi.default_pages import page_exploration
 from tasks.base_task import BaseTask
 from tasks.Component.GeneralBattle.general_battle import ExitMatcher, GeneralBattle
 from tasks.GameUi.game_ui import GameUi
-from tasks.GameUi.page import page_realm_raid, page_main, page_shikigami_records
+from tasks.GameUi.page import page_realm_raid
 from tasks.RealmRaid.assets import RealmRaidAssets
 from tasks.RealmRaid.config import RealmRaid, AttackNumber, WhenAttackFail
 from tasks.Component.SwitchSoul.switch_soul import SwitchSoul
+from tasks.RealmRaid.page import page_shikigami_records
 
 
 from module.logger import logger
@@ -31,14 +32,30 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RealmRaidAssets):
 
     def run(self):
         con = self.config.realm_raid
+        # 直接进入个人突破页面
+        self.goto_page(page_realm_raid)
+
+        # 在突破页面内先判断票数，如果没有票了或者已经达到攻击次数上限，就直接结束任务
+        if not self.check_ticket(con.raid_config.number_base):
+            logger.warning("剩余突破券不足或已达到攻击次数上限，任务终止。")
+            self.goto_page(page_exploration)
+            self.set_next_run(task='RealmRaid', success=False, finish=True)
+            raise TaskEnd
+
+        # 票数足够，现在开始进行御魂切换
         if con.switch_soul_config.enable:
             self.goto_page(page_shikigami_records)
             self.run_switch_soul(con.switch_soul_config.switch_group_team)
+            logger.info("已完成按分组切换御魂。")
+                
         if con.switch_soul_config.enable_switch_by_name:
             self.goto_page(page_shikigami_records)
             self.run_switch_soul_by_name(con.switch_soul_config.group_name, con.switch_soul_config.team_name)
-
+            logger.info("已完成按名称切换御魂。")
+            
+        # 切换完成后，必须返回突破页面
         self.goto_page(page_realm_raid)
+        logger.info("已返回个人结界突破页面。")
 
         # 有呱太活动的时候第一次进入还会 出现一个弹窗
         self.screenshot()
