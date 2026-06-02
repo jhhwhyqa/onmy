@@ -80,6 +80,9 @@ page_friends.add_leave_failure_hooks(GlobalGameAssets.I_UI_BACK_RED)
 page_main.connect(page_friends, GameUiAssets.I_MAIN_GOTO_FRIENDS, key="page_main->page_friends")
 
 page_daily = Page(GameUiAssets.I_CHECK_DAILY, category="global")
+page_daily.add_enter_failure_hooks(conditional_action(
+    condition=lambda task: not task.appear(GameUiAssets.I_CHECK_MAIN),
+    action=lambda task: task.click(random_click(ltrb=(False, False, False, True)), interval=0.6)))
 page_daily.connect(page_main, GlobalGameAssets.I_UI_BACK_YELLOW, key="page_daily->page_main")
 page_main.connect(page_daily, GameUiAssets.I_MAIN_GOTO_DAILY, key="page_main->page_daily")
 
