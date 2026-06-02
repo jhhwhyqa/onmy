@@ -1,10 +1,7 @@
 # This Python file uses the following encoding: utf-8
-# @author runhey
-# github https://github.com/runhey
+# @author AzurTian
 import time
 import numpy as np
-import random
-from enum import Enum
 from cached_property import cached_property
 from datetime import timedelta, datetime
 from module.atom.gif import RuleGif
@@ -15,40 +12,29 @@ from tasks.Component.GeneralRoom.general_room import GeneralRoom
 from tasks.Component.GeneralInvite.general_invite import GeneralInvite
 from tasks.Component.ReplaceShikigami.replace_shikigami import ReplaceShikigami
 from tasks.Exploration.assets import ExplorationAssets
-from tasks.Exploration.config import ChooseRarity, UpType, ExplorationLevel, AutoRotate
-from tasks.Component.GeneralBattle.general_battle import GeneralBattle, ExitMatcher
+from tasks.Exploration.config import ChooseRarity, UpType, ExplorationLevel, AutoRotate, UserStatus, Exploration
+from tasks.Component.GeneralBattle.general_battle import GeneralBattle, ExitMatcher, BattleContext, BattleAction
 from tasks.GameUi.game_ui import GameUi
 from tasks.Utils.config_enum import ShikigamiClass
 import tasks.Exploration.page as pages
 
 from module.logger import logger
-from module.base.timer import Timer
 from module.exception import TaskEnd, GameStuckError
 from module.atom.animate import RuleAnimate
 from typing import Optional
 
 
-class Scene(Enum):
-    UNKNOWN = 0  #
-    WORLD = 1  # 探索大世界
-    ENTRANCE = 2  # 入口弹窗
-    MAIN = 3  # 探索里面
-    BATTLE_PREPARE = 4  # 战斗准备
-    BATTLE_FIGHTING = 5  # 战斗中
-    TEAM = 6  # 组队
-
-
 class BaseExploration(GameUi, GeneralBattle, GeneralRoom, GeneralInvite, ReplaceShikigami, SwitchSoul, ExplorationAssets):
-    minions_cnt = 0
     fire_monster_type: str = ''
-    unknown_page_seconds: int = 8
-    unknown_page_timer: Timer = Timer(unknown_page_seconds)
+    need_exit: bool = False
+    user_status: UserStatus = UserStatus.ALONE
+    wait_start_time: datetime = datetime.now()
 
     def _exit_matcher(self) -> ExitMatcher:
         return pages.any_of(self.I_E_SETTINGS_BUTTON, self.I_E_AUTO_ROTATE_ON, self.I_E_AUTO_ROTATE_OFF)
 
     @cached_property
-    def _config(self):
+    def _config(self) -> Exploration:
         self.config.exploration.general_battle_config.lock_team_enable = True
         limit_time = self.config.exploration.exploration_config.limit_time
         self.limit_time: timedelta = timedelta(
@@ -62,26 +48,6 @@ class BaseExploration(GameUi, GeneralBattle, GeneralRoom, GeneralInvite, Replace
     def _match_end(self):
         return RuleAnimate(self.I_SWIPE_END)
 
-    def get_current_scene(self, reuse_screenshot: bool = True) -> Scene:
-        if not reuse_screenshot:
-            self.screenshot()
-
-        if self.appear(self.I_CHECK_EXPLORATION) and not self.appear(self.I_E_SETTINGS_BUTTON):
-            return Scene.WORLD
-        elif self.appear(self.I_E_EXPLORATION_CLICK):
-            return Scene.ENTRANCE
-        elif self.appear(self.I_E_SETTINGS_BUTTON) or self.appear(self.I_E_AUTO_ROTATE_ON) or self.appear(self.I_E_AUTO_ROTATE_OFF):
-            return Scene.MAIN
-        elif self.is_in_prepare():
-            return Scene.BATTLE_PREPARE
-        elif self.is_in_battle():
-            return Scene.BATTLE_FIGHTING
-        elif self.is_in_room() or self.appear(self.I_CREATE_ENSURE):
-            return Scene.TEAM
-
-        logger.info("Unknown scene")
-        return Scene.UNKNOWN
-
     def pre_process(self):
         if self._config.switch_soul_config.enable:
             self.goto_page(pages.page_shikigami_records)
@@ -91,7 +57,6 @@ class BaseExploration(GameUi, GeneralBattle, GeneralRoom, GeneralInvite, Replace
             self.goto_page(pages.page_shikigami_records)
             self.run_switch_soul_by_name(self._config.switch_soul_config.group_name,
                                          self._config.switch_soul_config.team_name)
-
         # 开启加成
         con = self.config.exploration.exploration_config
         if con.buff_gold_50_click or con.buff_gold_100_click or con.buff_exp_50_click or con.buff_exp_100_click:
@@ -106,6 +71,7 @@ class BaseExploration(GameUi, GeneralBattle, GeneralRoom, GeneralInvite, Replace
             if con.buff_exp_100_click:
                 self.exp_100()
             self.close_buff()
+        self.user_status = self._config.exploration_config.user_status
 
     def post_process(self):
         self.goto_page(pages.page_exploration)
@@ -295,22 +261,21 @@ class BaseExploration(GameUi, GeneralBattle, GeneralRoom, GeneralInvite, Replace
         # 判断突破票数量
         if cu < con_scrolls.scrolls_threshold:
             return
-
         # 关闭加成
-        self.goto_page(pages.page_main)
         if con.buff_gold_50_click or con.buff_gold_100_click or con.buff_exp_50_click or con.buff_exp_100_click:
+            self.goto_page(pages.page_main)
             self.open_buff()
             self.gold_50(is_open=False)
             self.gold_100(is_open=False)
             self.exp_50(is_open=False)
             self.exp_100(is_open=False)
             self.close_buff()
-
         # 设置下次执行行时间
         logger.info("RealmRaid and Exploration  set_next_run !")
         next_run = datetime.now() + con_scrolls.scrolls_cd
+        self.goto_page(pages.page_exploration)
         self.set_next_run(task='Exploration', success=False, finish=False, target=next_run)
-        self.set_next_run(task='RealmRaid', success=False, finish=False, server = False, target=datetime.now())
+        self.set_next_run(task='RealmRaid', success=False, finish=False, server=False, target=datetime.now())
         self.set_next_run(task='MemoryScrolls', success=False, finish=False, target=datetime.now())
         raise TaskEnd
 
@@ -320,24 +285,26 @@ class BaseExploration(GameUi, GeneralBattle, GeneralRoom, GeneralInvite, Replace
             logger.info('Minions count is enough, exit')
             return True
         if datetime.now() - self.start_time >= self.limit_time:
-            logger.info('Exploration time limit out')
+            logger.info('Exploration time limit out, exit')
+            return True
+        if self.user_status == UserStatus.MEMBER and \
+                datetime.now() - self.wait_start_time >= self._config.invite_config.wait_time_v:
+            logger.info('Member wait time out, exit')
             return True
         self.activate_realm_raid(self._config.scrolls, self._config.exploration_config, current_page)
         return False
 
     def fire(self, button) -> bool:
-        """进入战斗"""
-        self.ui_click_until_disappear(button, interval=2)
-        self.screenshot()
-        if (self.appear(self.I_E_SETTINGS_BUTTON) or
-                self.appear(self.I_E_AUTO_ROTATE_ON) or
-                self.appear(self.I_E_AUTO_ROTATE_OFF)):
-            # 如果还在探索说明，这个是显示滑动导致挑战按钮不在范围内
-            logger.warning('Fire button disappear, but still in exploration')
-            return False
-        self.run_general_battle(self._config.general_battle_config, exit_matcher=pages.page_exp_main)
-        self._match_end.refresh()  # 防止同一张图多次打怪导致误以为探索结束
-        return True
+        """进入战斗(True:成功进入战斗, 否则False)"""
+        max_tries = 4
+        while max_tries > 0:
+            self.screenshot()
+            if self.get_current_page() in (pages.page_battle_prepare, pages.page_battle):
+                return True
+            if self.appear_then_click(button, interval=0.8):
+                max_tries -= 1
+                continue
+        return False
 
     def switch_rotate(self) -> bool:
         """切换轮换类型并添加式神 True(执行了切换)/False"""
@@ -384,26 +351,20 @@ class BaseExploration(GameUi, GeneralBattle, GeneralRoom, GeneralInvite, Replace
         # 已经打过boss了且设置了不收集小纸人奖励则直接返回
         if self.fire_monster_type == 'boss' and not self._config.exploration_config.collect_paper_reward:
             logger.info("Not collect paper doll reward")
-            self.goto_page(pages.page_exp_exit) # 前往探索退出弹窗
-            self.click(self.I_E_EXIT_CONFIRM, interval=1)   # 确认退出探索
-            # 等待回到入口或者探索界面
-            for i in range(10):
-                self.screenshot()
-                current_page = self.get_current_page()
-                # 如果在探索页面则前往章节入口
-                if current_page == pages.page_exploration:
-                    self.goto_page(pages.page_exp_entrance)
-                    break
-                # 如果在章节入口页面则直接跳出循环
-                if current_page == pages.page_exp_entrance:
-                    break
-                time.sleep(0.2)
+            self.quit_exp_main()
             return True
         # 没打boss或者收集纸人奖励, 且出现了纸人则处理掉落奖励
         if self.appear(self.I_BATTLE_REWARD) and self._config.exploration_config.collect_paper_reward:
             self.ui_get_reward(self.I_BATTLE_REWARD)
+            self.wait_start_time = datetime.now()  # 队友等待时间重置
             return True
         return False
+
+    def quit_exp_main(self):
+        """退出探索主界面(要求当前必须处于探索主界面, 不保证任何后续结果)"""
+        self.need_exit = True
+        self.appear_then_click(self.I_UI_BACK_YELLOW, interval=0.8)
+        self.wait_start_time = datetime.now()  # 队友等待时间重置
 
     def collect_reward(self) -> bool:
         """处理掉落奖励(True表示进行了操作, False表示没有操作)"""

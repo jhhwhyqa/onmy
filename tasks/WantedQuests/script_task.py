@@ -353,7 +353,8 @@ class ScriptTask(WQExplore, SecretScriptTask, WantedQuestsAssets):
             click_count = 0
             while 1:
                 self.screenshot()
-                if not self.appear(self.I_UI_BACK_RED, threshold=0.7):
+                if self.get_current_page() in [page_battle_prepare, page_battle]:
+                    self.run_general_battle(self.battle_config, exit_matcher=any_of(self.I_UI_BACK_RED, self.I_WQSE_SPECIAL_FIRE))
                     break
                 if self.appear_then_click(self.I_WQSE_FIRE, interval=1):
                     continue
@@ -364,10 +365,6 @@ class ScriptTask(WQExplore, SecretScriptTask, WantedQuestsAssets):
                         logger.warning('Secret mission chat too long, force to close')
                         click_count = 0
                         self.device.click_record_clear()
-                    continue
-            if self.get_current_page() in [page_battle_prepare, page_battle]:
-                self.run_general_battle(self.battle_config, exit_matcher=any_of(self.I_UI_BACK_RED,
-                                                                                self.I_WQSE_SPECIAL_FIRE))
         logger.info('Secret mission finished')
 
     def invite_random(self, add_button: RuleImage):

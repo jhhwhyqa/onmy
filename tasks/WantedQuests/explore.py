@@ -3,7 +3,7 @@ from module.atom.image import RuleImage
 from module.logger import logger
 from tasks.Exploration import page as pages
 from tasks.Exploration.base import BaseExploration
-from tasks.Exploration.config import UpType
+from tasks.Exploration.config import UpType, UserStatus
 from tasks.Exploration.script_task import ScriptTask as ExplorationScriptTask
 from tasks.Exploration.version import HighLight
 from typing import Optional
@@ -56,7 +56,8 @@ class WQExplore(ExplorationScriptTask, HighLight):
                 break
             if self.appear_then_click(goto, interval=2):
                 continue
-        self.run_alone()
+        self.user_status = UserStatus.ALONE
+        self.exec_exp_page()
 
 if __name__ == '__main__':
     from module.config.config import Config

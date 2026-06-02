@@ -1,17 +1,21 @@
 # This Python file uses the following encoding: utf-8
 # @author AzurTian
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from module.logger import logger
-from module.base.timer import Timer
-from tasks.Exploration.base import BaseExploration, Scene
+from tasks.Exploration.base import BaseExploration
 from tasks.Exploration.config import AutoRotate, UserStatus, ExplorationLevel
 import tasks.Exploration.page as pages
 from tasks.GameUi.page_definition import Page
+from typing import Callable
 
+
+class InviteFailedException(Exception):
+    pass
 
 class ScriptTask(BaseExploration):
+    """探索"""
 
     def confirm_page(self, page: Page, skip_first_screenshot: bool = True) -> bool:
         """探索页面跳转更改为单帧确认"""
@@ -20,179 +24,129 @@ class ScriptTask(BaseExploration):
 
     def arrive_end(self) -> bool:
         # 28章直接匹配
-        if self.config.exploration.exploration_config.exploration_level == ExplorationLevel.EXPLORATION_28:
+        if self._config.exploration_config.exploration_level == ExplorationLevel.EXPLORATION_28:
             return self.appear(self.I_SWIPE_END)
         return super().arrive_end()
+
+    @property
+    def exp_page_handle_dict(self) -> dict[Page, Callable]:
+        return {
+            pages.page_exp_main: self.run_on_exp_main,
+            pages.page_exp_settings: self.run_on_exp_settings,
+            pages.page_exp_exit: self.run_on_exp_exit,
+            pages.page_exp_entrance: self.run_on_exp_entrance,
+            pages.page_exploration: self.run_on_exp,
+            pages.page_battle_prepare: self.run_on_battle,
+            pages.page_battle: self.run_on_battle,
+            pages.page_battle_team: self.run_on_battle_team
+        }
 
     def run(self):
         logger.hr('exploration')
         self.pre_process()
-        match self._config.exploration_config.user_status:
-            case UserStatus.ALONE:
-                self.run_alone()
-            case UserStatus.LEADER:
-                self.run_leader()
-            case UserStatus.MEMBER:
-                self.run_member()
-            case _:
-                self.run_alone()
+        self.exec_exp_page()
         self.post_process()
-        
-    def run_alone(self):
-        logger.hr('alone')
-        self.goto_page(pages.page_exp_main)
-        while True:
-            self.screenshot()
-            current_page = self.get_current_page()
-            if self.check_exit(current_page):
-                return
-            match current_page:
-                case None:
-                    time.sleep(0.5)
-                case pages.page_exp_settings:
-                    self.fill_shikigami()
-                    if self._config.exploration_config.auto_rotate == AutoRotate.yes:
-                        self.appear_then_click(self.I_E_AUTO_ROTATE_OFF, interval=0.8)
-                case pages.page_exp_main:
-                    if self.collect_reward():
-                        continue
-                    if self.switch_rotate():
-                        continue
-                    fire_button = self.get_fire_button()
-                    if fire_button is not None:
-                        self.fire(fire_button)
-                        continue
-                    # 执行滑动了且探索已经到底且当前不是boss
-                    if self.swipe(self.S_SWIPE_BACKGROUND_RIGHT, interval=1) and \
-                            self.arrive_end() and self.fire_monster_type != 'boss':
-                        self.goto_page(pages.page_exp_entrance)
-                        continue
-                case pages.page_exploration | pages.page_exp_entrance:
-                    self.collect_treasure_box()
-                    self.fire_monster_type = ''  # 入口处重置怪物类型
-                    self.goto_page(pages.page_exp_main)
-                case pages.page_battle_prepare | pages.page_battle:
-                    self.run_general_battle(self._config.general_battle_config, exit_matcher=pages.page_exp_main)
-                case _:
-                    if not self.unknown_page_timer.started():
-                        self.unknown_page_timer.start()
-                    if self.unknown_page_timer.reached():
-                        self.goto_page(pages.page_exp_entrance)
-                        self.unknown_page_timer = Timer(self.unknown_page_seconds)
 
-    def run_leader(self):
-        logger.hr('leader')
-        leave_time_seconds = 3
-        friend_leave_timer = Timer(leave_time_seconds)
+    def exec_exp_page(self):
+        pages.page_battle_team_exit = self.navigator.resolve_page(pages.page_battle_team_exit)
+        pages.page_battle_team_exit.connect(pages.page_exp_entrance, self.I_UI_CONFIRM, key="page_battle_team_exit->page_exp_entrance")
         while True:
             self.screenshot()
             current_page = self.get_current_page()
-            if self.check_exit(current_page):
-                return
-            if self.check_and_invite(False):
+            if current_page is None:
+                time.sleep(0.5)
                 continue
-            match current_page:
-                case None:
-                    time.sleep(0.5)
-                case pages.page_exp_settings:
-                    self.fill_shikigami()
-                    if self._config.exploration_config.auto_rotate == AutoRotate.yes:
-                        self.appear_then_click(self.I_E_AUTO_ROTATE_OFF, interval=0.8)
-                case pages.page_exp_entrance:
-                    self.enter_team()
-                case pages.page_battle_team:
-                    if self.run_invite(self._config.invite_config, self.current_count == 0):
-                        continue
-                    logger.warning('Invite failed, quit')
+            if self.check_exit(current_page):
+                self.appear_then_click(self.I_UI_CANCEL, interval=0.8)  # 处理队长结束的邀请弹窗
+                break
+            handle = self.exp_page_handle_dict.get(current_page, None)
+            if handle is None:
+                self.goto_page(pages.page_exploration)
+                continue
+            try:
+                handle()
+            except InviteFailedException as e:
+                logger.warning(e)
+                break
+
+    def run_on_exp_main(self):
+        if self.collect_reward():
+            return
+        if self.user_status != UserStatus.ALONE:
+            if self.fire_monster_type == 'boss':
+                return
+            if not self.appear(self.I_TEAM_EMOJI):
+                logger.info('Friend disappeared, quit')
+                self.quit_exp_main()
+                return
+        if self.switch_rotate() or self.user_status == UserStatus.MEMBER:
+            return
+        fire_button = self.get_fire_button()
+        if fire_button is not None and self.fire(fire_button):
+            return
+        if self.fire_monster_type != 'boss' and self.swipe(self.S_SWIPE_BACKGROUND_RIGHT, interval=1.5) and self.arrive_end():
+            self.quit_exp_main()
+
+    def run_on_exp_entrance(self):
+        self.collect_treasure_box()
+        self.fire_monster_type = ''  # 入口处重置怪物类型
+        self.need_exit = False
+        match self.user_status:
+            case UserStatus.LEADER:
+                if self.check_and_invite(self._config.invite_config.default_invite):
                     return
-                case pages.page_exp_main:
-                    if self.collect_reward():
-                        continue
-                    if not self.appear(self.I_TEAM_EMOJI):  # 中途有人跑路
-                        if friend_leave_timer.started() and friend_leave_timer.reached():
-                            logger.warning('Mate disappeared, quit')
-                            self.goto_page(pages.page_exp_entrance)
-                            continue
-                        if not friend_leave_timer.started():
-                            logger.warning('Mate disappear, waiting for mate')
-                            friend_leave_timer.start()
-                        continue
-                    friend_leave_timer = Timer(leave_time_seconds)
-                    if self.switch_rotate():
-                        continue
-                    fire_button = self.get_fire_button()
-                    if fire_button is not None:
-                        self.fire(fire_button)
-                        continue
-                    if self.swipe(self.S_SWIPE_BACKGROUND_RIGHT, interval=1) and \
-                            self.arrive_end() and self.fire_monster_type != 'boss':  # 探索已经到底且当前不是boss
-                        self.goto_page(pages.page_exp_entrance)
-                        continue
-                case pages.page_battle_prepare | pages.page_battle:
-                    self.run_general_battle(self._config.general_battle_config, exit_matcher=pages.page_exp_main)
-                case _:
-                    self.collect_treasure_box()
-                    self.fire_monster_type = ''  # 重置怪物类型
-                    if not self.unknown_page_timer.started():
-                        self.unknown_page_timer.start()
-                        continue
-                    if self.unknown_page_timer.reached() or self.current_count == 0:
-                        self.goto_page(pages.page_exp_entrance)
-                        self.unknown_page_timer = Timer(self.unknown_page_seconds)
+                if datetime.now() - self.wait_start_time >= timedelta(seconds=10) or self.current_count == 0:
+                    self.enter_team()
+            case UserStatus.ALONE:
+                self.goto_page(pages.page_exp_main)
+            case UserStatus.MEMBER:
+                self.check_then_accept()
+                self.device.stuck_record_clear()
 
-    def run_member(self):
-        logger.hr('member')
-        leave_time_seconds = 3
-        friend_leave_timer = Timer(leave_time_seconds)
-        start_wait_time = datetime.now()
-        pre_battle_count = -1
-        while True:
-            self.screenshot()
-            current_page = self.get_current_page()
-            if pre_battle_count != self.current_count and self.check_exit(current_page):
-                return
-            pre_battle_count = self.current_count
-            if datetime.now() - start_wait_time > self._config.invite_config.wait_time_v:
-                logger.warning('Wait timer reached')
-                return
-            self.device.stuck_record_clear()
-            if self.check_then_accept():
-                continue
-            match current_page:
-                case None | pages.page_battle_team:
-                    time.sleep(0.5)
-                case pages.page_exp_settings:
-                    self.fill_shikigami()
-                    if self._config.exploration_config.auto_rotate == AutoRotate.yes:
-                        self.appear_then_click(self.I_E_AUTO_ROTATE_OFF, interval=0.8)
-                case pages.page_exp_main:
-                    if self.collect_reward():
-                        continue
-                    if not self.appear(self.I_TEAM_EMOJI):  # 中途有人跑路
-                        if friend_leave_timer.started() and friend_leave_timer.reached():
-                            logger.warning('Mate disappeared, quit')
-                            self.goto_page(pages.page_exploration)
-                            continue
-                        if not friend_leave_timer.started():
-                            logger.warning('Mate disappear, waiting for mate')
-                            friend_leave_timer.start()
-                        continue
-                    friend_leave_timer = Timer(leave_time_seconds)
-                    self.switch_rotate()
-                case pages.page_exploration | pages.page_exp_entrance:
-                    self.collect_treasure_box()
-                case pages.page_battle_prepare | pages.page_battle:
-                    self.run_general_battle(self._config.general_battle_config, exit_matcher=pages.page_exp_main)
-                    start_wait_time = datetime.now()
-                case _:
-                    if self.current_count == 0:  # 还没有进攻过
-                        self.goto_page(pages.page_exploration)
-                        continue
-                    if not self.unknown_page_timer.started():
-                        self.unknown_page_timer.start()
-                    if self.unknown_page_timer.reached():
-                        self.goto_page(pages.page_exploration)
-                        self.unknown_page_timer = Timer(self.unknown_page_seconds)
+    def run_on_exp(self):
+        self.collect_treasure_box()
+        self.fire_monster_type = ''  # 入口处重置怪物类型
+        self.need_exit = False
+        match self.user_status:
+            case UserStatus.LEADER:
+                if self.check_and_invite(self._config.invite_config.default_invite):
+                    return
+                if datetime.now() - self.wait_start_time >= timedelta(seconds=10) or self.current_count == 0:
+                    self.goto_page(pages.page_exp_entrance)
+            case UserStatus.ALONE:
+                self.goto_page(pages.page_exp_main)
+            case UserStatus.MEMBER:
+                self.check_then_accept()
+                self.device.stuck_record_clear()
+
+    def run_on_battle(self):
+        self.run_general_battle(self._config.general_battle_config, exit_matcher=pages.page_exp_main)
+        self._match_end.refresh()  # 防止同一张图多次打怪导致误以为探索结束
+        self.wait_start_time = datetime.now()  # 队友等待时间重置
+
+    def run_on_battle_team(self):
+        self.need_exit = False
+        match self.user_status:
+            case UserStatus.LEADER:
+                if self.run_invite(self._config.invite_config, self.current_count == 0):
+                    return
+                raise InviteFailedException('Invite failed, quit')
+            case UserStatus.ALONE:
+                self.goto_page(pages.page_exp_main)
+
+    def run_on_exp_settings(self):
+        if self._config.exploration_config.auto_rotate == AutoRotate.no:
+            self.goto_page(pages.page_exp_main)
+            return
+        self.fill_shikigami()
+        self.appear_then_click(self.I_E_AUTO_ROTATE_OFF, interval=0.8)
+
+    def run_on_exp_exit(self):
+        if not self.need_exit: # 不需要退出则点取消, 通常是直接在探索界面启动脚本
+            self.appear_then_click(self.I_E_EXIT_CANCEL, interval=0.8)
+            return
+        self.appear_then_click(self.I_E_EXIT_CONFIRM, interval=0.8)
+        self.wait_start_time = datetime.now()  # 队友等待时间重置
 
 
 if __name__ == "__main__":
@@ -202,4 +156,4 @@ if __name__ == "__main__":
     config = Config('丰年2')
     device = Device(config)
     t = ScriptTask(config, device)
-    t.run_leader()
+    t.run()

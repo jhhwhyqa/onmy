@@ -250,5 +250,14 @@
     "method": "Template matching",
     "threshold": 0.8,
     "description": "皮肤碎片确定按钮"
+  },
+  {
+    "itemName": "gb_check_team_exit",
+    "imageName": "gb_gb_check_team_exit.png",
+    "roiFront": "507,288,270,54",
+    "roiBack": "411,233,452,247",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "战斗组队退出页面标志"
   }
 ]

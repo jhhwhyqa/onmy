@@ -305,6 +305,9 @@ page_reward = Page(
 )
 page_reward.add_enter_success_hooks(lambda _task: random_click())
 
+page_battle_team_exit = Page(GeneralBattleAssets.I_GB_CHECK_TEAM_EXIT, priority=75)
 page_battle_team = Page(any_of(GeneralInviteAssets.I_GI_EMOJI_1, GeneralInviteAssets.I_GI_EMOJI_2,
                                GeneralInviteAssets.I_FIRE),
-                        category="global")
+                        category="global", priority=25)
+page_battle_team_exit.connect(page_battle_team, GlobalGameAssets.I_UI_CANCEL, key="page_battle_team_exit->page_battle_team")
+page_battle_team.connect(page_battle_team_exit, GlobalGameAssets.I_UI_BACK_YELLOW, key="page_battle_team->page_battle_team_exit")

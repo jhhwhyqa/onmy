@@ -118,6 +118,8 @@ class GeneralBattleAssets:
 	I_BATTLE_STATE_INFO = RuleImage(roi_front=(725,51,67,31), roi_back=(483,18,337,102), threshold=0.8, method="Template matching", file="./tasks/Component/GeneralBattle/gb/gb_battle_state_info.png")
 	# 皮肤碎片确定按钮 
 	I_GB_SKIN_CONFIRM = RuleImage(roi_front=(594,447,90,55), roi_back=(594,447,90,55), threshold=0.8, method="Template matching", file="./tasks/Component/GeneralBattle/gb/gb_gb_skin_confirm.png")
+	# 战斗组队退出页面标志 
+	I_GB_CHECK_TEAM_EXIT = RuleImage(roi_front=(507,288,270,54), roi_back=(411,233,452,247), threshold=0.8, method="Template matching", file="./tasks/Component/GeneralBattle/gb/gb_gb_check_team_exit.png")
 
 
 	# Image Rule Assets
