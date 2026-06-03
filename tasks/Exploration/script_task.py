@@ -70,7 +70,7 @@ class ScriptTask(BaseExploration):
                 break
 
     def run_on_exp_main(self):
-        if self.collect_reward():
+        if self.need_exit or self.collect_reward():
             return
         if self.user_status != UserStatus.ALONE:
             if self.fire_monster_type == 'boss':
