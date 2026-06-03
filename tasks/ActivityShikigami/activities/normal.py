@@ -3,10 +3,14 @@ from tasks.ActivityShikigami.assets import ActivityShikigamiAssets
 from tasks.ActivityShikigami.base_act import BaseAct
 import tasks.ActivityShikigami.page as pages
 from tasks.Component.GeneralBattle.config_general_battle import GeneralBattleConfig
+from tasks.Component.GeneralBattle.general_battle import ExitMatcher
 
 
 class NormalClimbAct(BaseAct):
     """普通爬塔活动"""
+
+    def _exit_matcher(self) -> ExitMatcher | None:
+        return pages.any_of(self.I_ACT_FIRE, self.I_AS_BOSS_FIRE)
 
     def before_run(self):
         super().before_run()

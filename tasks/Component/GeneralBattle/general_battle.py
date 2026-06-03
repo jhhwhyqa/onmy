@@ -866,7 +866,7 @@ class GeneralBattle(GeneralBuff, GeneralBattleAssets):
             self.screenshot()
             if self.appear_then_click(self.I_EXIT_ENSURE, interval=0.8):
                 continue
-            if self.appear(self.I_FALSE):
+            if GameUi.get_current_page(self) in (page_battle_result, page_reward):
                 break
             if self.appear_then_click(self.I_EXIT, interval=6):
                 continue

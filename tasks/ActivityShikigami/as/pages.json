@@ -29,7 +29,7 @@
   {
     "itemName": "to_battle_boss",
     "imageName": "as_to_battle_boss.png",
-    "roiFront": "1084,289,37,136",
+    "roiFront": "1084,278,37,136",
     "roiBack": "984,188,234,327",
     "method": "Template matching",
     "threshold": 0.8,
