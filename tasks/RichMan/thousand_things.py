@@ -36,10 +36,13 @@ class ThousandThings(GameUi, RichManAssets):
             time.sleep(1)
         if con.mystery_amulet:
             self.tt_buy_mystery_amulet()
+        self.device.click_record_clear()
         if con.black_daruma_fragment:
             self.tt_buy_black_daruma_scrap()
+        self.device.click_record_clear()
         if con.ap:
             self.tt_buy_ap()
+        self.device.click_record_clear()
         while 1:
             self.screenshot()
             if self.appear(self.I_TT_ENTER):

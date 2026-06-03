@@ -271,17 +271,17 @@ class RichManAssets:
 	# 蛇皮剩余可买的 
 	O_SCA_NUMBER_OROCHI = RuleOcr(roi=(43,323,28,17), area=(43,323,28,17), mode="Digit", method="Default", keyword="", name="sca_number_orochi")
 	# 首领御魂剩余可买的 
-	O_SCA_NUMBER_DEMON = RuleOcr(roi=(627,319,30,25), area=(627,319,30,25), mode="Quantity", method="Default", keyword="", name="sca_number_demon")
+	O_SCA_NUMBER_DEMON = RuleOcr(roi=(625,320,30,22), area=(625,320,30,22), mode="Quantity", method="Default", keyword="", name="sca_number_demon")
 	# 永生之海 
-	O_SCA_NUMBER_SEA = RuleOcr(roi=(926,321,30,23), area=(926,321,30,23), mode="Quantity", method="Default", keyword="", name="sca_number_sea")
+	O_SCA_NUMBER_SEA = RuleOcr(roi=(923,321,29,21), area=(923,321,29,21), mode="Quantity", method="Default", keyword="", name="sca_number_sea")
 	# 多少号位 
 	O_SCA_DEMON_POSTION = RuleOcr(roi=(960,244,88,41), area=(960,244,88,41), mode="Single", method="Default", keyword="", name="sca_demon_postion")
 	# 朴素的御魂 
-	O_SCA_RES_OROCHI = RuleOcr(roi=(613,9,127,37), area=(613,9,127,37), mode="DigitCounter", method="Default", keyword="", name="sca_res_orochi")
+	O_SCA_RES_OROCHI = RuleOcr(roi=(547,11,127,37), area=(547,11,127,37), mode="DigitCounter", method="Default", keyword="", name="sca_res_orochi")
 	# 首领御魂数量 
-	O_SCA_RES_DEMON = RuleOcr(roi=(969,10,86,35), area=(969,10,86,35), mode="Digit", method="Default", keyword="", name="sca_res_demon")
+	O_SCA_RES_DEMON = RuleOcr(roi=(948,10,95,35), area=(948,10,95,35), mode="Digit", method="Default", keyword="", name="sca_res_demon")
 	# 永生之海 
-	O_SCA_RES_SEA = RuleOcr(roi=(1152,11,80,38), area=(1152,11,80,38), mode="Digit", method="Default", keyword="", name="sca_res_sea")
+	O_SCA_RES_SEA = RuleOcr(roi=(1134,11,100,38), area=(1134,11,100,38), mode="Digit", method="Default", keyword="", name="sca_res_sea")
 
 
 	# Image Rule Assets
