@@ -198,13 +198,14 @@ class BaseTask(GlobalGameAssets, CostumeBase):
         :param threshold:
         :return: interval时间到达且匹配成功则返回True, 否则False
         """
+        timer_key = target.name
         if interval:
-            if target.name in self.interval_timer:
-                if self.interval_timer[target.name].limit != interval:
-                    self.interval_timer[target.name] = Timer(interval)
+            if timer_key in self.interval_timer:
+                if self.interval_timer[timer_key].limit != interval:
+                    self.interval_timer[timer_key] = Timer(interval)
             else:
-                self.interval_timer[target.name] = Timer(interval)
-            if not self.interval_timer[target.name].reached():
+                self.interval_timer[timer_key] = Timer(interval)
+            if not self.interval_timer[timer_key].reached():
                 return False
         if isinstance(target, RuleOcr):
             appear = self.ocr_appear(target, interval)
@@ -221,7 +222,7 @@ class BaseTask(GlobalGameAssets, CostumeBase):
             appear = target.match(self.device.image, threshold=threshold, frame_id=self.device.image_frame_id)
 
         if appear and interval:
-            self.interval_timer[target.name].reset()
+            self.interval_timer[timer_key].reset()
 
         return appear
 
