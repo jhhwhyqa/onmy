@@ -3,6 +3,7 @@
 # github https://github.com/runhey
 from datetime import timedelta
 from pydantic import BaseModel, Field
+from tasks.Component.SwitchSoul.switch_soul_config import SwitchSoulConfig
 
 from tasks.Component.config_scheduler import Scheduler
 from tasks.Component.config_base import ConfigBase
@@ -15,4 +16,4 @@ class NianConfig(BaseModel):
 class Nian(ConfigBase):
     scheduler: Scheduler = Field(default_factory=Scheduler)
     nian_config: NianConfig = Field(default_factory=NianConfig)
-
+    switch_soul: SwitchSoulConfig = Field(default_factory=SwitchSoulConfig)
