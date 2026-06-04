@@ -230,7 +230,7 @@ class ScriptTask(GameUi, SwitchSoul, GeneralBattle, DokanAssets):
             try_start_dokan = self.config.dokan.dokan_config.try_start_dokan
             if not try_start_dokan:  # 未设置开启道馆则退出
                 raise DokanNotStartedError
-            if self.update_remain_attack_count() < 0:  # 可挑战次数为<=0,当作道馆成功完成
+            if self.update_remain_attack_count() <= 0:  # 可挑战次数为<=0,当作道馆成功完成
                 raise DokanFinishedError
             if datetime.now().weekday() == 0:  # NOTE 只在周一尝试建立道馆
                 self.creat_dokan()
