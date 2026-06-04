@@ -548,8 +548,19 @@ class Connection(ConnectionAttr):
             return True
 
         # Try to connect
-        for _ in range(3):
-            msg = self.adb_client.connect(serial)
+        for trial in range(3):
+            try:
+                msg = self.adb_client.connect(serial)
+            except (ConnectionResetError, ConnectionAbortedError, BrokenPipeError) as e:
+                logger.warning(f'ADB connect {serial} failed: {e}')
+                retry_sleep(trial)
+                continue
+            except OSError as e:
+                if getattr(e, 'winerror', None) not in (10053, 10054, 10061):
+                    raise
+                logger.warning(f'ADB connect {serial} failed: {e}')
+                retry_sleep(trial)
+                continue
             logger.info(msg)
             if 'connected' in msg:
                 # Connected to 127.0.0.1:59865
@@ -568,9 +579,9 @@ class Connection(ConnectionAttr):
                 raise EmulatorNotRunningError
 
         # Failed to connect
-        logger.warning(f'Failed to connect {serial} after 3 trial, assume connected')
+        logger.warning(f'Failed to connect {serial} after 3 trial, detect device status')
         self.detect_device()
-        return False
+        raise EmulatorNotRunningError
 
     @Config.when(DEVICE_OVER_HTTP=True)
     def adb_connect(self, serial):
