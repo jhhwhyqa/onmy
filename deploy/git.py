@@ -79,7 +79,7 @@ class GitManager(DeployConfig):
         self.execute(f'"{self.git}" --no-pager log --no-merges -1')
 
     def git_install(self):
-        logger.hr('Update Alas', 0)
+        logger.hr('Update OAS', 0)
 
         if not self.AutoUpdate:
             logger.info('AutoUpdate is disabled, skip')

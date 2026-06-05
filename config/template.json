@@ -186,6 +186,13 @@
     "nian_config": {
       "buff_gold_50_click": false,
       "buff_gold_100_click": false
+    },
+    "switch_soul": {
+      "enable": false,
+      "switch_group_team": "-1,-1",
+      "enable_switch_by_name": false,
+      "group_name": "",
+      "team_name": ""
     }
   },
   "realm_raid": {
@@ -346,7 +353,6 @@
     "demon_soul_config": {
       "enable": false,
       "demon_kiryou_utahime": "group,team",
-      "demon_kiryou_utahime_supplementary": "group,team",
       "demon_shinkirou": "group,team",
       "demon_tsuchigumo": "group,team",
       "demon_gashadokuro": "group,team",
@@ -357,7 +363,6 @@
     "best_demon_soul_config": {
       "enable": false,
       "best_demon_kiryou_utahime": "group,team",
-      "best_demon_kiryou_utahime_supplementary": "group,team",
       "best_demon_shinkirou": "group,team",
       "best_demon_tsuchigumo": "group,team",
       "best_demon_gashadokuro": "group,team",
@@ -366,6 +371,8 @@
       "best_demon_nightly_aramitamau": "group,team"
     },
     "demon_battle_config": {
+      "demon_kiryou_utahime_enable": false,
+      "demon_kiryou_utahime": "-1,-1",
       "demon_shinkirou_enable": false,
       "demon_shinkirou": "-1,-1",
       "demon_tsuchigumo_enable": false,
@@ -791,6 +798,12 @@
       "limit_time": "00:30:00",
       "limit_count": 30
     },
+    "invite_config": {
+      "friend_list": "",
+      "find_mode": "auto_find",
+      "wait_time": "00:02:00",
+      "default_invite": true
+    },
     "general_battle_config": {
       "lock_team_enable": false,
       "preset_enable": false,
@@ -802,7 +815,7 @@
       "green_mark_name": "",
       "random_click_swipt_enable": false,
       "battle_timeout": -1,
-      "continuous_battle": false,
+      "continuous_battle": true,
       "max_continuous": 0,
       "quick_exit": false
     },
@@ -819,12 +832,6 @@
       "enable_switch_by_name": false,
       "group_name": "",
       "team_name": ""
-    },
-    "invite_config": {
-      "friend_list": "",
-      "find_mode": "auto_find",
-      "wait_time": "00:02:00",
-      "default_invite": true
     }
   },
   "six_realms": {
@@ -838,23 +845,24 @@
       "delay_date": 1,
       "float_time": "00:00:00"
     },
-    "switch_soul_config_1": {
-      "enable": false,
-      "switch_group_team": "-1,-1",
-      "enable_switch_by_name": false,
-      "group_name": "",
-      "team_name": ""
-    },
-    "switch_soul_config_2": {
-      "enable": false,
-      "switch_group_team": "-1,-1",
-      "enable_switch_by_name": false,
-      "group_name": "",
-      "team_name": ""
-    },
     "six_realms_gate": {
       "limit_time": "00:30:00",
-      "limit_count": 1
+      "limit_count": 1,
+      "six_realms_type": "MoonSea"
+    },
+    "switch_soul_config": {
+      "enable": false,
+      "switch_group_team": "-1,-1",
+      "enable_switch_by_name": false,
+      "group_name": "",
+      "team_name": ""
+    },
+    "pk_switch_soul_conf": {
+      "enable": false,
+      "switch_group_team": "-1,-1",
+      "enable_switch_by_name": false,
+      "group_name": "",
+      "team_name": ""
     }
   },
   "other_world_twilight": {
@@ -1137,6 +1145,21 @@
       "server_update": "09:00:00",
       "delay_date": 1,
       "float_time": "00:00:00"
+    },
+    "general_battle_config": {
+      "lock_team_enable": false,
+      "preset_enable": false,
+      "preset_group": 1,
+      "preset_team": 1,
+      "green_enable": false,
+      "green_mark_type": "choose",
+      "green_mark": "green_left1",
+      "green_mark_name": "",
+      "random_click_swipt_enable": false,
+      "battle_timeout": -1,
+      "continuous_battle": false,
+      "max_continuous": 0,
+      "quick_exit": false
     },
     "switch_soul_config": {
       "enable": false,
@@ -1447,7 +1470,8 @@
       "switch_group_team": "-1,-1",
       "enable_switch_by_name": false,
       "group_name": "",
-      "team_name": ""
+      "team_name": "",
+      "enable_switch_layer_soul": false
     }
   },
   "rich_man": {

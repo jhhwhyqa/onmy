@@ -1,7 +1,9 @@
 # This Python file uses the following encoding: utf-8
 # @author runhey
 # github https://github.com/runhey
+import asyncio
 import json
+import threading
 from fastapi import APIRouter, Body
 from pathlib import Path
 
@@ -19,6 +21,7 @@ home_app = APIRouter(
     tags=["home"],
     route_class=ApiLoggingRoute,
 )
+update_info_lock = threading.Lock()
 
 
 @home_app.get('/test')
@@ -71,17 +74,16 @@ async def kill_server():
 @home_app.get('/update_info')
 async def update_info():
     try:
-        updater = Updater()
-        result = {'is_update': updater.check_update(),
-                  'branch': updater.current_branch(),
-                  'current_commit': updater.current_commit(),
-                  'latest_commit': updater.latest_commit(),
-                  'commit': updater.get_commit(n=15),
-                  }
-        return result
+        return await asyncio.to_thread(_get_update_info)
     except Exception as e:
         logger.error(e)
         return None
+
+
+def _get_update_info():
+    with update_info_lock:
+        updater = Updater()
+        return updater.get_update_info()
 
 
 @home_app.get('/execute_update')
