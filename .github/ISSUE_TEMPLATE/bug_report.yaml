@@ -15,57 +15,68 @@ body:
         required: true
       - label: 这个问题出现了至少三次，不是偶发的
         required: false
-      - label: 我使用 OAS 的 dev 分支
+      - label: 我使用 mine 分支
         required: false
   - type: textarea
     id: describe
     attributes:
-      label: 描述你的问题
-      description: 简要描述你的问题
+      label: 描述你的问题和目标
+      description: 尽量详细描述你发生的问题, 以及需要达成什么目标效果(日志或相关截图不要在这里填写, 仅描述问题即可)
+      value: |
+        问题: 
+        目标:
     validations:
       required: true
   - type: textarea
     id: reproduce
     attributes:
       label: 如何复现
-      description: 重现该行为的步骤
-      value: |
+      description: 重现该行为的步骤/详细说明你发生该问题的步骤
+      placeholder: |
         1. 前往 '...'
         2. 点击 '....'
         3. 滑动到 '....'
         4. 出现问题
     validations:
-      required: false
-  - type: textarea
-    id: expected
-    attributes:
-      label: 预期行为
-      description: 简要描述你期望发生的事情
-    validations:
-      required: false
+      required: true
   - type: textarea
     id: logs
     attributes:
       label: 相关 Logs
-      description: 请复制并粘贴任何相关的日志输出。
+      description: 请复制并粘贴任何相关的日志输出(错误或普通日志)
       render: Text
     validations:
-      required: false
+      required: true
+  - type: upload
+    id: updater
+    attributes:
+      label: 更新器截图
+      description: 请提供你当前的更新器截图, 能够让开发人员确保当前是最新版本且错误还没有被修复
+    validations:
+      required: true
+      accept: ".png,.jpg,.gif,.zip"
   - type: textarea
+    id: config
+    attributes:
+      label: 任务配置
+      description: 请复制并粘贴对应报错任务的配置信息(上传截图也可), 例如八岐大蛇报错则将你关于八岐大蛇的配置信息上传, 若非具体任务报错则填写 "无"
+    validations:
+      required: true
+  - type: upload
     id: screenshots
     attributes:
-      label: 截图
+      label: 报错截图
       description: |
-        如果有，添加屏幕截图以帮助解释你的问题。
-        提示: 可以通过点击这个区域，然后把文件拖进来添加图片或日志文件。
+        如果有，添加屏幕截图以帮助解释你的问题(OASX现可直接查看并下载对应报错发生时的截图)
+        图片大小必须是1280*720, 若使用Mumu可直接快捷键F9截图(打开模拟器顶部菜单->更多工具->截图)
     validations:
       required: false
+      accept: ".png,.jpg,.gif,.zip"
   - type: textarea
     id: others
     attributes:
       label: 还有别的吗？
       description: |
-        相关的配置？链接？参考资料？
-        任何能让我们对你所遇到的问题有更多了解的东西。
+        相关的配置、链接、参考资料、相关截图或其他可以帮助开发人员快速解决问题的东西皆可
     validations:
       required: false
