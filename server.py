@@ -88,7 +88,8 @@ def fun(ev: threading.Event):
         uvicorn.run("module.server.app:fastapi_app",
                     host=host,
                     port=port,
-                    factory=True)
+                    factory=True,
+                    log_config=None)
     finally:
         shutdown_image_server()
         shutdown_ocr_server()

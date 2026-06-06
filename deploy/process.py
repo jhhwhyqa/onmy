@@ -61,7 +61,7 @@ class ProcessManager(DeployConfig):
             self.execute(f'taskkill /f /pid {row[2]}', allow_failure=True, output=False)
 
     def process_kill(self):
-        logger.hr(f'Kill existing Alas', 0)
+        logger.hr(f'Kill existing OAS', 0)
         self.kill_by_name('oas.exe')
         self.kill_by_name('python.exe')
         self.kill_by_name('pythonw.exe')
