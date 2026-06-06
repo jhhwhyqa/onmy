@@ -60,6 +60,10 @@ body:
     attributes:
       label: 任务配置
       description: 请复制并粘贴对应报错任务的配置信息(上传截图也可), 例如八岐大蛇报错则将你关于八岐大蛇的配置信息上传, 若非具体任务报错则填写 "无"
+      value: |
+        ```json
+        这里替换为你的任务配置信息
+        ````
     validations:
       required: true
   - type: upload
