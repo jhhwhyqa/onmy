@@ -10,11 +10,15 @@ from typing import Any, get_args, get_origin
 from pydantic import BaseModel, ValidationError
 
 from module.config.config_model import ConfigModel
-from module.config.utils import read_file, write_file
+from module.config.utils import convert_to_underscore, read_file, write_file
 from module.logger import logger
 
 
 CONFIG_NAME_RESERVED_CHARS = set('/\\:*?"<>|')
+CONFIG_TASK_TRANSFER_EXCLUDED_KEYS = {
+    "config_name",
+    "running_task",
+}
 CONFIG_REDACTION_VALUE = "XXX"
 CONFIG_REDACTION_PATHS = (
     "wanted_quests.wanted_quests_config.invite_friend_name",
@@ -51,6 +55,10 @@ class ConfigNotFoundError(FileNotFoundError):
 
 class ConfigJsonError(ValueError):
     """配置 JSON 无法解析。"""
+
+
+class ConfigTaskError(ValueError):
+    """配置任务名称或任务 JSON 不合法。"""
 
 
 class ConfigValidationError(ValueError):
@@ -229,6 +237,154 @@ class ConfigManager:
             fields.extend(ConfigManager._format_validation_error(e))
         if fields:
             raise ConfigValidationError(fields)
+
+    @staticmethod
+    def validate_task_key(task_name: str) -> str:
+        """
+        校验并归一化配置任务名称。
+        """
+        task_key = convert_to_underscore((task_name or '').strip())
+        if not task_key:
+            raise ConfigTaskError("Task name is required")
+        if task_key in CONFIG_TASK_TRANSFER_EXCLUDED_KEYS:
+            raise ConfigTaskError(f'Task cannot be transferred: {task_key}')
+        if task_key not in ConfigModel.model_fields:
+            raise ConfigTaskError(f'Task not found: {task_key}')
+        if not ConfigManager._is_model_type(ConfigModel.model_fields[task_key].annotation):
+            raise ConfigTaskError(f'Task is not transferable: {task_key}')
+        return task_key
+
+    @staticmethod
+    def parse_task_json_source(
+        *,
+        json_text: str | None = None,
+        file_content: bytes | None = None,
+    ) -> dict[str, Any]:
+        """
+        解析任务 JSON 输入，json_text 和 file_content 必须二选一。
+        """
+        has_json_text = json_text is not None
+        has_file_content = file_content is not None
+        if has_json_text == has_file_content:
+            raise ConfigJsonError("Exactly one of json_text or file must be provided")
+
+        if has_file_content:
+            try:
+                text = file_content.decode('utf-8')
+            except UnicodeDecodeError as e:
+                raise ConfigJsonError(f'Task JSON file must be UTF-8 JSON: {e}') from e
+        else:
+            text = json_text
+
+        try:
+            data = json.loads(text)
+        except json.JSONDecodeError as e:
+            raise ConfigJsonError(f'Task JSON parse failed: {e}') from e
+
+        if not isinstance(data, dict):
+            raise ConfigJsonError("Task JSON root must be an object")
+        return data
+
+    @staticmethod
+    def validate_task_import_payload(task_key: str, data: dict[str, Any]) -> dict[str, Any]:
+        """
+        校验导入任务 JSON 的顶层结构，并返回对应任务 value。
+        """
+        if len(data) != 1:
+            raise ConfigJsonError("Task JSON root must contain exactly one task key")
+        payload_task_key, task_value = next(iter(data.items()))
+        if payload_task_key != task_key:
+            raise ConfigJsonError(f'Task JSON key mismatch: expected {task_key}, got {payload_task_key}')
+        if not isinstance(task_value, dict):
+            raise ConfigJsonError("Task JSON value must be an object")
+        return task_value
+
+    @staticmethod
+    def _prefix_validation_error(error: dict[str, str], prefix: str) -> dict[str, str]:
+        field = error.get("field", "")
+        error["field"] = ConfigManager._join_field_path(prefix, field) if field else prefix
+        return error
+
+    @staticmethod
+    def validate_task_value(task_key: str, task_value: dict[str, Any]) -> dict[str, Any]:
+        """
+        使用对应任务模型校验任务 value，返回可写回 JSON 的数据。
+        """
+        task_model_type = ConfigModel.model_fields[task_key].annotation
+        fields = ConfigManager._collect_unknown_field_errors(task_value, task_model_type, task_key)
+        fields.extend(ConfigManager._collect_dynamic_field_validation_errors(task_value, task_model_type, task_key))
+
+        try:
+            task_model = task_model_type(**copy.deepcopy(task_value))
+        except ValidationError as e:
+            for error in ConfigManager._format_validation_error(e):
+                fields.append(ConfigManager._prefix_validation_error(error, task_key))
+            task_model = None
+
+        if fields:
+            raise ConfigValidationError(fields)
+        return task_model.model_dump()
+
+    @staticmethod
+    def import_task_config(name: str, task_name: str, data: dict[str, Any]) -> tuple[str, str]:
+        """
+        导入单个任务配置，返回配置名称和归一化任务 key。
+        """
+        name = ConfigManager.validate_config_name(name, allow_template=False)
+        task_key = ConfigManager.validate_task_key(task_name)
+        file_path = ConfigManager.config_path(name)
+        if not file_path.exists():
+            raise ConfigNotFoundError(f'Config not found: {name}')
+
+        task_value = ConfigManager.validate_task_import_payload(task_key, data)
+        validated_task_value = ConfigManager.validate_task_value(task_key, task_value)
+
+        try:
+            config_data = read_file(file_path)
+        except json.JSONDecodeError as e:
+            raise ConfigJsonError(f'Config JSON parse failed: {e}') from e
+        if not isinstance(config_data, dict):
+            raise ConfigJsonError("Config JSON root must be an object")
+        if task_key not in config_data:
+            raise ConfigNotFoundError(f'Task not found in config: {task_key}')
+
+        new_config_data = copy.deepcopy(config_data)
+        new_config_data[task_key] = validated_task_value
+        ConfigManager._validate_config_model(name, new_config_data)
+        write_file(file_path, new_config_data)
+        logger.info(f'import task {task_key} to {file_path}')
+        return name, task_key
+
+    @staticmethod
+    def load_task_for_transfer(name: str, task_name: str, *, allow_template: bool = True) -> tuple[str, str, dict[str, Any]]:
+        """
+        读取单个任务配置片段，返回配置名、任务 key、任务 JSON。
+        """
+        name, data = ConfigManager.load_config_for_export(name)
+        if not allow_template and name == 'template':
+            raise ConfigNameError("Config name template is reserved")
+        task_key = ConfigManager.validate_task_key(task_name)
+        if task_key not in data:
+            raise ConfigNotFoundError(f'Task not found in config: {task_key}')
+        task_value = data[task_key]
+        if not isinstance(task_value, dict):
+            raise ConfigJsonError("Task JSON value must be an object")
+        return name, task_key, {task_key: copy.deepcopy(task_value)}
+
+    @staticmethod
+    def load_task_for_export(name: str, task_name: str) -> tuple[str, str, dict[str, Any]]:
+        """
+        读取脱敏后的单个任务配置片段。
+        """
+        name, data = ConfigManager.load_config_for_export(name)
+        task_key = ConfigManager.validate_task_key(task_name)
+        if task_key not in data:
+            raise ConfigNotFoundError(f'Task not found in config: {task_key}')
+        redacted = ConfigManager.redact_config(data)
+        task_value = redacted.get(task_key)
+        if not isinstance(task_value, dict):
+            raise ConfigJsonError("Task JSON value must be an object")
+        return name, task_key, {task_key: copy.deepcopy(task_value)}
 
     @staticmethod
     def import_config(name: str, data: dict[str, Any]) -> str:
