@@ -155,11 +155,16 @@ class ConfigModel(ConfigBase):
     demon_retreat: DemonRetreat = Field(default_factory=DemonRetreat)
     guild_activity_monitor: GuildActivityMonitor = Field(default_factory=GuildActivityMonitor)
 
-    def __init__(self, config_name: str=None) -> None:
+    def __init__(self, config_name: str=None, **data) -> None:
         """
 
         :param config_name:
         """
+        if data:
+            if config_name:
+                data["config_name"] = config_name
+            super().__init__(**data)
+            return
         if not config_name:
             super().__init__()
             return
@@ -487,4 +492,3 @@ if __name__ == "__main__":
         c = ConfigModel()
 
     print(c.script_task('GuildBanquet'))
-
