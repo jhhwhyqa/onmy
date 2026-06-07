@@ -34,6 +34,17 @@ class CostumeBattleAssets:
 
 	# Image Rule Assets
 	# 左上角退出 
+	I_EXIT_11 = RuleImage(roi_front=(16,15,31,34), roi_back=(16,15,40,40), threshold=0.8, method="Template matching", file="./tasks/Component/CostumeBattle/battle11/battle11_exit_11.png")
+	# 左上角好友 
+	I_FRIENDS_11 = RuleImage(roi_front=(90,14,30,28), roi_back=(90,14,40,40), threshold=0.8, method="Template matching", file="./tasks/Component/CostumeBattle/battle11/battle11_friends_11.png")
+	# 指针 
+	I_LOCAL_11 = RuleImage(roi_front=(29,566,29,28), roi_back=(29,566,40,40), threshold=0.8, method="Template matching", file="./tasks/Component/CostumeBattle/battle11/battle11_local_11.png")
+	# 战斗信息标识 
+	I_BATTLE_INFO_11 = RuleImage(roi_front=(235,21,29,28), roi_back=(142,0,169,71), threshold=0.8, method="Template matching", file="./tasks/Component/CostumeBattle/battle11/battle11_battle_info_11.png")
+
+
+	# Image Rule Assets
+	# 左上角退出 
 	I_EXIT_12 = RuleImage(roi_front=(16,15,22,25), roi_back=(16,15,40,40), threshold=0.8, method="Template matching", file="./tasks/Component/CostumeBattle/battle12/battle12_exit_12.png")
 	# 左上角好友 
 	I_FRIENDS_12 = RuleImage(roi_front=(90,14,22,30), roi_back=(90,14,40,40), threshold=0.8, method="Template matching", file="./tasks/Component/CostumeBattle/battle12/battle12_friends_12.png")
@@ -64,6 +75,23 @@ class CostumeBattleAssets:
 	I_FALSE_13 = RuleImage(roi_front=(550,152,58,77), roi_back=(390,30,510,290), threshold=0.8, method="Template matching", file="./tasks/Component/CostumeBattle/battle13/battle13_false_13.png")
 	# 战斗信息标识 
 	I_BATTLE_INFO_13 = RuleImage(roi_front=(234,17,32,32), roi_back=(215,0,142,58), threshold=0.8, method="Template matching", file="./tasks/Component/CostumeBattle/battle13/battle13_battle_info_13.png")
+
+
+	# Image Rule Assets
+	# 左上角退出 
+	I_EXIT_14 = RuleImage(roi_front=(25,20,22,25), roi_back=(10,10,69,48), threshold=0.8, method="Template matching", file="./tasks/Component/CostumeBattle/battle14/battle14_exit_14.png")
+	# 左上角好友 
+	I_FRIENDS_14 = RuleImage(roi_front=(98,15,22,30), roi_back=(74,10,71,47), threshold=0.8, method="Template matching", file="./tasks/Component/CostumeBattle/battle14/battle14_friends_14.png")
+	# 指针 
+	I_LOCAL_14 = RuleImage(roi_front=(117,493,28,28), roi_back=(66,456,110,121), threshold=0.8, method="Template matching", file="./tasks/Component/CostumeBattle/battle14/battle14_local_14.png")
+	# 战斗胜利 
+	I_WIN_14 = RuleImage(roi_front=(544,190,68,67), roi_back=(390,30,510,290), threshold=0.8, method="Template matching", file="./tasks/Component/CostumeBattle/battle14/battle14_win_14.png")
+	# 针对封魔的特殊 
+	I_DE_WIN_14 = RuleImage(roi_front=(590,152,87,129), roi_back=(390,30,510,290), threshold=0.8, method="Template matching", file="./tasks/Component/CostumeBattle/battle14/battle14_de_win_14.png")
+	# 失败 
+	I_FALSE_14 = RuleImage(roi_front=(597,190,57,66), roi_back=(390,30,510,290), threshold=0.8, method="Template matching", file="./tasks/Component/CostumeBattle/battle14/battle14_false_14.png")
+	# 战斗信息标识 
+	I_BATTLE_INFO_14 = RuleImage(roi_front=(234,17,32,32), roi_back=(215,0,142,58), threshold=0.8, method="Template matching", file="./tasks/Component/CostumeBattle/battle14/battle14_battle_info_14.png")
 
 
 	# Image Rule Assets

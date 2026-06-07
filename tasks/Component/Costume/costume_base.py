@@ -30,14 +30,14 @@ main_costume_model = {
 
 # 战斗主题（使用循环处理常规情况 + 特例处理）
 battle_theme_model = {}
-for i in range(1, 14):
+for i in range(1, 15):
     entry = {
         'I_LOCAL': f'I_LOCAL_{i}',
         'I_EXIT': f'I_EXIT_{i}',
         'I_FRIENDS': f'I_FRIENDS_{i}',
         'I_BATTLE_INFO': f'I_BATTLE_INFO_{i}',
     }
-    if i in [8, 12, 13]:  # 特殊处理
+    if i in [8, 12, 13, 14]:  # 特殊处理
         entry.update({
             'I_WIN': f'I_WIN_{i}',
             'I_DE_WIN': f'I_DE_WIN_{i}',
