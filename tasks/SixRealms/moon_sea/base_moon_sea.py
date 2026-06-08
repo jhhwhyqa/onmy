@@ -58,9 +58,13 @@ class BaseMoonSea(GeneralBattle, SixRealmsCommon):
             return BattleAction.CONTINUE
         if not context.is_win and self.appear_then_click(self.I_SR_DOUBLE_REWARD_CANCEL, interval=1.5):
             return BattleAction.CONTINUE
+        if self.appear(self.I_SR_CHECK_BUY_BOX): # 是否前往购买万相赐福
+            if self.appear_then_click(self.I_SR_NOT_TIP, interval=1.5) and self.appear_then_click(self.I_UI_CANCEL):
+                return BattleAction.CONTINUE
         if self.appear(self.I_COIN, interval=2):
             self.coin_num += self.get_coin_num(self.I_COIN)
             logger.info(f'Current coin: {self.coin_num}')
         self.click(pages.random_click(), interval=1.2)
-        self.device.click_record_clear()
+        if context.last_page != pages.page_reward:
+            self.device.click_record_clear()
         return BattleAction.CONTINUE

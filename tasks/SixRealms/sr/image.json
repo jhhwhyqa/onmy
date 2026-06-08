@@ -133,5 +133,23 @@
     "method": "Template matching",
     "threshold": 0.8,
     "description": "双倍奖励使用标志"
+  },
+  {
+    "itemName": "sr_check_buy_box",
+    "imageName": "sr_sr_check_buy_box.png",
+    "roiFront": "484,290,295,47",
+    "roiBack": "405,230,467,255",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "是否前往购买万象赐福标志"
+  },
+  {
+    "itemName": "sr_not_tip",
+    "imageName": "sr_sr_not_tip.png",
+    "roiFront": "543,342,37,37",
+    "roiBack": "405,230,467,255",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "不再提醒"
   }
 ]
