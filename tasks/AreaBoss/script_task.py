@@ -5,8 +5,8 @@ import time
 
 import random
 import re
+from datetime import datetime, time
 from module.atom.click import RuleClick
-from tasks.base_task import BaseTask
 from tasks.Component.GeneralBattle.general_battle import ExitMatcher, GeneralBattle
 from tasks.GameUi.game_ui import GameUi
 from tasks.GameUi.page import page_area_boss, page_shikigami_records, page_main
@@ -16,7 +16,6 @@ from tasks.AreaBoss.config_boss import AreaBossFloor
 from module.logger import logger
 from module.exception import TaskEnd
 from module.atom.image import RuleImage
-from typing import List
 
 
 class ScriptTask(GeneralBattle, GameUi, SwitchSoul, AreaBossAssets):
@@ -29,6 +28,7 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, AreaBossAssets):
         运行脚本
         :return:
         """
+        self.check_can_run()
         # 直接手动关闭这个锁定阵容的设置
         self.config.area_boss.general_battle.lock_team_enable = False
         con = self.config.area_boss.boss
@@ -72,6 +72,16 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, AreaBossAssets):
 
         # 以抛出异常的形式结束
         raise TaskEnd
+
+    def check_can_run(self):
+        """判断是否可以执行, 不能执行则直接结束任务"""
+        now = datetime.now().time()
+        time_passed: bool = time(0, 0, 0) <= now < time(6, 0, 0)
+        if not time_passed:
+            logger.error("It's not time to challenge boss")
+            self.goto_page(page_main)
+            self.set_next_run(task='AreaBoss', server=False, target=datetime.now().replace(hour=10))
+            raise TaskEnd
 
     def boss(self, battle: RuleImage, collect: bool = False):
 
@@ -165,6 +175,7 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, AreaBossAssets):
         return result
 
     def start_fight(self) -> bool:
+        self.check_can_run()
         while 1:
             self.screenshot()
             if self.appear_then_click(self.I_FIRE, interval=1):
