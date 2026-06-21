@@ -76,8 +76,8 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, AreaBossAssets):
     def check_can_run(self):
         """判断是否可以执行, 不能执行则直接结束任务"""
         now = datetime.now().time()
-        time_passed: bool = time(0, 0, 0) <= now < time(6, 0, 0)
-        if not time_passed:
+        time_not_passed: bool = time(0, 0, 0) <= now <= time(6, 0, 0)
+        if time_not_passed:
             logger.error("It's not time to challenge boss")
             self.goto_page(page_main)
             self.set_next_run(task='AreaBoss', server=False, target=datetime.now().replace(hour=10))
