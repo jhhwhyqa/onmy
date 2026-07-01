@@ -5,6 +5,7 @@ from tasks.Component.GeneralInvite.assets import GeneralInviteAssets
 from tasks.Component.SwitchAccount.assets import SwitchAccountAssets
 from tasks.Exploration.assets import ExplorationAssets
 from tasks.GameUi.action import conditional_action, sequence
+from tasks.Pets.assets import PetsAssets
 from typing import Union
 
 """GameUi 全局页面定义。"""
@@ -141,6 +142,12 @@ page_travel.add_enter_failure_hooks(conditional_action(condition=GameUiAssets.I_
                                                        action=RestartAssets.C_LOGIN_SCROLL_CLOSE_AREA))
 page_travel.connect(page_main, GlobalGameAssets.I_UI_BACK_YELLOW, key="page_travel->page_main")
 page_main.connect(page_travel, GameUiAssets.I_MAIN_GOTO_TRAVEL, key="page_main->page_travel")
+
+page_pet = Page(any_of(PetsAssets.I_PET_CLAW, PetsAssets.I_PET_FEAST), category="global")
+page_pet.connect(page_main, GlobalGameAssets.I_UI_BACK_CIRCLE, key="page_pet->page_main")
+page_main.connect(page_pet, PetsAssets.I_PET_HOUSE, key="page_main->page_pet")
+page_pet.add_enter_success_hooks(conditional_action(condition=lambda task: not task.appear(PetsAssets.I_PET_FEAST),
+                                                    action=PetsAssets.I_PET_CLAW))
 
 # 活动列表页。
 page_act_list = Page(GameUiAssets.I_CHECK_ACT_LIST, category="global", priority=25)
