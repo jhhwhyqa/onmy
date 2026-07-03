@@ -29,6 +29,7 @@ class ScriptTask(GameUi, TalismanPassAssets):
         if con.harvest_soul:
             self.goto_page(page_main)
             self.harvest_soul()
+        self.goto_page(page_main)
         self.set_next_run(task='TalismanPass', success=True, finish=True)
         raise TaskEnd('TalismanPass')
 
