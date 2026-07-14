@@ -32,7 +32,12 @@ class HyaDevice(BaseTask):
     def fast_screenshot(self, screenshot: ScreenshotMethod):
         self.hya_screenshot_interval.wait()
         self.hya_screenshot_interval.reset()
-        self.device.image = self.device.screenshot_window_background() if screenshot == ScreenshotMethod.WINDOW_BACKGROUND else self.device.screenshot_nemu_ipc()
+        try:
+            self.device.image = self.device.screenshot_window_background() if screenshot == ScreenshotMethod.WINDOW_BACKGROUND else self.device.screenshot_nemu_ipc()
+        except AttributeError:
+            # root_node 未初始化时回退到标准截图
+            logger.warning('Device root_node not initialized, falling back to standard screenshot')
+            self.device.screenshot()
         self.device.image_frame_id = None
         if image_black(self.device.image):
             logger.error('Screenshot image is black, try again')
