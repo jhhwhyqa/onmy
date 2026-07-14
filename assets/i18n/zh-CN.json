@@ -159,5 +159,7 @@
   "costume_main_16": "琦梦茨庭",
   "custom_courtyard_affair_default": "默认",
   "custom_courtyard_affair_1": "龙仪星引",
-  "custom_courtyard_affair": "庭院事务"
+  "custom_courtyard_affair": "庭院事务",
+  "collect_placement_reward": "收取放置奖励",
+  "collect_exp": "收取经验"
 }

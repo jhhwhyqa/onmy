@@ -8,9 +8,6 @@ from pydantic import BaseModel, Field
 from tasks.Component.config_scheduler import Scheduler as BaseScheduler
 from tasks.Component.config_base import ConfigBase, TimeDelta
 
-class Scheduler(BaseScheduler):
-    success_interval: TimeDelta = Field(default=TimeDelta(days=3), description='success_interval_help')
-    failure_interval: TimeDelta = Field(default=TimeDelta(days=3), description='failure_interval_help')
 
 class LevelReward(str, Enum):
     ONE = '蛇皮/青吉鬼'
@@ -18,9 +15,11 @@ class LevelReward(str, Enum):
     THREE = '体力/樱饼'
 
 class FloatParadeConfig(BaseModel):
-    level_reward1: LevelReward = Field(default=LevelReward.THREE)
-    level_reward2: LevelReward = Field(default=LevelReward.ONE)
+    # level_reward1: LevelReward = Field(default=LevelReward.THREE)
+    # level_reward2: LevelReward = Field(default=LevelReward.ONE)
+    collect_placement_reward: bool = Field(default=True)
+    collect_exp: bool = Field(default=True)
 
 class FloatParade(ConfigBase):
-    scheduler: Scheduler = Field(default_factory=Scheduler)
+    scheduler: BaseScheduler = Field(default_factory=BaseScheduler)
     float_parade: FloatParadeConfig = Field(default_factory=FloatParadeConfig)

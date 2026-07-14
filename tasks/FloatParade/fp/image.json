@@ -2,8 +2,8 @@
   {
     "itemName": "fp_access",
     "imageName": "fp_fp_access.png",
-    "roiFront": "1178,168,43,34",
-    "roiBack": "1051,101,210,472",
+    "roiFront": "564,470,43,34",
+    "roiBack": "171,241,963,356",
     "method": "Template matching",
     "threshold": 0.8,
     "description": "从庭院进入花车活动"
@@ -20,20 +20,11 @@
   {
     "itemName": "fp_getall1",
     "imageName": "fp_fp_getall1.png",
-    "roiFront": "1198,555,53,54",
+    "roiFront": "1196,590,42,42",
     "roiBack": "1163,506,113,164",
     "method": "Template matching",
     "threshold": 0.8,
-    "description": "description"
-  },
-  {
-    "itemName": "fp_batch",
-    "imageName": "fp_fp_batch.png",
-    "roiFront": "985,520,94,31",
-    "roiBack": "978,507,112,64",
-    "method": "Template matching",
-    "threshold": 0.8,
-    "description": "description"
+    "description": "下方领取"
   },
   {
     "itemName": "fp_batch_true",
@@ -56,8 +47,8 @@
   {
     "itemName": "fp_tasks",
     "imageName": "fp_fp_tasks.png",
-    "roiFront": "1175,617,79,76",
-    "roiBack": "1162,605,100,100",
+    "roiFront": "1161,591,54,39",
+    "roiBack": "1143,550,100,100",
     "method": "Template matching",
     "threshold": 0.8,
     "description": "右下角的任务"
@@ -65,29 +56,11 @@
   {
     "itemName": "fp_upgrade",
     "imageName": "fp_fp_upgrade.png",
-    "roiFront": "1086,74,116,49",
-    "roiBack": "1040,52,169,100",
+    "roiFront": "1076,159,113,40",
+    "roiBack": "1046,119,169,100",
     "method": "Template matching",
     "threshold": 0.8,
     "description": "升级"
-  },
-  {
-    "itemName": "fp_red_close",
-    "imageName": "fp_fp_red_close.png",
-    "roiFront": "1170,109,43,44",
-    "roiBack": "1157,101,72,62",
-    "method": "Template matching",
-    "threshold": 0.8,
-    "description": "红色关闭"
-  },
-  {
-    "itemName": "toggle_button",
-    "imageName": "fp_toggle_button.png",
-    "roiFront": "1193,462,21,23",
-    "roiBack": "1116,127,150,377",
-    "method": "Template matching",
-    "threshold": 0.7,
-    "description": "寻找花车的切换按钮"
   },
   {
     "itemName": "batch_selection",
@@ -108,15 +81,6 @@
     "description": "批量选择确认"
   },
   {
-    "itemName": "fp_gift_close",
-    "imageName": "fp_fp_gift_close.png",
-    "roiFront": "1056,96,36,38",
-    "roiBack": "1046,89,60,60",
-    "method": "Template matching",
-    "threshold": 0.8,
-    "description": "礼包关闭"
-  },
-  {
     "itemName": "fp_gift_flag1",
     "imageName": "fp_fp_gift_flag1.png",
     "roiFront": "559,295,55,44",
@@ -133,5 +97,41 @@
     "method": "Template matching",
     "threshold": 0.8,
     "description": "礼包类型2"
+  },
+  {
+    "itemName": "fp_placement_reward_enter",
+    "imageName": "fp_fp_placement_reward_enter.png",
+    "roiFront": "36,89,49,44",
+    "roiBack": "8,73,104,88",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "放置奖励入口"
+  },
+  {
+    "itemName": "fp_pr_can_get",
+    "imageName": "fp_fp_pr_can_get.png",
+    "roiFront": "795,514,135,44",
+    "roiBack": "769,494,192,92",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "放置奖励可领取"
+  },
+  {
+    "itemName": "fp_pr_cannot_get",
+    "imageName": "fp_fp_pr_cannot_get.png",
+    "roiFront": "795,514,135,44",
+    "roiBack": "769,494,192,92",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "放置奖励不可领取"
+  },
+  {
+    "itemName": "fp_pr_check",
+    "imageName": "fp_fp_pr_check.png",
+    "roiFront": "194,91,167,46",
+    "roiBack": "161,65,229,102",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "花车放置界面标志"
   }
 ]
