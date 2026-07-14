@@ -87,7 +87,7 @@ class SixRealmsCommon(GameUi, SixRealmsAssets):
         if boss_unlock and self.appear(boss_unlock):
             self.ui_click(boss_unlock, boss_lock, interval=0.8)
         self.device.stuck_record_clear()
-        timeout_timer = Timer(5).start()
+        timeout_timer = Timer(12).start()
         while not timeout_timer.reached():
             self.screenshot()
             if self.get_current_page() in (pages.page_battle_prepare, pages.page_battle, pages.page_battle_result):
