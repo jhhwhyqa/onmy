@@ -5,10 +5,11 @@
 from module.atom.image import RuleImage
 from module.logger import logger
 
-from tasks.Component.Costume.config import (MainType, CostumeConfig, ShikigamiType, BattleType)
+from tasks.Component.Costume.config import (MainType, CostumeConfig, ShikigamiType, BattleType, CourtyardAffairType)
 from tasks.Component.Costume.assets import CostumeAssets
 from tasks.Component.CostumeBattle.assets import CostumeBattleAssets
 from tasks.Component.CostumeShikigami.assets import CostumeShikigamiAssets
+from tasks.Component.CustomCourtyardAffair.assets import CustomCourtyardAffairAssets
 
 # 庭院皮肤
 # 主界面皮肤（使用字典推导式动态生成）
@@ -68,6 +69,16 @@ shikigami_costume_model = {
     for i in range(1, 11)  # 目前支持 COSTUME_SHIKIGAMI_1 到 COSTUME_SHIKIGAMI_10
 }
 
+# 庭院事务皮肤
+courtyard_affair_model = {
+    getattr(CourtyardAffairType, f"CUSTOM_COURTYARD_AFFAIR_{i}"): {
+        'I_CHECK_COURTYARD_AFFAIRS': f'I_CHECK_COURTYARD_AFFAIRS_{i}',
+        'I_ONE_COMPLETE': f'I_ONE_COMPLETE_{i}',
+        'I_ENTER_DAILY': f'I_ENTER_DAILY_{i}',
+        'I_CHECK_IN_DAILY': f'I_CHECK_IN_DAILY_{i}',
+    } for i in range(1, 2)
+}
+
 
 class CostumeBase:
     def check_costume(self, config: CostumeConfig=None):
@@ -76,6 +87,7 @@ class CostumeBase:
         self.check_costume_main(config.costume_main_type)
         self.check_costume_battle(config.costume_battle_type)
         self.check_costume_shikigami(config.costume_shikigami_type)
+        self.check_custom_courtyard_affair(config.custom_courtyard_affair)
 
     def replace_img(self,
                     asset_before: str,
@@ -127,6 +139,15 @@ class CostumeBase:
                 continue
             assert_value: RuleImage = getattr(shikigami_assets, value)
             # 一般不需要固定 back ROI，如确有需要可在此为特例设置 rp_roi_back=False
+            self.replace_img(key, assert_value)
+
+    def check_custom_courtyard_affair(self, courtyard_affair_type: CourtyardAffairType):
+        if courtyard_affair_type == CourtyardAffairType.CUSTOM_COURTYARD_AFFAIR_DEFAULT:
+            return
+        logger.info(f'Switch courtyard affair {courtyard_affair_type}')
+        courtyard_affair_assets = CustomCourtyardAffairAssets()
+        for key, value in courtyard_affair_model[courtyard_affair_type].items():
+            assert_value: RuleImage = getattr(courtyard_affair_assets, value)
             self.replace_img(key, assert_value)
 
 

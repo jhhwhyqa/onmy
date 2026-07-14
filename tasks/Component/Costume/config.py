@@ -73,6 +73,11 @@ class BattleType(str, Enum):
     COSTUME_BATTLE_14 = 'costume_battle_14'  # 茸茨跃动
 
 
+# 庭院事务主题
+class CourtyardAffairType(str, Enum):
+    CUSTOM_COURTYARD_AFFAIR_DEFAULT = 'custom_courtyard_affair_default'  # 默认
+    CUSTOM_COURTYARD_AFFAIR_1 = 'custom_courtyard_affair_1'  # 龙仪星引
+
 class CostumeConfig(BaseModel):
     # 皮肤配置
     costume_main_type: MainType = Field(default=MainType.COSTUME_MAIN, description='costume_main_type_help')
@@ -81,6 +86,7 @@ class CostumeConfig(BaseModel):
     costume_shikigami_type: ShikigamiType = Field(default=ShikigamiType.COSTUME_SHIKIGAMI_DEFAULT, description='costume_shikigami_type_help')
     costume_sign_type: SignType = Field(default=SignType.COSTUME_SIGN_DEFAULT, description='costume_sign_type_help')
     costume_battle_type: BattleType = Field(default=BattleType.COSTUME_BATTLE_DEFAULT, description='costume_battle_type_help')
+    custom_courtyard_affair: CourtyardAffairType = Field(default=CourtyardAffairType.CUSTOM_COURTYARD_AFFAIR_DEFAULT)
 
     @field_validator("costume_realm_type", mode="before")
     def convert_old_value(cls, v):
