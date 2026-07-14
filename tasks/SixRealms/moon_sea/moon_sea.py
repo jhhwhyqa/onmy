@@ -58,6 +58,7 @@ class MoonSea(BaseMoonSea):
                 handle()
             except TaskEnd:
                 break
+        logger.info('Moon Sea task ended')
 
     def run_on_ms(self):
         """月之海界面"""

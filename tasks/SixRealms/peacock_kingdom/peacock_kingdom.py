@@ -55,6 +55,7 @@ class PeacockKingdom(BasePeacockKingdom):
                 handle()
             except TaskEnd:
                 break
+        logger.info('Peacock Kingdom task ended')
                 
     def run_on_pk(self):
         """孔雀国界面"""
