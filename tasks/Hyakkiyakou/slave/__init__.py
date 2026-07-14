@@ -1,0 +1,1 @@
+# Hyakkiyakou slave module

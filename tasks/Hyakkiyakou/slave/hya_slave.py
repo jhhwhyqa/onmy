@@ -130,7 +130,10 @@ class HyaSlave(HyaDevice, HyaColor, HyakkiyakouAssets):
         return current
 
     def predict_bean(self, current: int):
-        possible_beans: list[int] = [current, current - 10, current - 20]
+        # 扩大搜索范围以应对快速抛豆导致的帧间大幅度变化
+        possible_beans: list[int] = [current, current - 10, current - 20, current - 30, current + 10]
+        # 过滤无效值
+        possible_beans = [b for b in possible_beans if 0 <= b <= 250]
         for bean in possible_beans:
             if bean >= 100:
                 decade = bean // 10 % 10
@@ -294,5 +297,7 @@ class HyaSlave(HyaDevice, HyaColor, HyakkiyakouAssets):
         return self.slave_state
 
     def reset_state(self):
+        # 每局百鬼夜行始终从 250 豆、36 只式神开始（游戏机制规定，与上一局剩豆无关）
+        # 第一次 update_state() 调用会通过模板匹配/OCR 校正实际值
         self.slave_state = [250, 36, 10,
                           HyaBuff.BUFF_STATE0, HyaBuff.BUFF_STATE0, HyaBuff.BUFF_STATE0, HyaBuff.BUFF_STATE0]

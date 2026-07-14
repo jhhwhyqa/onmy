@@ -79,5 +79,5 @@ if __name__ == '__main__':
     # execution_time = timeit.timeit(screenshot, number=50)
     # print(f"执行总的时间: {execution_time * 1000} ms")
 
-    hd.fast_screenshot()
-
+    from tasks.Hyakkiyakou.config import ScreenshotMethod
+    hd.fast_screenshot(screenshot=ScreenshotMethod.WINDOW_BACKGROUND)
