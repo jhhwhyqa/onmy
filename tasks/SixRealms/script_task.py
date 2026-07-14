@@ -37,7 +37,6 @@ class ScriptTask(GameUi, SwitchSoul):
             if datetime.now() - self.start_time >= _config.six_realms_gate.limit_time_v:
                 logger.info('Run out of time, exit')
                 break
-            start_time = datetime.now()
             match _config.six_realms_gate.six_realms_type:
                 case SixRealmsType.MOON_SEA:
                     self.switch_current_soul(_config.switch_soul_config)
@@ -48,9 +47,6 @@ class ScriptTask(GameUi, SwitchSoul):
                 case _:
                     raise ValueError(f'Invalid six_realms_type {_config.six_realms_gate.six_realms_type}')
             cnt += 1
-            logger.info(f'Battle count: {cnt}')
-            elapsed = datetime.now() - start_time
-            logger.info(f'Battle time: {elapsed.seconds//60}m{elapsed.seconds%60}s')
         self.goto_page(page_main)
         self.set_next_run('SixRealms', success=True, finish=True)
         raise TaskEnd
