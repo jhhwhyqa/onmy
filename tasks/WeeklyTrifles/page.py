@@ -5,6 +5,7 @@ from tasks.GlobalGame.assets import GlobalGameAssets
 from tasks.WeeklyTrifles.assets import WeeklyTriflesAssets
 
 page_shikigami_collection = Page(WeeklyTriflesAssets.I_WT_SHARE)
+page_shikigami_collection.add_enter_failure_hooks(GlobalGameAssets.I_UI_CANCEL_SAMLL)
 page_collection.connect(page_shikigami_collection, GameUiAssets.I_CHECK_COLLECTION,
                                   key="page_collection->page_shikigami_collection")
 page_shikigami_collection.connect(page_collection, GlobalGameAssets.I_UI_BACK_YELLOW,
