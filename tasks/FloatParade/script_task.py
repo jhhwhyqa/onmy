@@ -2,6 +2,7 @@
 # @author runhey
 # github https://github.com/runhey
 import time
+from time import sleep
 
 from tasks.FloatParade.page import page_fp_main, page_fp_task, page_fp_placement
 from tasks.GameUi.game_ui import GameUi
@@ -38,6 +39,8 @@ class ScriptTask(GameUi, FloatParadeAssets, TalismanPassAssets):
         """收取花车经验"""
         logger.hr('Collect exp', 3)
         self.goto_page(page_fp_task)
+        sleep(1.5)  # 逆天UI, 没有完成也会一闪而过I_FP_GETALL1
+        self.screenshot()
         if not self.appear(self.I_FP_GETALL1):
             logger.info('Not appear get exp button')
             return

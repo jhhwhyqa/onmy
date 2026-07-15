@@ -47,8 +47,8 @@
   {
     "itemName": "fp_tasks",
     "imageName": "fp_fp_tasks.png",
-    "roiFront": "1161,591,54,39",
-    "roiBack": "1143,550,100,100",
+    "roiFront": "1186,584,54,39",
+    "roiBack": "1129,510,149,144",
     "method": "Template matching",
     "threshold": 0.8,
     "description": "右下角的任务"

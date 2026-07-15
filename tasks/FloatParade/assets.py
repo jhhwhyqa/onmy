@@ -22,7 +22,7 @@ class FloatParadeAssets:
 	# description 
 	I_FP_BATCH_FALSE = RuleImage(roi_front=(936,515,40,45), roi_back=(924,505,63,65), threshold=0.8, method="Template matching", file="./tasks/FloatParade/fp/fp_fp_batch_false.png")
 	# 右下角的任务 
-	I_FP_TASKS = RuleImage(roi_front=(1161,591,54,39), roi_back=(1143,550,100,100), threshold=0.8, method="Template matching", file="./tasks/FloatParade/fp/fp_fp_tasks.png")
+	I_FP_TASKS = RuleImage(roi_front=(1186,584,54,39), roi_back=(1129,510,149,144), threshold=0.8, method="Template matching", file="./tasks/FloatParade/fp/fp_fp_tasks.png")
 	# 升级 
 	I_FP_UPGRADE = RuleImage(roi_front=(1076,159,113,40), roi_back=(1046,119,169,100), threshold=0.8, method="Template matching", file="./tasks/FloatParade/fp/fp_fp_upgrade.png")
 	# 批量选择 
