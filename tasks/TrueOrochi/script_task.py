@@ -44,6 +44,21 @@ class ScriptTask(OrochiScriptTask, TrueOrochiAssets):
             self.check_times(battle)
             raise TaskEnd('TrueOrochi')
         # 如果有真蛇，那么就开始战斗
+        self.run_true_orochi_battle()
+        self.check_times(True)
+
+        self.goto_page(page_orochi)
+        if conf.current_success < 2 and self.check_true_orochi(True):
+            logger.info('Find another true orochi entry, continue')
+            self.run_true_orochi_battle()
+            self.check_times(True)
+
+        self.goto_page(page_main)
+        raise TaskEnd('TrueOrochi')
+
+    def run_true_orochi_battle(self):
+        """执行一次真蛇战斗"""
+        conf = self.config.true_orochi.true_orochi_config
         logger.hr('True Orochi Battle')
         # 御魂切换方式一
         if self.config.true_orochi.switch_soul.enable:
@@ -55,7 +70,6 @@ class ScriptTask(OrochiScriptTask, TrueOrochiAssets):
             self.run_switch_soul_by_name(self.config.true_orochi.switch_soul.group_name,
                                          self.config.true_orochi.switch_soul.team_name)
         self.goto_page(page_orochi)
-        conf.current_success += 1
         while 1:
             self.screenshot()
             if self.appear(self.I_ST_CREATE_ROOM):
@@ -133,9 +147,6 @@ class ScriptTask(OrochiScriptTask, TrueOrochiAssets):
             sleep(0.5)
 
         logger.info("Battle process end")
-        self.goto_page(page_main)
-        self.check_times(battle)
-        raise TaskEnd('TrueOrochi')
 
     def get_true_orochi(self) -> bool:
         """获取真蛇(攻打十层10次, 发现真蛇就退出, 会更改limit_count)"""
