@@ -5,10 +5,8 @@ import copy
 from time import sleep
 from datetime import time, datetime, timedelta
 
-from exceptiongroup import catch
 from tasks.Component.config_base import Time
 from tasks.DailyTrifles.page import page_store_gift_room, page_friends_luck
-from winerror import NOERROR
 
 from tasks.GameUi.game_ui import GameUi
 from tasks.GameUi.page import page_main, page_summon, page_guild, page_mall, page_friends, page_courtyard_affairs

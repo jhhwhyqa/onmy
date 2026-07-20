@@ -20,6 +20,8 @@ from module.exception import ScriptError
 from module.logger import logger
 from module.ocr.ppocr import TextSystem
 
+# OCR 服务始终通过全新解释器启动，避免继承父进程中已初始化的 RPC 运行时状态。
+_OCR_SERVER_CONTEXT = multiprocessing.get_context("spawn")
 _OCR_SERVER_PROCESS: Optional[multiprocessing.Process] = None
 _OCR_CLIENT_CACHE: dict[str, "ModelProxy"] = {}
 
@@ -283,7 +285,7 @@ def ensure_ocr_server_started() -> bool:
         logger.info("OCR server process already started")
         return True
 
-    _OCR_SERVER_PROCESS = multiprocessing.Process(
+    _OCR_SERVER_PROCESS = _OCR_SERVER_CONTEXT.Process(
         target=run_ocr_server,
         args=(host, port, _build_server_settings()),
         name="ocr_server",

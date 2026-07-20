@@ -11,6 +11,7 @@ from PIL import Image
 from module.base.decorator import cached_property
 from module.base.timer import Timer
 from module.base.utils import get_color, image_size, limit_in, save_image
+from module.device.env import IS_WINDOWS
 from module.device.method.adb import Adb
 from module.device.method.windows import Window
 from module.device.method.droidcast import DroidCast
@@ -32,11 +33,15 @@ class Screenshot(Adb, DroidCast, Scrcpy, Window, NemuIpc):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        super(Window, self).__init__(*args, **kwargs)
+        if IS_WINDOWS:
+            # ConnectionAttr ends the cooperative init chain before Window.
+            # Windows still needs the Handle initializer behind Window; the
+            # Linux Window placeholder has no such base to initialize.
+            super(Window, self).__init__(*args, **kwargs)
 
     @cached_property
     def screenshot_methods(self):
-        return {
+        methods = {
             'ADB': self.screenshot_adb,
             'ADB_nc': self.screenshot_adb_nc,
             'uiautomator2': self.screenshot_uiautomator2,
@@ -45,9 +50,13 @@ class Screenshot(Adb, DroidCast, Scrcpy, Window, NemuIpc):
             'DroidCast': self.screenshot_droidcast,
             'DroidCast_raw': self.screenshot_droidcast_raw,
             'scrcpy': self.screenshot_scrcpy,
-            'window_background': self.screenshot_window_background,
-            'nemu_ipc': self.screenshot_nemu_ipc
         }
+        if IS_WINDOWS:
+            methods.update({
+                'window_background': self.screenshot_window_background,
+                'nemu_ipc': self.screenshot_nemu_ipc,
+            })
+        return methods
 
     def screenshot(self):
         """

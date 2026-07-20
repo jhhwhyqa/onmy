@@ -10,6 +10,10 @@ from module.logger import logger
 from module.server.config_manager import ConfigManager
 from module.server.script_websocket import ScriptWSManager
 
+# 脚本进程必须使用全新解释器，避免继承主服务已连接的 ZeroRPC/ZeroMQ context。
+# Pipe、Queue 和 Process 必须来自同一个 multiprocessing context。
+_SCRIPT_PROCESS_CONTEXT = multiprocessing.get_context("spawn")
+
 
 class ScriptState(int, Enum):
     INACTIVE = 0
@@ -25,8 +29,8 @@ class ScriptProcess(ScriptWSManager):
         if config_name not in ConfigManager.all_script_files():
             raise FileNotFoundError(f'{config_name}.json not found')
         self.config_name = config_name  # config_name
-        self.log_pipe_out, self.log_pipe_in = multiprocessing.Pipe(False)
-        self.state_queue = multiprocessing.Queue()
+        self.log_pipe_out, self.log_pipe_in = _SCRIPT_PROCESS_CONTEXT.Pipe(False)
+        self.state_queue = _SCRIPT_PROCESS_CONTEXT.Queue()
         self.state: ScriptState = ScriptState.INACTIVE
         self._process = None
 
@@ -51,10 +55,12 @@ class ScriptProcess(ScriptWSManager):
         if self._process and self._process.is_alive():
             logger.warning(f'Script {self.config_name} is already running and first stop it')
             self.stop()
-        self._process = multiprocessing.Process(target=func,
-                                                args=(self.config_name, self.state_queue, self.log_pipe_in,),
-                                                name=self.config_name,
-                                                daemon=True)
+        self._process = _SCRIPT_PROCESS_CONTEXT.Process(
+            target=func,
+            args=(self.config_name, self.state_queue, self.log_pipe_in,),
+            name=self.config_name,
+            daemon=True,
+        )
         self._process.start()
 
 

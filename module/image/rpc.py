@@ -15,6 +15,8 @@ from module.exception import ScriptError
 from module.image.runtime import ImageRuntime
 from module.logger import logger
 
+# 图像服务始终通过全新解释器启动，避免继承父进程中已初始化的 RPC 运行时状态。
+_IMAGE_SERVER_CONTEXT = multiprocessing.get_context("spawn")
 # 当前进程自动拉起的图像服务进程，仅在 StartImageServer 场景下使用。
 _IMAGE_SERVER_PROCESS: Optional[multiprocessing.Process] = None
 # 按地址缓存 RPC 客户端，避免同一入口反复建立 zerorpc 连接。
@@ -119,7 +121,7 @@ def ensure_image_server_started() -> bool:
         logger.info("Image server process already started")
         return True
 
-    _IMAGE_SERVER_PROCESS = multiprocessing.Process(
+    _IMAGE_SERVER_PROCESS = _IMAGE_SERVER_CONTEXT.Process(
         target=run_image_server,
         args=(host, port, _build_server_settings()),
         name="image_server",

@@ -4,6 +4,7 @@ import time
 from module.base.decorator import cached_property
 from module.base.timer import Timer
 from module.base.utils import *
+from module.device.env import IS_WINDOWS
 # from module.device.method.hermit import Hermit
 # from module.device.method.maatouch import MaaTouch
 from module.device.method.minitouch import Minitouch
@@ -29,26 +30,30 @@ class Control(Minitouch, Adb, Scrcpy, Window):
 
     @cached_property
     def click_methods(self):
-        return {
+        methods = {
             'ADB': self.click_adb,
             'uiautomator2': self.click_uiautomator2,
             'minitouch': self.click_minitouch,
-            'window_message': self.click_window_message
             # 'Hermit': self.click_hermit,
             # 'MaaTouch': self.click_maatouch,
         }
+        if IS_WINDOWS:
+            methods['window_message'] = self.click_window_message
+        return methods
 
     @cached_property
     def long_click_methods(self):
-        return {
+        methods = {
             'ADB': self.long_click_adb,
             'uiautomator2': self.long_click_uiautomator2,
             'minitouch': self.long_click_minitouch,
-            'window_message': self.long_click_window_message,
             'scrcpy': self.long_click_scrcpy
             # 'Hermit': self.click_hermit,
             # 'MaaTouch': self.click_maatouch,
         }
+        if IS_WINDOWS:
+            methods['window_message'] = self.long_click_window_message
+        return methods
 
     def click(self, x: int, y: int, control_check=True, control_name='Click') -> None:
         """
