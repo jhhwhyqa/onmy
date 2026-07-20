@@ -117,6 +117,14 @@ class EmulatorHandler(ABC):
         """返回启动确认 Timer，默认返回 None（无需额外确认）。"""
         return None
 
+    def build_stop_confirm_timer(self, instance) -> t.Any:
+        """返回关闭确认 Timer，默认返回 None（提交命令后立即完成）。"""
+        return None
+
+    def check_stop_state(self, instance, platform) -> str:
+        """返回 'stopped'/'running'/'unknown'，仅供启用关闭确认的 Handler 使用。"""
+        return 'unknown'
+
     # ------------------------------------------------------------------
     # 通用 adb 兜底
     # ------------------------------------------------------------------

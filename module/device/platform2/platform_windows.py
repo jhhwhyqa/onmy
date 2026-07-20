@@ -581,6 +581,29 @@ class PlatformWindows(PlatformBase, EmulatorManager):
         )
         self.execute(cmd, show_window=show_window)
 
+    def _wait_emulator_stop(self, instance: EmulatorInstance, handler) -> bool:
+        """等待选择了关闭确认能力的 Handler 报告目标实例已停止。"""
+        confirm_timer = handler.build_stop_confirm_timer(instance)
+        if confirm_timer is None:
+            return True
+
+        logger.info(f'[emu-stop] wait confirmation: serial={instance.serial}')
+        last_state = None
+        while True:
+            current_state = handler.check_stop_state(instance, self)
+            if current_state != last_state:
+                logger.info(f'[emu-stop] state: serial={instance.serial}, state={current_state}')
+                last_state = current_state
+            if current_state == 'stopped':
+                logger.info(f'[emu-stop] stop completed: serial={instance.serial}')
+                return True
+            if confirm_timer.reached():
+                logger.warning(
+                    f'[emu-stop] confirmation timeout: serial={instance.serial}, state={current_state}'
+                )
+                return False
+            Timer(1).wait()
+
     def _emulator_stop(self, instance: EmulatorInstance):
         """
         Stop a emulator without error handling (delegates to Handler)
@@ -592,12 +615,13 @@ class PlatformWindows(PlatformBase, EmulatorManager):
         kill_regex = handler.stop_by_kill(instance)
         if kill_regex:
             self.kill_process_by_regex(kill_regex)
-            return
+            return True
 
         cmd = handler.build_stop_command(instance)
         if cmd is None:
             raise EmulatorUnknown(f'Handler returned no stop command for: {instance}')
         self.execute(cmd)
+        return self._wait_emulator_stop(instance, handler)
 
     def _emulator_function_wrapper(self, func: callable, instance: EmulatorInstance = None):
         """
@@ -613,8 +637,8 @@ class PlatformWindows(PlatformBase, EmulatorManager):
             logger.error(f'Emulator function {func.__name__}() failed because no target instance was found')
             return False
         try:
-            func(instance)
-            return True
+            result = func(instance)
+            return result is not False
         except OSError as e:
             msg = str(e)
             # OSError: [WinError 740] 请求的操作需要提升。
