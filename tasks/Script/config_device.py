@@ -15,6 +15,7 @@ class PackageName(str, Enum):
     NETEASE = 'com.netease.onmyoji'
     NETEASE_HUAWEI = 'com.netease.onmyoji.huawei'
     NETEASE_BILIBILI = 'com.netease.onmyoji.bili'
+    NETEASE_QQ = 'com.tencent.tmgp.yys.zqb'
 
 
 class ScreenshotMethod(str, Enum):
