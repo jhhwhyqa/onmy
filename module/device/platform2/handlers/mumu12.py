@@ -170,14 +170,29 @@ class MuMu12Handler(EmulatorHandler):
             return {}
         return player_info
 
+    @staticmethod
+    def _parse_process_state(player_info: dict) -> str:
+        if not player_info:
+            return 'unknown'
+
+        error_code = player_info.get('error_code')
+        if error_code not in (None, 0):
+            return 'unknown'
+
+        if 'is_process_started' not in player_info:
+            # Some MuMu12 versions omit process fields after a successful shutdown.
+            return 'stopped' if error_code == 0 else 'unknown'
+
+        process_started = player_info['is_process_started']
+        if isinstance(process_started, bool):
+            return 'running' if process_started else 'stopped'
+        if isinstance(process_started, int) and process_started in (0, 1):
+            return 'running' if process_started else 'stopped'
+        return 'unknown'
+
     def check_stop_state(self, instance, platform) -> str:
         player_info = self.query_player_info(instance, platform)
-        process_started = player_info.get('is_process_started')
-        if process_started is False:
-            return 'stopped'
-        if process_started is True:
-            return 'running'
-        return 'unknown'
+        return self._parse_process_state(player_info)
 
     def try_hide_window(self, instance, platform, info=None) -> bool:
         mumu_id = self.get_instance_id(instance)
@@ -210,13 +225,13 @@ class MuMu12Handler(EmulatorHandler):
 
         player_info = self.query_player_info(instance, state._platform)
         current_state = 'unknown'
-        if player_info:
-            if not player_info.get('is_process_started', False):
-                current_state = 'stopped'
-            else:
-                current_state = player_info.get('player_state') or (
-                    'start_finished' if player_info.get('is_android_started', False) else 'starting'
-                )
+        process_state = self._parse_process_state(player_info)
+        if process_state == 'stopped':
+            current_state = 'stopped'
+        elif process_state == 'running':
+            current_state = player_info.get('player_state') or (
+                'start_finished' if player_info.get('is_android_started', False) else 'starting'
+            )
         if current_state == 'stopped':
             if state.launch_confirm.reached():
                 logger.warning(f'[emu-start] launch not started: serial={state.serial}')
