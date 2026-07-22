@@ -31,7 +31,7 @@ class ActivityShikigamiAssets:
 	# 活动爬塔标志 
 	I_CLIMB_MODE_PASS = RuleImage(roi_front=(1141,544,21,21), roi_back=(1118,510,119,186), threshold=0.8, method="Template matching", file="./tasks/ActivityShikigami/as/as_climb_mode_pass.png")
 	# 体力爬塔标志 
-	I_CLIMB_MODE_AP = RuleImage(roi_front=(1163,544,22,25), roi_back=(1055,495,202,219), threshold=0.8, method="Template matching", file="./tasks/ActivityShikigami/as/as_climb_mode_ap.png")
+	I_CLIMB_MODE_AP = RuleImage(roi_front=(1091,543,24,25), roi_back=(1055,495,202,219), threshold=0.8, method="Template matching", file="./tasks/ActivityShikigami/as/as_climb_mode_ap.png")
 	# 切换按键 
 	I_CLIMB_MODE_SWITCH = RuleImage(roi_front=(1232,545,29,26), roi_back=(1174,511,104,82), threshold=0.8, method="Template matching", file="./tasks/ActivityShikigami/as/as_climb_mode_switch.png")
 	# 100体爬塔标志 
