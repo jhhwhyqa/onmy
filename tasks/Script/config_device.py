@@ -10,12 +10,15 @@ from module.logger import logger
 
 class PackageName(str, Enum):
     AUTO = 'auto'
-    NETEASE_ONMYOJI = 'com.netease.onmyoji.wyzymnqsd_cps'  # 网易自家的阴阳师
+    NETEASE_ONMYOJI = 'com.netease.onmyoji.wyzymnqsd_cps'  # 网易官方扫码版
     NETEASE_MI = 'com.netease.onmyoji.mi'  # 小米
-    NETEASE = 'com.netease.onmyoji'
+    NETEASE = 'com.netease.onmyoji'     # 网易官方非扫码版
     NETEASE_HUAWEI = 'com.netease.onmyoji.huawei'
-    NETEASE_BILIBILI = 'com.netease.onmyoji.bili'
-    NETEASE_QQ = 'com.tencent.tmgp.yys.zqb'
+    NETEASE_BILIBILI = 'com.netease.onmyoji.bili' #哔哩哔哩渠道服
+    NETEASE_VIVO = 'com.netease.onmyoji.vivo'  # vivo渠道服
+    NETEASE_M4399 = 'com.netease.onmyoji.m4399'  # 4399渠道服
+    NETEASE_NEARME = 'com.netease.onmyoji.nearme.gamecenter'  # OPPO渠道服
+    TENCENT_YYS = 'com.tencent.tmgp.yys.zqb'  # 腾讯应用宝渠道阴阳师
 
 
 class ScreenshotMethod(str, Enum):
