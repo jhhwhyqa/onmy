@@ -29,7 +29,7 @@ class BaseExploration(GameUi, GeneralBattle, GeneralRoom, GeneralInvite, Replace
     need_exit: bool = False
     user_status: UserStatus = UserStatus.ALONE
     wait_start_time: datetime = datetime.now()
-    pre_page: pages.Page
+    pre_page: pages.Page = None
 
     def _exit_matcher(self) -> ExitMatcher:
         return pages.any_of(self.I_E_SETTINGS_BUTTON, self.I_E_AUTO_ROTATE_ON, self.I_E_AUTO_ROTATE_OFF)
