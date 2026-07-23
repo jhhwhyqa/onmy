@@ -67,11 +67,15 @@ class ScriptTask(BaseExploration):
                 continue
             try:
                 handle()
+                self.pre_page = current_page  # 更新上一个页面为当前页面
             except InviteFailedException as e:
                 logger.warning(e)
                 break
 
     def run_on_exp_main(self):
+        if self.pre_page != pages.page_exp_main:
+            # 防止因延迟过大, 一直在主界面和奖励页面切换导致too many click
+            self.device.click_record_clear()
         if self.collect_reward():
             return
         if self.user_status != UserStatus.ALONE:
