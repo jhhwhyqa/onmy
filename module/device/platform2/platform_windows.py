@@ -675,6 +675,13 @@ class PlatformWindows(PlatformBase, EmulatorManager):
                 return False
             if launch_state == 'wait':
                 continue
+            if launch_state == 'unknown':
+                self._log_emulator_watch_once(
+                    state,
+                    'launch_state_unknown',
+                    'warning',
+                    f'[emu-start] launch state unknown, fallback to readiness checks: serial={state.serial}'
+                )
 
             self._hide_emulator_window_if_needed(instance, state, player_info)
             self._track_emulator_focus_window(state)
@@ -693,11 +700,12 @@ class PlatformWindows(PlatformBase, EmulatorManager):
 
     def emulator_start(self):
         logger.hr('Emulator start', level=1)
-        for i in range(3):
+        max_attempts = 3
+        for i in range(max_attempts):
             attempt = i + 1
-            logger.info(f'[emu-start] lock wait: attempt={attempt}/3')
+            logger.info(f'[emu-start] lock wait: attempt={attempt}/{max_attempts}')
             with self.emulator_lifecycle_lock():
-                logger.info(f'[emu-start] lock acquired: attempt={attempt}/3')
+                logger.info(f'[emu-start] lock acquired: attempt={attempt}/{max_attempts}')
                 instance = self.refresh_target_instance(reason=f'pre-start refresh attempt={attempt}')
                 if instance is None:
                     logger.info('[emu-start] lock release: target instance not found')
@@ -709,7 +717,10 @@ class PlatformWindows(PlatformBase, EmulatorManager):
                     return True
 
                 if attempt > 1:
-                    logger.warning(f'[emu-start] retry with stop: serial={instance.serial}, attempt={attempt}/3')
+                    logger.warning(
+                        f'[emu-start] retry with stop: serial={instance.serial}, '
+                        f'attempt={attempt}/{max_attempts}'
+                    )
                     if not self._emulator_function_wrapper(self._emulator_stop, instance):
                         logger.info('[emu-start] lock release: stop failed')
                         return False
@@ -720,28 +731,46 @@ class PlatformWindows(PlatformBase, EmulatorManager):
 
                 logger.info(
                     f'[emu-start] start target: serial={instance.serial}, name={instance.name or "<default>"}, '
-                    f'type={instance.type}, attempt={attempt}/3'
+                    f'type={instance.type}, attempt={attempt}/{max_attempts}'
                 )
                 if not self._emulator_function_wrapper(self._emulator_start, instance):
-                    logger.warning(f'[emu-start] start command failed: serial={instance.serial}, attempt={attempt}/3')
+                    logger.warning(
+                        f'[emu-start] start command failed: serial={instance.serial}, '
+                        f'attempt={attempt}/{max_attempts}'
+                    )
                     logger.info('[emu-start] lock release: start failed')
+                    if attempt >= max_attempts:
+                        logger.warning(
+                            f'[emu-start] final attempt failed, skip recovery stop: serial={instance.serial}'
+                        )
+                        break
                     continue
-                logger.info(f'[emu-start] start submitted: serial={instance.serial}, attempt={attempt}/3')
+                logger.info(
+                    f'[emu-start] start submitted: serial={instance.serial}, '
+                    f'attempt={attempt}/{max_attempts}'
+                )
                 logger.info('[emu-start] lock release: start submitted')
 
             if self.emulator_start_watch(instance):
                 return True
-            logger.attr(3 - attempt, f'Failed to connect or start, try again')
+            if attempt >= max_attempts:
+                logger.warning(
+                    f'[emu-start] final attempt failed, skip recovery stop: serial={instance.serial}'
+                )
+                break
+            logger.attr(max_attempts - attempt, 'Failed to connect or start, try again')
 
-        logger.error('Failed to start emulator 3 times, stopped')
+        logger.error(f'Failed to start emulator after {max_attempts} attempts')
         return False
 
     def emulator_stop(self):
         logger.hr('Emulator stop', level=1)
-        for _ in range(3):
-            logger.info('[emu-stop] lock wait')
+        max_attempts = 3
+        for i in range(max_attempts):
+            attempt = i + 1
+            logger.info(f'[emu-stop] lock wait: attempt={attempt}/{max_attempts}')
             with self.emulator_lifecycle_lock():
-                logger.info('[emu-stop] lock acquired')
+                logger.info(f'[emu-stop] lock acquired: attempt={attempt}/{max_attempts}')
                 instance = self.refresh_target_instance(reason='pre-stop refresh')
                 if instance is None:
                     logger.info('[emu-stop] lock release: target instance not found')
@@ -751,15 +780,24 @@ class PlatformWindows(PlatformBase, EmulatorManager):
                     logger.info(f'[emu-stop] stop submitted: serial={instance.serial}')
                     logger.info('[emu-stop] lock release: stop ok')
                     return True
+                if attempt >= max_attempts:
+                    logger.warning(
+                        f'[emu-stop] final attempt failed, skip recovery start: serial={instance.serial}'
+                    )
+                    logger.info('[emu-stop] lock release: final attempt failed')
+                    break
                 # Failed to stop, start and stop again
                 if self._emulator_function_wrapper(self._emulator_start, instance):
-                    logger.warning(f'[emu-stop] stop failed, retry after start: serial={instance.serial}')
+                    logger.warning(
+                        f'[emu-stop] stop failed, retry after start: serial={instance.serial}, '
+                        f'next_attempt={attempt + 1}/{max_attempts}'
+                    )
                     logger.info('[emu-stop] lock release: retry')
                     continue
                 logger.info('[emu-stop] lock release: stop/start failed')
                 return False
 
-        logger.error('Failed to stop emulator 3 times, stopped')
+        logger.error(f'Failed to stop emulator after {max_attempts} attempts')
         return False
 
 

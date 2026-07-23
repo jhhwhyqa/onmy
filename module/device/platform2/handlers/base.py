@@ -109,7 +109,8 @@ class EmulatorHandler(ABC):
         """
         检查启动流程是否已经真正拉起。
         Returns:
-            (result, player_info): result 为 'ready'/'wait'/'fail'
+            (result, player_info): result 为 'ready'/'wait'/'fail'/'unknown'；
+                'unknown' 表示交由通用就绪检查继续确认
         """
         return 'ready', None
 

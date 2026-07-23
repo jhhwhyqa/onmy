@@ -52,15 +52,17 @@ class MuMu12Handler(EmulatorHandler):
                 return int(res.group(1))
         return None
 
-    def _resolve_console(self, instance) -> t.Optional[str]:
+    def _resolve_console(self, instance, log_warning: bool = True) -> t.Optional[str]:
         emulator = getattr(instance, 'emulator', None)
         exe = getattr(emulator, 'path', '')
         console = self.single_to_console(exe) if isinstance(exe, str) else None
         if not console:
-            logger.warning(f'Cannot resolve MuMu control executable from path {exe}')
+            if log_warning:
+                logger.warning(f'Cannot resolve MuMu control executable from path {exe}')
             return None
         if not os.path.isfile(console):
-            logger.warning(f'MuMu control executable does not exist: {console}')
+            if log_warning:
+                logger.warning(f'MuMu control executable does not exist: {console}')
             return None
         return console
 
@@ -136,39 +138,101 @@ class MuMu12Handler(EmulatorHandler):
         from module.base.timer import Timer
         return Timer(30).start()
 
+    @staticmethod
+    def _remember_info_result(
+            instance,
+            returncode: int | None = None,
+            stdout: str = '',
+            stderr: str = '',
+            error: str = ''
+    ) -> None:
+        """缓存最近一次 info 查询结果，交由状态变化日志按需输出。"""
+        instance._mumu_info_result = {
+            'returncode': returncode,
+            'stdout': stdout,
+            'stderr': stderr,
+            'error': error,
+        }
+
+    @staticmethod
+    def _log_info_on_state_change(instance, current_state: str) -> None:
+        """每轮监视初始打印一次，后续仅在状态发生变化时打印 info。"""
+        if (
+                getattr(instance, '_mumu_info_state_logged', False)
+                and getattr(instance, '_mumu_info_logged_state', None) == current_state
+        ):
+            return
+
+        result = getattr(instance, '_mumu_info_result', {})
+        returncode = result.get('returncode')
+        stdout = result.get('stdout', '')
+        stderr = result.get('stderr', '')
+        error = result.get('error', '')
+        message = (
+            f'[emu-state] info state: serial={instance.serial}, state={current_state}, '
+            f'returncode={returncode}, stdout={stdout!r}, stderr={stderr!r}'
+        )
+        if error:
+            message = f'{message}, error={error}'
+
+        log = logger.warning if current_state == 'unknown' or returncode not in (None, 0) or error else logger.info
+        log(message)
+        instance._mumu_info_state_logged = True
+        instance._mumu_info_logged_state = current_state
+
     def query_player_info(self, instance, platform) -> dict:
         mumu_id = self.get_instance_id(instance)
         if mumu_id is None:
-            logger.warning(f'Cannot get MuMu instance index from name {instance.name}')
+            self._remember_info_result(instance, error=f'Cannot get instance index from name {instance.name}')
             return {}
 
-        manager = self._resolve_console(instance)
+        manager = self._resolve_console(instance, log_warning=False)
         if manager is None:
+            self._remember_info_result(instance, error='Cannot resolve MuMu control executable')
             return {}
         command = f'"{manager}" info -v {mumu_id}'
         try:
             result = platform.execute_output(command, timeout=10)
         except Exception as e:
-            logger.warning(f'[emu-state] query failed: serial={instance.serial}, error={e}')
+            self._remember_info_result(instance, error=f'Query failed: {e}')
             return {}
 
-        output = '\n'.join(
-            part.strip()
-            for part in [result.stdout, result.stderr]
-            if isinstance(part, str) and part.strip()
+        stdout = result.stdout.strip() if isinstance(result.stdout, str) else ''
+        stderr = result.stderr.strip() if isinstance(result.stderr, str) else ''
+        self._remember_info_result(
+            instance,
+            returncode=result.returncode,
+            stdout=stdout,
+            stderr=stderr,
         )
-        if not output:
+        if not stdout and not stderr:
+            self._remember_info_result(instance, returncode=result.returncode, error='Empty info output')
             return {}
 
-        try:
-            player_info = json.loads(output)
-        except json.JSONDecodeError:
-            logger.warning(f'[emu-state] invalid info output: serial={instance.serial}, output={output}')
-            return {}
-        if not isinstance(player_info, dict):
-            logger.warning(f'[emu-state] invalid info type: serial={instance.serial}, output={output}')
-            return {}
-        return player_info
+        # Parse stdout and stderr independently. Some MuMu versions emit
+        # diagnostics to stderr even when stdout contains valid JSON.
+        parse_errors = []
+        for source, output in (('stdout', stdout), ('stderr', stderr)):
+            if not output:
+                continue
+            try:
+                player_info = json.loads(output.lstrip('\ufeff'))
+            except json.JSONDecodeError as e:
+                parse_errors.append(f'Invalid {source} JSON: {e}')
+                continue
+            if not isinstance(player_info, dict):
+                parse_errors.append(f'Invalid {source} type: {type(player_info).__name__}')
+                continue
+            return player_info
+
+        self._remember_info_result(
+            instance,
+            returncode=result.returncode,
+            stdout=stdout,
+            stderr=stderr,
+            error='; '.join(parse_errors) or 'No valid info object',
+        )
+        return {}
 
     @staticmethod
     def _parse_process_state(player_info: dict) -> str:
@@ -192,7 +256,9 @@ class MuMu12Handler(EmulatorHandler):
 
     def check_stop_state(self, instance, platform) -> str:
         player_info = self.query_player_info(instance, platform)
-        return self._parse_process_state(player_info)
+        current_state = self._parse_process_state(player_info)
+        self._log_info_on_state_change(instance, current_state)
+        return current_state
 
     def try_hide_window(self, instance, platform, info=None) -> bool:
         mumu_id = self.get_instance_id(instance)
@@ -232,6 +298,12 @@ class MuMu12Handler(EmulatorHandler):
             current_state = player_info.get('player_state') or (
                 'start_finished' if player_info.get('is_android_started', False) else 'starting'
             )
+        else:
+            # Keep polling info while allowing the generic ADB/window readiness
+            # checks to confirm a successful startup independently.
+            self._log_info_on_state_change(instance, current_state)
+            return 'unknown', player_info
+        self._log_info_on_state_change(instance, current_state)
         if current_state == 'stopped':
             if state.launch_confirm.reached():
                 logger.warning(f'[emu-start] launch not started: serial={state.serial}')
