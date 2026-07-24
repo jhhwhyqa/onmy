@@ -132,7 +132,6 @@ class EmulatorStartWatchState:
     interval: Timer
     timeout: Timer
     struct_window: Timer
-    launch_confirm: Timer | None
     window_hidden: bool = False
     new_window: int = 0
     logged_events: set[str] = field(default_factory=set)
@@ -173,19 +172,6 @@ class PlatformWindows(PlatformBase, EmulatorManager):
             command,
             close_fds=True,
             startupinfo=startupinfo
-        )
-
-    @classmethod
-    def execute_output(cls, command: str, timeout: int = 15, show_window: bool = False) -> subprocess.CompletedProcess:
-        startupinfo = cls.build_startupinfo(show_window=show_window)
-        command = cls.normalize_command(command)
-        return subprocess.run(
-            command,
-            capture_output=True,
-            text=True,
-            timeout=timeout,
-            startupinfo=startupinfo,
-            close_fds=True,
         )
 
     @classmethod
@@ -308,19 +294,13 @@ class PlatformWindows(PlatformBase, EmulatorManager):
         """
         构建模拟器启动监视所需的运行状态。
         """
-        handler = self._get_handler(instance)
-        launch_confirm = handler.build_launch_confirm_timer(instance) if handler else None
-        state = EmulatorStartWatchState(
+        return EmulatorStartWatchState(
             serial=instance.serial,
             current_window=get_focused_window(),
             interval=Timer(1).start(),
             timeout=Timer(120).start(),
             struct_window=Timer(10),
-            launch_confirm=launch_confirm,
         )
-        state._platform = self
-        state._handler = handler
-        return state
 
     def _log_emulator_watch_once(
         self,
@@ -363,43 +343,28 @@ class PlatformWindows(PlatformBase, EmulatorManager):
             return False
         return True
 
-    def _check_handler_launch_state(
-        self,
-        instance: EmulatorInstance,
-        state: EmulatorStartWatchState
-    ) -> tuple[str, dict | None]:
-        """
-        通过 Handler 检查启动流程是否已经真正拉起。
-        """
-        handler = getattr(state, '_handler', None)
-        if handler is None:
-            return 'ready', None
-        return handler.check_launch_state(instance, state)
-
     def _hide_emulator_window_if_needed(
         self,
-        instance: EmulatorInstance,
-        state: EmulatorStartWatchState,
-        player_info: dict | None
+        state: EmulatorStartWatchState
     ) -> None:
         """
-        在仅后台运行模式下尝试隐藏模拟器窗口（委托给 Handler）。
+        在仅后台运行模式下按配置的窗口名称查找并隐藏一次。
         """
         if not self.config.script.device.run_background_only or state.window_hidden:
             return
-        handler = getattr(state, '_handler', None)
-        if handler is None:
+        target_window_name = self.config.script.device.handle
+        if not target_window_name:
             return
-        if player_info is None:
-            player_info = handler.query_player_info(instance, self)
-        if not handler.try_hide_window(instance, self, info=player_info):
+        hwnd = find_hwnd_by_name(target_window_name)
+        if not hwnd:
             return
 
+        hide_window(hwnd)
         self._log_emulator_watch_once(
             state,
             'hidden_window',
             'info',
-            f'[emu-start] hide instance window: serial={state.serial}'
+            f'[emu-start] hide instance window: serial={state.serial}, name={target_window_name}'
         )
         state.window_hidden = True
 
@@ -550,7 +515,15 @@ class PlatformWindows(PlatformBase, EmulatorManager):
             logger.info(f'Minimize new emulator window: {emulator_window_minimize}')
         if self.config.script.device.run_background_only:
             logger.info(f'run background only: {self.config.script.device.run_background_only}')
-            logger.warning('run_background_only will not show any UI, emulator will run background only')
+            if not state.window_hidden:
+                target_window_name = self.config.script.device.handle
+                self._log_emulator_watch_once(
+                    state,
+                    'background_window_not_found',
+                    'warning',
+                    f'[emu-start] background window not found before startup completed: '
+                    f'name={target_window_name!r}'
+                )
             return
         if not emulator_window_minimize:
             return
@@ -581,29 +554,6 @@ class PlatformWindows(PlatformBase, EmulatorManager):
         )
         self.execute(cmd, show_window=show_window)
 
-    def _wait_emulator_stop(self, instance: EmulatorInstance, handler) -> bool:
-        """等待选择了关闭确认能力的 Handler 报告目标实例已停止。"""
-        confirm_timer = handler.build_stop_confirm_timer(instance)
-        if confirm_timer is None:
-            return True
-
-        logger.info(f'[emu-stop] wait confirmation: serial={instance.serial}')
-        last_state = None
-        while True:
-            current_state = handler.check_stop_state(instance, self)
-            if current_state != last_state:
-                logger.info(f'[emu-stop] state: serial={instance.serial}, state={current_state}')
-                last_state = current_state
-            if current_state == 'stopped':
-                logger.info(f'[emu-stop] stop completed: serial={instance.serial}')
-                return True
-            if confirm_timer.reached():
-                logger.warning(
-                    f'[emu-stop] confirmation timeout: serial={instance.serial}, state={current_state}'
-                )
-                return False
-            Timer(1).wait()
-
     def _emulator_stop(self, instance: EmulatorInstance):
         """
         Stop a emulator without error handling (delegates to Handler)
@@ -621,7 +571,7 @@ class PlatformWindows(PlatformBase, EmulatorManager):
         if cmd is None:
             raise EmulatorUnknown(f'Handler returned no stop command for: {instance}')
         self.execute(cmd)
-        return self._wait_emulator_stop(instance, handler)
+        return True
 
     def _emulator_function_wrapper(self, func: callable, instance: EmulatorInstance = None):
         """
@@ -670,20 +620,7 @@ class PlatformWindows(PlatformBase, EmulatorManager):
             if not self._wait_emulator_watch_tick(state):
                 return False
 
-            launch_state, player_info = self._check_handler_launch_state(instance, state)
-            if launch_state == 'fail':
-                return False
-            if launch_state == 'wait':
-                continue
-            if launch_state == 'unknown':
-                self._log_emulator_watch_once(
-                    state,
-                    'launch_state_unknown',
-                    'warning',
-                    f'[emu-start] launch state unknown, fallback to readiness checks: serial={state.serial}'
-                )
-
-            self._hide_emulator_window_if_needed(instance, state, player_info)
+            self._hide_emulator_window_if_needed(state)
             self._track_emulator_focus_window(state)
             if not self._ensure_emulator_device_ready(state):
                 continue
@@ -765,40 +702,20 @@ class PlatformWindows(PlatformBase, EmulatorManager):
 
     def emulator_stop(self):
         logger.hr('Emulator stop', level=1)
-        max_attempts = 3
-        for i in range(max_attempts):
-            attempt = i + 1
-            logger.info(f'[emu-stop] lock wait: attempt={attempt}/{max_attempts}')
-            with self.emulator_lifecycle_lock():
-                logger.info(f'[emu-stop] lock acquired: attempt={attempt}/{max_attempts}')
-                instance = self.refresh_target_instance(reason='pre-stop refresh')
-                if instance is None:
-                    logger.info('[emu-stop] lock release: target instance not found')
-                    return False
-                # Stop
-                if self._emulator_function_wrapper(self._emulator_stop, instance):
-                    logger.info(f'[emu-stop] stop submitted: serial={instance.serial}')
-                    logger.info('[emu-stop] lock release: stop ok')
-                    return True
-                if attempt >= max_attempts:
-                    logger.warning(
-                        f'[emu-stop] final attempt failed, skip recovery start: serial={instance.serial}'
-                    )
-                    logger.info('[emu-stop] lock release: final attempt failed')
-                    break
-                # Failed to stop, start and stop again
-                if self._emulator_function_wrapper(self._emulator_start, instance):
-                    logger.warning(
-                        f'[emu-stop] stop failed, retry after start: serial={instance.serial}, '
-                        f'next_attempt={attempt + 1}/{max_attempts}'
-                    )
-                    logger.info('[emu-stop] lock release: retry')
-                    continue
-                logger.info('[emu-stop] lock release: stop/start failed')
+        logger.info('[emu-stop] lock wait')
+        with self.emulator_lifecycle_lock():
+            logger.info('[emu-stop] lock acquired')
+            instance = self.refresh_target_instance(reason='pre-stop refresh')
+            if instance is None:
+                logger.info('[emu-stop] lock release: target instance not found')
+                return False
+            if not self._emulator_function_wrapper(self._emulator_stop, instance):
+                logger.info('[emu-stop] lock release: stop failed')
                 return False
 
-        logger.error(f'Failed to stop emulator after {max_attempts} attempts')
-        return False
+            logger.info(f'[emu-stop] stop submitted: serial={instance.serial}')
+            logger.info('[emu-stop] lock release: stop submitted')
+            return True
 
 
 if __name__ == '__main__':

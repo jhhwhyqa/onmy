@@ -52,10 +52,6 @@ for h in all_handlers():
 | `stop_by_kill(instance)` | 返回 kill 进程正则 | 否（默认 None） |
 | `get_instance_id(instance)` | 获取实例 ID | 否（默认 None） |
 | `start_show_window()` | 启动命令是否需要窗口 | 否（默认 True） |
-| `query_player_info(instance, platform)` | 查询实例运行信息 | 否（默认空 dict） |
-| `try_hide_window(instance, platform, info)` | 隐藏模拟器窗口 | 否（默认 False） |
-| `check_launch_state(instance, state)` | 检查启动状态 | 否（默认 ready） |
-| `build_launch_confirm_timer(instance)` | 启动确认计时器 | 否（默认 None） |
 
 **停止模拟器的优先级**: `stop_by_kill()` 返回非 None 时使用 kill 方式，否则使用 `build_stop_command()` 命令方式。
 
