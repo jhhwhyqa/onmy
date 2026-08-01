@@ -122,10 +122,10 @@ class Digit(Single):
         """
         result = self.ocr_single(image)
 
-        if result == "":
-            return 0
-        else:
+        if result.isdigit():
             return int(result)
+        return 0
+
 
 class DigitCounter(Single):
     def after_process(self, result):

@@ -214,7 +214,7 @@ class Condition:
                 self._condition_result = True
                 return True
         # 检查伤害条件
-        if self._damage_max >= 0 and damage is not None:
+        if self._damage_max >= 0 and damage is not None and damage > 0:
             if self._damage_max < damage:
                 self._condition_result = True
                 return True
