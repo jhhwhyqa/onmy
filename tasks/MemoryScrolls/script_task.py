@@ -53,34 +53,20 @@ class ScriptTask(GameUi, MemoryScrollsAssets):
             raise TaskEnd
         # 如果每天只刷小绘卷50，则先检测小绘卷数量
         if self.config.memory_scrolls.memory_scrolls_finish.auto_finish_exploration:
-            while 1:
-                self.screenshot()
-                if self.appear(self.I_MS_FRAGMENT_S_VERIFICATION):
-                    break
-                if self.appear_then_click(self.I_MS_FRAGMENT_S, interval=1.5):
-                    continue
-            # 等待UI完全渲染，避免刚打开详情页时数字还没显示
-            sleep(1)
-            self.screenshot()
+            self.ui_click(self.I_MS_FRAGMENT_S, self.I_MS_FRAGMENT_S_VERIFICATION, interval=1.5)
+            self.screenshot()  # 再次截图刷新图像帧
             if self.appear(self.I_MS_FRAGMENT_S_50):
                 logger.info('Small Memory Scrolls fragments reached 50, planning tomorrow exploration')
                 # 安排下次探索
                 self.custom_next_run(task='Exploration', custom_time=self.config.memory_scrolls.memory_scrolls_finish.next_exploration_time, time_delta=1)
             else:
-                # 再等一次重试，防止UI渲染延迟导致的误判
-                sleep(1)
-                self.screenshot()
-                if self.appear(self.I_MS_FRAGMENT_S_50):
-                    logger.info('Small Memory Scrolls fragments reached 50 (retry), planning tomorrow exploration')
-                    self.custom_next_run(task='Exploration', custom_time=self.config.memory_scrolls.memory_scrolls_finish.next_exploration_time, time_delta=1)
-                else:
-                    logger.warning('Small Memory Scrolls fragments not reached 50, task failed')
-                    # 先返回绘卷主界面
-                    self.ui_click_until_disappear(GlobalGameAssets.I_UI_BACK_YELLOW, interval=1.5)
-                    # 再返回庭院主界面
-                    self.goto_page(page_main)
-                    self.set_next_run(task='MemoryScrolls', success=False)
-                    raise TaskEnd
+                logger.warning('Small Memory Scrolls fragments not reached 50, task failed')
+                # 先返回绘卷主界面
+                self.ui_click_until_disappear(GlobalGameAssets.I_UI_BACK_YELLOW, interval=1.5)
+                # 再返回庭院主界面
+                self.goto_page(page_main)
+                self.set_next_run(task='MemoryScrolls', success=False)
+                raise TaskEnd
             self.ui_click_until_smt_disappear(self.I_MS_FRAGMENT_S, stop=self.I_MS_FRAGMENT_S_VERIFICATION, interval=1.5)
         # 进入指定分卷
         self.goto_scroll(con)
