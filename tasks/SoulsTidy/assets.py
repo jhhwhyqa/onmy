@@ -15,6 +15,8 @@ class SoulsTidyAssets:
 	C_ST_DETAIL = RuleClick(roi_front=(1188,318,87,74), roi_back=(1190,317,87,74), name="st_detail")
 	# 出现神赐 
 	C_ST_GOD_PRSENT = RuleClick(roi_front=(717,165,100,48), roi_back=(926,165,100,54), name="st_god_prsent")
+	# 御魂奉纳奖励 
+	C_ST_SOUL_OFFERING_REWARD = RuleClick(roi_front=(717,165,100,48), roi_back=(926,165,100,54), name="st_soul_offering_reward")
 
 
 	# Image Rule Assets
@@ -52,8 +54,14 @@ class SoulsTidyAssets:
 	I_ST_SOUL_OVERFLOW = RuleImage(roi_front=(447,260,384,42), roi_back=(447,260,384,42), threshold=0.8, method="Template matching", file="./tasks/SoulsTidy/simple/simple_st_soul_overflow.png")
 	# 御魂关闭状态 
 	I_ST_SOULS_CLOSE = RuleImage(roi_front=(1180,227,56,83), roi_back=(1166,215,84,107), threshold=0.8, method="Template matching", file="./tasks/SoulsTidy/simple/simple_st_souls_close.png")
-	# 狗粮御魂的堆叠标识 
-	I_ST_SOUL_STACK = RuleImage(roi_front=(142,234,20,16), roi_back=(137,228,407,32), threshold=0.8, method="Template matching", file="./tasks/SoulsTidy/simple/simple_st_soul_stack.png")
+	# 5星御魂的堆叠标识_大于1个 
+	I_ST_SOUL_STACK = RuleImage(roi_front=(142,234,20,16), roi_back=(142,234,20,16), threshold=0.8, method="Template matching", file="./tasks/SoulsTidy/simple/simple_st_soul_stack.png")
+	# 5星御魂堆叠标识_1个 
+	I_ST_SOUL_STACK_1 = RuleImage(roi_front=(89,239,105,19), roi_back=(89,239,105,19), threshold=0.8, method="Template matching", file="./tasks/SoulsTidy/simple/simple_st_soul_stack_1.png")
+	# 吉运 
+	I_ST_LUCK = RuleImage(roi_front=(596,236,110,56), roi_back=(596,236,110,56), threshold=0.8, method="Template matching", file="./tasks/SoulsTidy/simple/simple_st_luck.png")
+	# 小吉运 
+	I_ST_SMALL_LUCK = RuleImage(roi_front=(549,236,201,35), roi_back=(549,236,201,35), threshold=0.8, method="Template matching", file="./tasks/SoulsTidy/simple/simple_st_small_luck.png")
 
 
 	# Long Click Rule Assets
@@ -65,7 +73,7 @@ class SoulsTidyAssets:
 	# 奉纳获得的金币 
 	O_ST_GOLD = RuleOcr(roi=(888,575,105,32), area=(888,575,105,32), mode="Digit", method="Default", keyword="", name="st_gold")
 	# 奉纳的御魂等级 
-	O_ST_FIRSET_LEVEL = RuleOcr(roi=(91,237,35,28), area=(91,237,35,28), mode="Single", method="Default", keyword="", name="st_firset_level")
+	O_ST_FIRST_LEVEL = RuleOcr(roi=(91,237,35,28), area=(91,237,35,28), mode="Single", method="Default", keyword="", name="st_first_level")
 	# 入手顺序 
 	O_ST_SORT_TIME = RuleOcr(roi=(387,118,110,42), area=(387,118,110,42), mode="Single", method="Default", keyword="入手顺序", name="st_sort_time")
 	# 等级/星级 最上边的 

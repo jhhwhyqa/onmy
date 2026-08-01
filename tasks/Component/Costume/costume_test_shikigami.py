@@ -143,9 +143,6 @@ class ScriptTask(GameUi, SwitchSoul, SwitchSoulAssets, SoulsTidyAssets):
         
         logger.info(f'Detected {detection_count} souls tidy interface elements')
         
-        # 退回到式神录
-        souls_tidy_task.back_records()
-        
         # 退出式神录
         self.goto_page(page_main)
         logger.info('Souls Tidy Donation Test completed')
