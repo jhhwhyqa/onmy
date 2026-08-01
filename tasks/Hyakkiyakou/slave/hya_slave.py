@@ -46,7 +46,7 @@ class HyaSlave(HyaDevice, HyaColor, HyakkiyakouAssets):
     BUFF_ROI4: list[int] = [1100, 1, 140, 50]
 
     # 剩余豆子数量， 剩余式神数量， 一次砸豆子的数量， 第一个格子， 第二个格子， 第三个格子， 第四个格子
-    slave_state: tuple = [250, 36, 10,
+    slave_state: tuple = [250, 36, 5,
                           HyaBuff.BUFF_STATE0, HyaBuff.BUFF_STATE0, HyaBuff.BUFF_STATE0, HyaBuff.BUFF_STATE0]
 
     @cached_property
@@ -219,7 +219,7 @@ class HyaSlave(HyaDevice, HyaColor, HyakkiyakouAssets):
         logger.hr('Invite friend', 2)
         self.ui_click(self.I_HINVITE, self.I_CHECK_INVITATION, interval=4)
         logger.info('Entry check invitation')
-
+        self.screenshot()  # 回归活动标志后出现会导致上一帧截图可能并不包含召回活动标志
         # 是否有召回活动(星重聚阴阳师)
         if self.appear(self.I_ENSURE_RECALL):
             logger.info('Recall activity detected')
@@ -299,5 +299,5 @@ class HyaSlave(HyaDevice, HyaColor, HyakkiyakouAssets):
     def reset_state(self):
         # 每局百鬼夜行始终从 250 豆、36 只式神开始（游戏机制规定，与上一局剩豆无关）
         # 第一次 update_state() 调用会通过模板匹配/OCR 校正实际值
-        self.slave_state = [250, 36, 10,
+        self.slave_state = [250, 36, 5,
                           HyaBuff.BUFF_STATE0, HyaBuff.BUFF_STATE0, HyaBuff.BUFF_STATE0, HyaBuff.BUFF_STATE0]

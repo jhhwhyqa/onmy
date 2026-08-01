@@ -97,12 +97,9 @@ velocity: {self._v}"""
         # auto_bean: calculate beans per throw based on remaining shikigami count
         auto_bean = strategy.get('auto_bean', False)
         if auto_bean:
-            remaining_shi = state[1]
-            threshold_ssr_sp = strategy.get('bean_threshold_ssr_sp', 30)
+            remaining_shi = state[2]
             threshold_low = strategy.get('bean_threshold_low', 10)
-            if remaining_shi > threshold_ssr_sp:
-                bean = 10
-            elif remaining_shi <= threshold_low:
+            if remaining_shi <= threshold_low or is_rare_ssr_sp:
                 bean = 10
             else:
                 bean = 5

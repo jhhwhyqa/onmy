@@ -68,7 +68,6 @@ class Agent:
         self.priorities: list[int] = strategy.get('priorities', [])
         self.invite_friend: bool = strategy.get('invite_friend', False)
         self.auto_bean: bool = strategy.get('auto_bean', False)
-        self.bean_threshold_ssr_sp: int = strategy.get('bean_threshold_ssr_sp', 30)
         self.bean_threshold_low: int = strategy.get('bean_threshold_low', 10)
         self.buff_omega: dict = strategy.get('buff_omega', {
             'prob_up': 2.2,
