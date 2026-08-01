@@ -19,8 +19,6 @@ class TalismanPassAssets:
 	I_RED_POINT_DAY = RuleImage(roi_front=(633,153,35,35), roi_back=(633,153,35,35), threshold=0.8, method="Template matching", file="./tasks/TalismanPass/tp/tp_red_point_day.png")
 	# 本周 的右上方红点 
 	I_RED_POINT_WEEK = RuleImage(roi_front=(795,153,35,35), roi_back=(795,153,35,35), threshold=0.8, method="Template matching", file="./tasks/TalismanPass/tp/tp_red_point_week.png")
-	# 本月 的右上方红点（截点用） 
-	I_RED_POINT_MONTH = RuleImage(roi_front=(966,162,17,17), roi_back=(966,162,17,17), threshold=0.8, method="Template matching", file="./tasks/TalismanPass/tp/tp_red_point_month.png")
 	# 等级奖励 
 	I_RED_POINT_LEVEL = RuleImage(roi_front=(1215,154,45,45), roi_back=(1215,154,45,45), threshold=0.8, method="Template matching", file="./tasks/TalismanPass/tp/tp_red_point_level.png")
 	# 选择一号奖励 
@@ -41,5 +39,7 @@ class TalismanPassAssets:
 	I_TP_SOUL_2 = RuleImage(roi_front=(582,438,115,48), roi_back=(570,427,139,71), threshold=0.8, method="Template matching", file="./tasks/TalismanPass/tp/tp_tp_soul_2.png")
 	# 六星御魂标志 
 	I_TP_SOUL_3 = RuleImage(roi_front=(313,489,188,33), roi_back=(302,472,216,60), threshold=0.8, method="Template matching", file="./tasks/TalismanPass/tp/tp_tp_soul_3.png")
+	# 本月 的右上方红点（截点用） 
+	I_RED_POINT_MONTH = RuleImage(roi_front=(966,162,17,17), roi_back=(966,162,17,17), threshold=0.8, method="Template matching", file="./tasks/TalismanPass/tp/tp_red_point_month.png")
 
 
