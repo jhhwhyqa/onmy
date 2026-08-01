@@ -94,10 +94,20 @@ velocity: {self._v}"""
             is_rare_ssr_sp = True
         _r = self.r(vector=state, omega=self._omega, omega_buff=self._omega_buff, is_rare_ssr_sp=is_rare_ssr_sp, freeze=freeze, is_buff=buffed)
         throw = True if _r > 0 else False
-        # x, y, throw, number
-        return [target_x, target_y, throw, 10]
+        # auto_bean: calculate beans per throw based on remaining shikigami count
+        auto_bean = strategy.get('auto_bean', False)
+        if auto_bean:
+            remaining_shi = state[2]
+            threshold_low = strategy.get('bean_threshold_low', 10)
+            if remaining_shi <= threshold_low or is_rare_ssr_sp:
+                bean = 10
+            else:
+                bean = 5
+        else:
+            bean = 10
+        return [target_x, target_y, throw, bean]
 
-    def omega_buff(self, tracks, invite_friend: bool, has_prob_up: bool) -> float:
+    def omega_buff(self, tracks, invite_friend: bool, has_prob_up: bool, buff_omega_cfg: dict = None) -> float:
         max_omega = 0.
         max_cx = 0
         max_cy = 0
@@ -106,15 +116,23 @@ velocity: {self._v}"""
 
         focus_is_ssr_sp = (CI.MIN_SSR <= self._class <= CI.MAX_SSR or CI.MIN_SP <= self._class <= CI.MAX_SP)
 
+        if buff_omega_cfg is None:
+            buff_omega_cfg = {}
+        prob_up_w = buff_omega_cfg.get('prob_up', 2.2)
+        speed_up_w = buff_omega_cfg.get('speed_up', 2.0)
+        add_beans_w = buff_omega_cfg.get('add_beans', 2.0)
+        slow_down_w = buff_omega_cfg.get('slow_down', 2.0)
+        freeze_w = buff_omega_cfg.get('freeze', 2.0)
+
         for _id, _class, _conf, _cx, _cy, _w, _h, _v in tracks:
             _current_omega = 0.
             match _class:
-                case CI.BUFF_004: _current_omega = 2.2
-                case CI.BUFF_006: _current_omega = 2.0
-                case CI.BUFF_007: _current_omega = 2.0 if invite_friend and _cx <= 1000 else 0
-                case CI.BUFF_002: _current_omega = 2.0 if self._omega >= 1.5 else 0
-                case CI.BUFF_003: _current_omega = 2.0 if self._omega >= 1.5 and _cx <= 640 else 0
-                # case CI.BUFF_005: _current_omega = max(self._omega + 0.1, 3.0) if focus_is_ssr_sp and has_prob_up else 0 # 冻住，不许跑
+                case CI.BUFF_004: _current_omega = prob_up_w
+                case CI.BUFF_006: _current_omega = speed_up_w
+                case CI.BUFF_007: _current_omega = add_beans_w if invite_friend and _cx <= 1000 else 0
+                case CI.BUFF_002: _current_omega = slow_down_w if self._omega >= 1.5 else 0
+                case CI.BUFF_003: _current_omega = add_beans_w if self._omega >= 1.5 and _cx <= 640 else 0
+                case CI.BUFF_005: _current_omega = freeze_w if focus_is_ssr_sp and has_prob_up else 0
                 case _: pass
             if _current_omega > max_omega:
                 max_omega = _current_omega
@@ -144,11 +162,9 @@ velocity: {self._v}"""
         # punishment:
         #   only throw ssr/sp with enhanced probability or buff when freezed
         if freeze:
-            # if not (is_rare_ssr_sp and has_prob_up):
-            #     result = -999.0 # stop throwing nonsense
-            # if is_buff:
-            #     result = 5.0
-            result = -999.0
+            if not (is_rare_ssr_sp and has_prob_up):
+                result = -999.0
+            elif is_buff:
+                result = 5.0
             
         return result
-

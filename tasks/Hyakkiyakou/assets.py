@@ -181,7 +181,7 @@ class HyakkiyakouAssets:
 	# description 
 	S_BEAN_05TO10 = RuleSwipe(roi_front=(390,648,21,22), roi_back=(577,647,21,23), mode="default", name="bean_05to10")
 	# description 
-	S_BEAN_10TO05 = RuleSwipe(roi_front=(565,647,24,24), roi_back=(390,647,22,22), mode="default", name="bean_10to05")
+	S_BEAN_10TO05 = RuleSwipe(roi_front=(565,647,24,24), roi_back=(404,647,22,22), mode="default", name="bean_10to05")
 
 
 	# Click Rule Assets

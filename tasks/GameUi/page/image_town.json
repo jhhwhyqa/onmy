@@ -99,15 +99,6 @@
     "description": "检查狩猎战麒麟界面"
   },
   {
-    "itemName": "check_hyakkisen",
-    "imageName": "page_check_hyakkisen.png",
-    "roiFront": "1014,607,53,55",
-    "roiBack": "986,587,100,100",
-    "method": "Template matching",
-    "threshold": 0.8,
-    "description": "description"
-  },
-  {
     "itemName": "check_draft_duel",
     "imageName": "page_check_draft_duel.png",
     "roiFront": "1051,612,56,58",
@@ -123,16 +114,16 @@
     "roiBack": "827,149,148,100",
     "method": "Template matching",
     "threshold": 0.8,
-    "description": "description"
+    "description": "町中进入百鬼标志"
   },
   {
     "itemName": "check_kyakkiyakou",
     "imageName": "page_check_kyakkiyakou.png",
-    "roiFront": "305,567,56,64",
-    "roiBack": "280,545,100,100",
+    "roiFront": "1062,564,84,73",
+    "roiBack": "68,519,1185,141",
     "method": "Template matching",
     "threshold": 0.8,
-    "description": "description"
+    "description": "百鬼夜行标志"
   },
   {
     "itemName": "check_demon_encounter_2",

@@ -68,6 +68,14 @@ class Agent:
         self.priorities: list[int] = strategy.get('priorities', [])
         self.invite_friend: bool = strategy.get('invite_friend', False)
         self.auto_bean: bool = strategy.get('auto_bean', False)
+        self.bean_threshold_low: int = strategy.get('bean_threshold_low', 10)
+        self.buff_omega: dict = strategy.get('buff_omega', {
+            'prob_up': 2.2,
+            'speed_up': 2.0,
+            'add_beans': 2.0,
+            'slow_down': 2.0,
+            'freeze': 2.0,
+        })
         #
         self.last_throw_time = datetime.now()
         self.dbg_throw: int = 0
