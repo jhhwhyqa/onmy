@@ -3,10 +3,14 @@
 # github https://github.com/runhey
 import copy
 from time import sleep
+
+import difflib
 from datetime import time, datetime, timedelta
+from module.atom.image import RuleImage
+from ppocronnx.predict_system import BoxedResult
 
 from tasks.Component.config_base import Time
-from tasks.DailyTrifles.page import page_store_gift_room, page_friends_luck
+from tasks.DailyTrifles.page import page_store_gift_room, page_friends_luck, page_guild_wish
 
 from tasks.GameUi.game_ui import GameUi
 from tasks.GameUi.page import page_main, page_summon, page_guild, page_mall, page_friends, page_courtyard_affairs
@@ -19,6 +23,7 @@ from module.exception import TaskEnd
 from module.base.timer import Timer
 from tasks.DailyTrifles.config import SummonType
 import re
+from typing import Any, Optional, List, Callable
 
 
 class ScriptTask(GameUi, Summon, DailyTriflesAssets):
@@ -32,8 +37,8 @@ class ScriptTask(GameUi, Summon, DailyTriflesAssets):
             self.run_courtyard_affairs()
         if con.pickup_email:
             self.run_pickup_email()
-        if con.guild_wish:
-            pass
+        if self.config.daily_trifles.guild_donate.enable:
+            self.run_guild_donate()
         # 吉闻
         if con.luck_msg:
             self.run_luck_msg()
@@ -153,8 +158,136 @@ class ScriptTask(GameUi, Summon, DailyTriflesAssets):
                     continue
             logger.info('Summon one success')
 
-    def run_guild_wish(self):
-        pass
+    def run_guild_donate(self):
+        logger.hr('guild donate', 2)
+        if self.config.daily_trifles.today_is_done('guild_donate'):
+            logger.info('Today is done, skip')
+            return
+        self.goto_page(page_guild_wish)
+        timeout_timer = Timer(2).start()
+        while not timeout_timer.reached():
+            self.screenshot()
+            if self.appear(self.I_DT_GW_THANKS):
+                self.ui_click(self.I_DT_GW_THANKS, self.I_DT_GW_THANKED, interval=0.8)
+                continue
+        self.appear_then_click(self.I_UI_BACK_RED)
+
+        donate_datas: list = [
+            (self.config.daily_trifles.guild_donate.guild_member_list_v,
+             lambda : self.switch_select(self.I_DT_GW_GUILD_MEMBER_SELECTED, self.I_DT_GW_FRIEND_SELECTED, self.I_DT_GW_SELECT_GUILD_MEMBER),
+             self.config.daily_trifles.guild_donate.name_check),
+            (self.config.daily_trifles.guild_donate.friend_list_v,
+             lambda : self.switch_select(self.I_DT_GW_FRIEND_SELECTED, self.I_DT_GW_GUILD_MEMBER_SELECTED, self.I_DT_GW_SELECT_FRIEND),
+             self.config.daily_trifles.guild_donate.name_check)
+        ]
+        all_done = True
+        for name_list, switch_func, name_check in donate_datas:
+            all_done = all_done and self.process_donate(name_list, switch_func, name_check)
+        self.config.daily_trifles.done_record.guild_donate_finish = all_done
+        self.goto_page(page_main)
+
+    def process_donate(self, name_list: List[str], switch_func: Callable, name_check: bool) -> bool:
+        """执行碎片捐赠流程
+
+        :param name_list: 待捐赠碎皮的名称列表
+        :param switch_func: 切换好友/阴阳寮/...的方法
+        :param name_check: 是否使用ocr检查用户名
+        :return: 是否全部捐赠成功 (出现检索名称后为空或者碎皮不足都是False, 仅有已捐满才是True)
+        """
+        all_done = True
+        for name in name_list:
+            switch_func()
+            self.swipe(self.S_DT_GW_OPEN_SEARCH, interval=1.2)  # 向下滑动拉出搜索框
+            # 从按照交换搜索切换到按名称搜索
+            self.switch_select(self.I_DT_GW_SEARCH_BY_NAME, self.I_DT_GW_SEARCH_BY_SWAP, self.I_DT_GW_SELECT_BY_NAME)
+            self.appear_then_click(self.I_DT_GW_CLEAR_SEARCH)  # 清除搜索框内容
+            self.ui_click(self.C_DT_GW_INPUT_SEARCH, self.I_DT_GW_CONFIRM, interval=1.5)  # 点击搜索框
+            self.click(self.C_DT_GW_CLICK_INPUT)  # 点击名称输入框
+            self.device.adb.send_keys(name)  # 输入名称
+            self.ui_click_until_disappear(self.I_DT_GW_CONFIRM, interval=1.5)  # 点击确定
+            donate_btn = self.I_DT_GW_DONATE
+            if name_check:  # 若有多个相同前缀名称, 则需要取出一样的或最相近的名称
+                name_roi = self.find_target_name(name)
+                if name_roi is None:
+                    logger.warning(f'{name} check failed, maybe not wish or not find')
+                    all_done = False
+                    continue
+                # 设置赠与按钮back与对应name同一行
+                donate_btn.roi_back = [name_roi[0], name_roi[1] - 15, max(name_roi[2] + 700, 1280),
+                                       max(name_roi[3] + 60, 720)]
+            self.I_DT_GW_FULL.roi_back = donate_btn.roi_back  # 设置已捐满标志back区域和赠与按钮同一行
+            self.I_DT_GW_INSUFFICIENT.roi_back = donate_btn.roi_back  # 设置碎片不足标志back区域和赠与按钮同一行
+            donate_ret = self.donate(donate_btn)
+            all_done = all_done and donate_ret  # 有一次没成功则all_done永远False
+        return all_done
+
+    def donate(self, donate_btn: RuleImage) -> bool:
+        """捐赠式神碎片
+
+        :param donate_btn: 赠与按钮
+        :return: 捐赠是否成功
+        """
+        timeout_timer = Timer(3).start()
+        while not timeout_timer.reached():
+            self.screenshot()
+            if self.appear_then_click(self.I_UI_CONFIRM, interval=0.6):
+                continue
+            if self.appear(self.I_DT_GW_SEARCH_EMPTY):
+                logger.warning('Maybe not wish or not find, skip')
+                return False
+            if self.appear_then_click(donate_btn, interval=0.6):
+                continue
+            if self.appear(self.I_DT_GW_INSUFFICIENT, interval=0.6):
+                logger.warning('Not enough fragment to donate, skip')
+                return False
+            if self.appear(self.I_DT_GW_FULL, interval=1.2):
+                logger.info(f'Donate success!')
+                return True
+        return False
+
+    def find_target_name(self, name) -> List[int]:
+        """寻找目标名称
+        :param name: 名称
+        :return: [x, y, w, h]
+        """
+        timeout_timer = Timer(3).start()
+        name_roi: List[int] = None
+        # TODO: 这里只找了第一页, 若相似名称过多后续需要添加翻页继续找功能
+        while not timeout_timer.reached():
+            self.screenshot()
+            if self.appear(self.I_DT_GW_SEARCH_EMPTY):  # 空的直接退出
+                return None
+            text_results = self.O_DT_GW_NAME.detect_and_ocr(self.device.image)
+            mx_similarity = 0.5
+            for result in text_results:
+                if result.ocr_text == name:
+                    return self.extract_roi(result)  # 名称一模一样则直接返回
+                similarity = difflib.SequenceMatcher(None, result.ocr_text, name).ratio()
+                if similarity > mx_similarity:
+                    mx_similarity = similarity
+                    name_roi = self.extract_roi(result)
+            if name_roi is None:
+                continue
+            return name_roi  # 找到了直接退出
+        return name_roi
+
+    def extract_roi(self, result: BoxedResult) -> list[int]:
+        """从ocr结果提取对应的roi坐标"""
+        x = self.O_DT_GW_NAME.roi[0] + result.box[0, 0]
+        y = self.O_DT_GW_NAME.roi[1] + result.box[0, 1]
+        w, h = result.box[1, 0] - result.box[0, 0], result.box[2, 1] - result.box[0, 1]
+        return [x, y, w, h]
+
+    def switch_select(self, target: RuleImage, other: RuleImage, select: RuleImage):
+        """切换选中的元素"""
+        while True:
+            self.screenshot()
+            if self.appear(target):
+                break
+            if self.appear_then_click(select, interval=0.6):
+                continue
+            if self.appear_then_click(other, interval=1.8):
+                continue
 
     def run_luck_msg(self):
         logger.hr('luck msg', 2)
@@ -345,9 +478,9 @@ if __name__ == '__main__':
     from module.config.config import Config
     from module.device.device import Device
 
-    c = Config('oas1')
+    c = Config('oas2')
     d = Device(c)
     t = ScriptTask(c, d)
 
-    t.run_courtyard_affairs()
+    t.run_guild_donate()
 

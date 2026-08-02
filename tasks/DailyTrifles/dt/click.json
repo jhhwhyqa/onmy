@@ -1,0 +1,14 @@
+[
+  {
+    "itemName": "dt_gw_click_input",
+    "roiFront": "38,0,911,40",
+    "roiBack": "38,0,911,40",
+    "description": "寮祈愿点击输入框"
+  },
+  {
+    "itemName": "dt_gw_input_search",
+    "roiFront": "334,90,554,33",
+    "roiBack": "334,90,554,33",
+    "description": "点击昵称搜索区域"
+  }
+]

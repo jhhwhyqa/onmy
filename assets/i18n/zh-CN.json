@@ -179,5 +179,10 @@
   "hya_buff_speed_up": "加速撒豆 omega权重",
   "hya_buff_add_beans": "获取豆子 omega权重",
   "hya_buff_slow_down": "减速UP omega权重",
-  "hya_buff_freeze": "冻结UP omega权重"
+  "hya_buff_freeze": "冻结UP omega权重",
+  "guild_donate": "寮祈愿",
+  "guild_member_list": "寮成员列表",
+  "guild_member_list_help": "填入要捐赠碎片的寮成员名称, 换行填写多个",
+  "name_check": "名称检查",
+  "guild_donate_name_check_help": "若搜索名称后会出现多个结果, 则建议启用该项, 会使用OCR进行二次核对\n选择名称一致或相似度最高的一个好友名称且阈值>0.5"
 }

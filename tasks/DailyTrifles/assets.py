@@ -10,6 +10,13 @@ from module.atom.list import RuleList
 class DailyTriflesAssets: 
 
 
+	# Click Rule Assets
+	# 寮祈愿点击输入框 
+	C_DT_GW_CLICK_INPUT = RuleClick(roi_front=(38,0,911,40), roi_back=(38,0,911,40), name="dt_gw_click_input")
+	# 点击昵称搜索区域 
+	C_DT_GW_INPUT_SEARCH = RuleClick(roi_front=(334,90,554,33), roi_back=(334,90,554,33), name="dt_gw_input_search")
+
+
 	# Image Rule Assets
 	# 进入庭院事务标志 
 	I_ENTER_COURTYARD_AFFAIRS = RuleImage(roi_front=(990,372,25,30), roi_back=(696,349,343,231), threshold=0.8, method="Template matching", file="./tasks/DailyTrifles/dt/dt_enter_courtyard_affairs.png")
@@ -21,6 +28,53 @@ class DailyTriflesAssets:
 	I_ENTER_DAILY = RuleImage(roi_front=(1131,122,84,76), roi_back=(1117,98,136,226), threshold=0.8, method="Template matching", file="./tasks/DailyTrifles/dt/dt_enter_daily.png")
 	# 右上角检查是否在日常中 
 	I_CHECK_IN_DAILY = RuleImage(roi_front=(1131,115,106,88), roi_back=(1128,94,151,281), threshold=0.8, method="Template matching", file="./tasks/DailyTrifles/dt/dt_check_in_daily.png")
+
+
+	# Image Rule Assets
+	# 寮祈愿页面标志 
+	I_DT_CHECK_GUILD_WISH = RuleImage(roi_front=(13,569,76,139), roi_back=(0,511,124,209), threshold=0.8, method="Template matching", file="./tasks/DailyTrifles/dt/dt_dt_check_guild_wish.png")
+	# 赠予 
+	I_DT_GW_DONATE = RuleImage(roi_front=(839,167,109,49), roi_back=(816,90,301,490), threshold=0.8, method="Template matching", file="./tasks/DailyTrifles/dt/dt_dt_gw_donate.png")
+	# 交换 
+	I_DT_GW_SWAP = RuleImage(roi_front=(985,144,109,49), roi_back=(821,87,303,489), threshold=0.8, method="Template matching", file="./tasks/DailyTrifles/dt/dt_dt_gw_swap.png")
+	# 阴阳寮成员选中标志 
+	I_DT_GW_GUILD_MEMBER_SELECTED = RuleImage(roi_front=(211,609,126,46), roi_back=(157,597,233,69), threshold=0.8, method="Template matching", file="./tasks/DailyTrifles/dt/dt_dt_gw_guild_member_selected.png")
+	# 好友选中标志 
+	I_DT_GW_FRIEND_SELECTED = RuleImage(roi_front=(211,609,126,46), roi_back=(157,597,233,69), threshold=0.8, method="Template matching", file="./tasks/DailyTrifles/dt/dt_dt_gw_friend_selected.png")
+	# 选择阴阳寮成员 
+	I_DT_GW_SELECT_GUILD_MEMBER = RuleImage(roi_front=(206,490,126,46), roi_back=(168,477,221,134), threshold=0.8, method="Template matching", file="./tasks/DailyTrifles/dt/dt_dt_gw_select_guild_member.png")
+	# 选择好友 
+	I_DT_GW_SELECT_FRIEND = RuleImage(roi_front=(206,546,126,46), roi_back=(168,477,221,134), threshold=0.8, method="Template matching", file="./tasks/DailyTrifles/dt/dt_dt_gw_select_friend.png")
+	# 感谢 
+	I_DT_GW_THANKS = RuleImage(roi_front=(714,283,126,46), roi_back=(700,258,155,304), threshold=0.8, method="Template matching", file="./tasks/DailyTrifles/dt/dt_dt_gw_thanks.png")
+	# 已感谢 
+	I_DT_GW_THANKED = RuleImage(roi_front=(714,283,126,46), roi_back=(700,258,155,304), threshold=0.8, method="Template matching", file="./tasks/DailyTrifles/dt/dt_dt_gw_thanked.png")
+	# 捐赠记录红点 
+	I_DT_GW_DONATE_RECORD_RED = RuleImage(roi_front=(1116,584,17,22), roi_back=(1037,574,114,103), threshold=0.8, method="Template matching", file="./tasks/DailyTrifles/dt/dt_dt_gw_donate_record_red.png")
+	# 捐赠记录 
+	I_DT_GW_DONATE_RECORD = RuleImage(roi_front=(1060,600,57,58), roi_back=(1037,574,114,103), threshold=0.8, method="Template matching", file="./tasks/DailyTrifles/dt/dt_dt_gw_donate_record.png")
+	# 一键感谢并领取 
+	I_DT_GW_DONATE_RECORD_THANKS = RuleImage(roi_front=(920,602,54,54), roi_back=(874,570,145,119), threshold=0.8, method="Template matching", file="./tasks/DailyTrifles/dt/dt_dt_gw_donate_record_thanks.png")
+	# 按交换搜索 
+	I_DT_GW_SEARCH_BY_SWAP = RuleImage(roi_front=(170,86,123,42), roi_back=(149,67,181,80), threshold=0.9, method="Template matching", file="./tasks/DailyTrifles/dt/dt_dt_gw_search_by_swap.png")
+	# 按昵称搜索 
+	I_DT_GW_SEARCH_BY_NAME = RuleImage(roi_front=(170,86,123,42), roi_back=(149,67,181,80), threshold=0.9, method="Template matching", file="./tasks/DailyTrifles/dt/dt_dt_gw_search_by_name.png")
+	# 选择按照昵称搜索 
+	I_DT_GW_SELECT_BY_NAME = RuleImage(roi_front=(197,150,52,41), roi_back=(153,138,165,106), threshold=0.8, method="Template matching", file="./tasks/DailyTrifles/dt/dt_dt_gw_select_by_name.png")
+	# 选择按照交换搜索 
+	I_DT_GW_SELECT_BY_SWAP = RuleImage(roi_front=(197,196,52,41), roi_back=(153,138,165,106), threshold=0.8, method="Template matching", file="./tasks/DailyTrifles/dt/dt_dt_gw_select_by_swap.png")
+	# 搜索确定按钮 
+	I_DT_GW_CONFIRM = RuleImage(roi_front=(1030,12,104,48), roi_back=(1016,0,127,71), threshold=0.8, method="Template matching", file="./tasks/DailyTrifles/dt/dt_dt_gw_confirm.png")
+	# 清除搜索内容 
+	I_DT_GW_CLEAR_SEARCH = RuleImage(roi_front=(990,92,32,32), roi_back=(958,73,127,71), threshold=0.8, method="Template matching", file="./tasks/DailyTrifles/dt/dt_dt_gw_clear_search.png")
+	# 暂无祈愿消息 
+	I_DT_GW_SEARCH_EMPTY = RuleImage(roi_front=(576,172,163,261), roi_back=(513,131,266,384), threshold=0.8, method="Template matching", file="./tasks/DailyTrifles/dt/dt_dt_gw_search_empty.png")
+	# 寮界面前往寮祈愿 
+	I_GUILD_TO_WISH = RuleImage(roi_front=(973,630,52,51), roi_back=(833,583,447,137), threshold=0.8, method="Template matching", file="./tasks/DailyTrifles/dt/dt_guild_to_wish.png")
+	# 碎片不足 
+	I_DT_GW_INSUFFICIENT = RuleImage(roi_front=(899,401,116,35), roi_back=(834,126,245,460), threshold=0.8, method="Template matching", file="./tasks/DailyTrifles/dt/dt_dt_gw_insufficient.png")
+	# 已捐满 
+	I_DT_GW_FULL = RuleImage(roi_front=(915,120,94,33), roi_back=(894,89,139,492), threshold=0.8, method="Template matching", file="./tasks/DailyTrifles/dt/dt_dt_gw_full.png")
 
 
 	# Image Rule Assets
@@ -36,6 +90,16 @@ class DailyTriflesAssets:
 	I_HARVEST_MAIL_CONFIRM = RuleImage(roi_front=(687,543,168,64), roi_back=(687,543,168,64), threshold=0.8, method="Template matching", file="./tasks/DailyTrifles/dt/dt_harvest_mail_confirm.png")
 	# 右上角的邮件图标 
 	I_DT_HARVEST_MAIL_COPY2 = RuleImage(roi_front=(1158,18,22,20), roi_back=(1127,0,61,56), threshold=0.9, method="Template matching", file="./tasks/DailyTrifles/dt/dt_harvest_mail_copy2.png")
+
+
+	# Ocr Rule Assets
+	# 用户昵称 
+	O_DT_GW_NAME = RuleOcr(roi=(257,135,195,446), area=(257,135,195,446), mode="Full", method="Default", keyword="", name="dt_gw_name")
+
+
+	# Swipe Rule Assets
+	# 打开寮祈愿搜索框 
+	S_DT_GW_OPEN_SEARCH = RuleSwipe(roi_front=(634,160,43,34), roi_back=(623,366,41,32), mode="default", name="dt_gw_open_search")
 
 
 	# Image Rule Assets

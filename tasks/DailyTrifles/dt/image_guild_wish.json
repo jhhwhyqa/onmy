@@ -1,0 +1,200 @@
+[
+  {
+    "itemName": "dt_check_guild_wish",
+    "imageName": "dt_dt_check_guild_wish.png",
+    "roiFront": "13,569,76,139",
+    "roiBack": "0,511,124,209",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "寮祈愿页面标志"
+  },
+  {
+    "itemName": "dt_gw_donate",
+    "imageName": "dt_dt_gw_donate.png",
+    "roiFront": "839,167,109,49",
+    "roiBack": "816,90,301,490",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "赠予"
+  },
+  {
+    "itemName": "dt_gw_swap",
+    "imageName": "dt_dt_gw_swap.png",
+    "roiFront": "985,144,109,49",
+    "roiBack": "821,87,303,489",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "交换"
+  },
+  {
+    "itemName": "dt_gw_guild_member_selected",
+    "imageName": "dt_dt_gw_guild_member_selected.png",
+    "roiFront": "211,609,126,46",
+    "roiBack": "157,597,233,69",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "阴阳寮成员选中标志"
+  },
+  {
+    "itemName": "dt_gw_friend_selected",
+    "imageName": "dt_dt_gw_friend_selected.png",
+    "roiFront": "211,609,126,46",
+    "roiBack": "157,597,233,69",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "好友选中标志"
+  },
+  {
+    "itemName": "dt_gw_select_guild_member",
+    "imageName": "dt_dt_gw_select_guild_member.png",
+    "roiFront": "206,490,126,46",
+    "roiBack": "168,477,221,134",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "选择阴阳寮成员"
+  },
+  {
+    "itemName": "dt_gw_select_friend",
+    "imageName": "dt_dt_gw_select_friend.png",
+    "roiFront": "206,546,126,46",
+    "roiBack": "168,477,221,134",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "选择好友"
+  },
+  {
+    "itemName": "dt_gw_thanks",
+    "imageName": "dt_dt_gw_thanks.png",
+    "roiFront": "714,283,126,46",
+    "roiBack": "700,258,155,304",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "感谢"
+  },
+  {
+    "itemName": "dt_gw_thanked",
+    "imageName": "dt_dt_gw_thanked.png",
+    "roiFront": "714,283,126,46",
+    "roiBack": "700,258,155,304",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "已感谢"
+  },
+  {
+    "itemName": "dt_gw_donate_record_red",
+    "imageName": "dt_dt_gw_donate_record_red.png",
+    "roiFront": "1116,584,17,22",
+    "roiBack": "1037,574,114,103",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "捐赠记录红点"
+  },
+  {
+    "itemName": "dt_gw_donate_record",
+    "imageName": "dt_dt_gw_donate_record.png",
+    "roiFront": "1060,600,57,58",
+    "roiBack": "1037,574,114,103",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "捐赠记录"
+  },
+  {
+    "itemName": "dt_gw_donate_record_thanks",
+    "imageName": "dt_dt_gw_donate_record_thanks.png",
+    "roiFront": "920,602,54,54",
+    "roiBack": "874,570,145,119",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "一键感谢并领取"
+  },
+  {
+    "itemName": "dt_gw_search_by_swap",
+    "imageName": "dt_dt_gw_search_by_swap.png",
+    "roiFront": "170,86,123,42",
+    "roiBack": "149,67,181,80",
+    "method": "Template matching",
+    "threshold": 0.9,
+    "description": "按交换搜索"
+  },
+  {
+    "itemName": "dt_gw_search_by_name",
+    "imageName": "dt_dt_gw_search_by_name.png",
+    "roiFront": "170,86,123,42",
+    "roiBack": "149,67,181,80",
+    "method": "Template matching",
+    "threshold": 0.9,
+    "description": "按昵称搜索"
+  },
+  {
+    "itemName": "dt_gw_select_by_name",
+    "imageName": "dt_dt_gw_select_by_name.png",
+    "roiFront": "197,150,52,41",
+    "roiBack": "153,138,165,106",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "选择按照昵称搜索"
+  },
+  {
+    "itemName": "dt_gw_select_by_swap",
+    "imageName": "dt_dt_gw_select_by_swap.png",
+    "roiFront": "197,196,52,41",
+    "roiBack": "153,138,165,106",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "选择按照交换搜索"
+  },
+  {
+    "itemName": "dt_gw_confirm",
+    "imageName": "dt_dt_gw_confirm.png",
+    "roiFront": "1030,12,104,48",
+    "roiBack": "1016,0,127,71",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "搜索确定按钮"
+  },
+  {
+    "itemName": "dt_gw_clear_search",
+    "imageName": "dt_dt_gw_clear_search.png",
+    "roiFront": "990,92,32,32",
+    "roiBack": "958,73,127,71",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "清除搜索内容"
+  },
+  {
+    "itemName": "dt_gw_search_empty",
+    "imageName": "dt_dt_gw_search_empty.png",
+    "roiFront": "576,172,163,261",
+    "roiBack": "513,131,266,384",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "暂无祈愿消息"
+  },
+  {
+    "itemName": "guild_to_wish",
+    "imageName": "dt_guild_to_wish.png",
+    "roiFront": "973,630,52,51",
+    "roiBack": "833,583,447,137",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "寮界面前往寮祈愿"
+  },
+  {
+    "itemName": "dt_gw_insufficient",
+    "imageName": "dt_dt_gw_insufficient.png",
+    "roiFront": "899,401,116,35",
+    "roiBack": "834,126,245,460",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "碎片不足"
+  },
+  {
+    "itemName": "dt_gw_full",
+    "imageName": "dt_dt_gw_full.png",
+    "roiFront": "915,120,94,33",
+    "roiBack": "894,89,139,492",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "已捐满"
+  }
+]

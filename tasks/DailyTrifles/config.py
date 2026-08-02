@@ -5,7 +5,7 @@ from datetime import datetime
 from pydantic import BaseModel, Field
 
 from tasks.Component.config_scheduler import Scheduler
-from tasks.Component.config_base import ConfigBase, dynamic_hide, DateTime
+from tasks.Component.config_base import ConfigBase, dynamic_hide, DateTime, MultiLine
 from enum import Enum
 
 
@@ -18,10 +18,32 @@ class DoneRecord(ConfigBase):
     courtyard_affairs_dt: DateTime = Field(default=DateTime.fromisoformat("2023-01-01 00:00:00"))
     pickup_email_dt: DateTime = Field(default=DateTime.fromisoformat("2023-01-01 00:00:00"))
     summon_dt: DateTime = Field(default=DateTime.fromisoformat("2023-01-01 00:00:00"))
-    guild_wish_dt: DateTime = Field(default=DateTime.fromisoformat("2023-01-01 00:00:00"))
+    guild_donate_dt: DateTime = Field(default=DateTime.fromisoformat("2023-01-01 00:00:00"))
     luck_msg_dt: DateTime = Field(default=DateTime.fromisoformat("2023-01-01 00:00:00"))
     store_sign_dt: DateTime = Field(default=DateTime.fromisoformat("2023-01-01 00:00:00"))
     sushi_dt: DateTime = Field(default=DateTime.fromisoformat("2023-01-01 00:00:00"))
+    guild_donate_finish: bool = Field(default=False)
+
+
+class DailyGuildDonate(ConfigBase):
+    enable: bool = Field(default=False)
+    guild_member_list: MultiLine = Field(default='', description='guild_member_list_help')
+    friend_list: MultiLine = Field(default='', description='invite_friend_list_help')
+    name_check: bool = Field(default=True, description='guild_donate_name_check_help')
+
+    @property
+    def guild_member_list_v(self) -> list[str]:
+        if not self.guild_member_list or self.guild_member_list == '' or self.guild_member_list.strip() == '' or \
+                len(self.guild_member_list.split('\n')) == 0:
+            return []
+        return [line.strip() for line in self.guild_member_list.split('\n') if line.strip() != '']
+
+    @property
+    def friend_list_v(self) -> list[str]:
+        if not self.friend_list or self.friend_list == '' or self.friend_list.strip() == '' or \
+                len(self.friend_list.split('\n')) == 0:
+            return []
+        return [line.strip() for line in self.friend_list.split('\n') if line.strip() != '']
 
 
 class DailyTriflesConfig(BaseModel):
@@ -34,7 +56,6 @@ class DailyTriflesConfig(BaseModel):
     summon_type: SummonType = Field(default=SummonType.default, description='召唤类型')
     # 是否绘制神秘图案
     draw_mystery_pattern: bool = Field(title='Draw Mystery Pattern', default=False, description='是否绘制神秘图案')
-    guild_wish: bool = Field(title='Guild Wish', default=False)
     luck_msg: bool = Field(title='Luck Msg', default=False)
     store_sign: bool = Field(title='Store Sign', default=False, description='store_sign_help')
     # 每天购买体力数量
@@ -46,6 +67,7 @@ class DailyTriflesConfig(BaseModel):
 class DailyTrifles(ConfigBase):
     scheduler: Scheduler = Field(default_factory=Scheduler)
     trifles_config: DailyTriflesConfig = Field(default_factory=DailyTriflesConfig)
+    guild_donate: DailyGuildDonate = Field(default_factory=DailyGuildDonate)
     done_record: DoneRecord = Field(default_factory=DoneRecord)
 
     hide_fields = dynamic_hide('done_record')
@@ -55,4 +77,8 @@ class DailyTrifles(ConfigBase):
         done_dt = getattr(self.done_record, f'{mode}_dt', None)
         if done_dt is None:
             return False
+        if mode == 'guild_donate':
+            if done_dt.date() != datetime.today().date():
+                self.done_record.guild_donate_finish = False
+            return self.done_record.guild_donate_finish
         return done_dt.date() == datetime.today().date()

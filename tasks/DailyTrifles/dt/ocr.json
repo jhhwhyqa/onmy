@@ -1,0 +1,11 @@
+[
+  {
+    "itemName": "dt_gw_name",
+    "roiFront": "257,135,195,446",
+    "roiBack": "257,135,195,446",
+    "mode": "Full",
+    "method": "Default",
+    "keyword": "",
+    "description": "用户昵称"
+  }
+]
