@@ -69,7 +69,8 @@
       "costume_theme_type": "costume_theme_default",
       "costume_shikigami_type": "costume_shikigami_default",
       "costume_sign_type": "costume_sign_default",
-      "costume_battle_type": "costume_battle_default"
+      "costume_battle_type": "costume_battle_default",
+      "custom_courtyard_affair": "custom_courtyard_affair_default"
     },
     "battle": {
       "battle_timeout": 420,
@@ -297,6 +298,7 @@
       "shikigami_class": "N",
       "shikigami_order": 4,
       "harvest_guild_max_times": 3,
+      "utilize_harvest": true,
       "utilize_enable": true,
       "guild_ap_enable": true,
       "guild_assets_enable": true,
@@ -418,19 +420,25 @@
       "one_summon": false,
       "summon_type": "普通召唤",
       "draw_mystery_pattern": false,
-      "guild_wish": false,
       "luck_msg": false,
       "store_sign": false,
       "buy_sushi_count": -1
+    },
+    "guild_donate": {
+      "enable": false,
+      "guild_member_list": "",
+      "friend_list": "",
+      "name_check": true
     },
     "done_record": {
       "courtyard_affairs_dt": "2023-01-01 00:00:00",
       "pickup_email_dt": "2023-01-01 00:00:00",
       "summon_dt": "2023-01-01 00:00:00",
-      "guild_wish_dt": "2023-01-01 00:00:00",
+      "guild_donate_dt": "2023-01-01 00:00:00",
       "luck_msg_dt": "2023-01-01 00:00:00",
       "store_sign_dt": "2023-01-01 00:00:00",
-      "sushi_dt": "2023-01-01 00:00:00"
+      "sushi_dt": "2023-01-01 00:00:00",
+      "guild_donate_finish": false
     }
   },
   "talisman_pass": {
@@ -445,6 +453,7 @@
       "float_time": "00:00:00"
     },
     "talisman": {
+      "get_flower": false,
       "level_reward": "金币/勾玉",
       "harvest_soul": false
     }
@@ -461,7 +470,9 @@
       "float_time": "00:00:00"
     },
     "pets_config": {
-      "pets_feast": true
+      "pets_feast": true,
+      "enable_orochi_ten_once": false,
+      "enable_switch_layer_soul": false
     }
   },
   "souls_tidy": {
@@ -1073,15 +1084,15 @@
       "enable": false,
       "next_run": "2023-01-01 00:00:00",
       "priority": 5,
-      "success_interval": "03 00:00:00",
-      "failure_interval": "03 00:00:00",
+      "success_interval": "01 00:00:00",
+      "failure_interval": "01 00:00:00",
       "server_update": "09:00:00",
       "delay_date": 1,
       "float_time": "00:00:00"
     },
     "float_parade": {
-      "level_reward1": "体力/樱饼",
-      "level_reward2": "蛇皮/青吉鬼"
+      "collect_placement_reward": true,
+      "collect_exp": true
     }
   },
   "quiz": {
@@ -1329,13 +1340,19 @@
       "hya_invite_friend": false,
       "hya_onmyoji": "神乐",
       "hya_auto_bean": false,
+      "hya_bean_threshold_low": 10,
       "hya_priorities": "",
       "hya_sp": 1.0,
       "hya_ssr": 1.0,
       "hya_sr": 0.7,
       "hya_r": 0.3,
       "hya_n": 0.0,
-      "hya_g": 0.0
+      "hya_g": 0.0,
+      "hya_buff_prob_up": 2.2,
+      "hya_buff_speed_up": 2.0,
+      "hya_buff_add_beans": 2.0,
+      "hya_buff_slow_down": 2.0,
+      "hya_buff_freeze": 2.0
     },
     "hyakkiyakou_models": {
       "conf_threshold": 0.6,
