@@ -184,5 +184,7 @@
   "guild_member_list": "寮成员列表",
   "guild_member_list_help": "填入要捐赠碎片的寮成员名称, 换行填写多个",
   "name_check": "名称检查",
-  "guild_donate_name_check_help": "若搜索名称后会出现多个结果, 则建议启用该项, 会使用OCR进行二次核对\n选择名称一致或相似度最高的一个好友名称且阈值>0.5"
+  "guild_donate_name_check_help": "若搜索名称后会出现多个结果, 则建议启用该项, 会使用OCR进行二次核对\n选择名称一致或相似度最高的一个好友名称且阈值>0.5",
+  "check_true_orochi_enable": "是否在结束后检测真蛇",
+  "check_true_orochi_enable_help": "开启后会在任务结束后检测是否出现真蛇, 若出现则自动拉起真蛇"
 }
