@@ -186,5 +186,11 @@
   "name_check": "名称检查",
   "guild_donate_name_check_help": "若搜索名称后会出现多个结果, 则建议启用该项, 会使用OCR进行二次核对\n选择名称一致或相似度最高的一个好友名称且阈值>0.5",
   "auto_get_rewards": "自动领奖励",
-  "guild_donate_notify_help": "当碎片不足/好友搜索不到时启用通知"
+  "guild_donate_notify_help": "当碎片不足/好友搜索不到时启用通知",
+  "harvest_guild_max_times": "寮奖励最大尝试次数",
+  "harvest_guild_max_times_help": "多次尝试收取, 防止寮资金/体力/抽奖/...有遗漏没做",
+  "utilize_harvest": "是否领取寄养奖励",
+  "utilize_enable": "是否蹭卡",
+  "utilize_enable_help": "关闭则不会蹭卡, 但是其他操作会执行(例如收取寮奖励等)",
+  "utilize_harvest_help": "关闭则不领取, 可以屯奖励"
 }

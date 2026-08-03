@@ -753,7 +753,7 @@ class BaseTask(GlobalGameAssets, CostumeBase):
                 appear_and_clicked = True
         return appear_and_clicked
 
-    def ui_click_until_appear_or_timeout(self, click, stop=None, interval: float = 1, timeout: float = 10):
+    def ui_click_until_appear_or_timeout(self, click, stop=None, interval: float = 1, timeout: float = 10) -> bool:
         """
         在UI中点击某个元素，直到目标元素出现或达到超时时间。
 

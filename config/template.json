@@ -297,11 +297,9 @@
       "auto_fill": false,
       "shikigami_class": "N",
       "shikigami_order": 4,
-      "harvest_guild_max_times": 3,
+      "harvest_guild_max_times": 2,
       "utilize_harvest": true,
       "utilize_enable": true,
-      "guild_ap_enable": true,
-      "guild_assets_enable": true,
       "box_ap_enable": true,
       "box_exp_enable": true,
       "box_exp_waste": true
@@ -426,6 +424,8 @@
     },
     "guild_donate": {
       "enable": false,
+      "auto_get_rewards": true,
+      "notify_enable": false,
       "guild_member_list": "",
       "friend_list": "",
       "name_check": true
