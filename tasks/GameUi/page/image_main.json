@@ -74,7 +74,7 @@
   {
     "itemName": "main_goto_mall",
     "imageName": "page_main_goto_mall.png",
-    "roiFront": "663,661,41,22",
+    "roiFront": "664,661,40,18",
     "roiBack": "601,613,163,78",
     "method": "Template matching",
     "threshold": 0.7,
