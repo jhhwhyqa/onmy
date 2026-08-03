@@ -79,5 +79,41 @@
     "method": "Template matching",
     "threshold": 0.8,
     "description": "展开的寮活动横幅"
+  },
+  {
+    "itemName": "guild_lottery",
+    "imageName": "ku_guild_lottery.png",
+    "roiFront": "569,315,22,22",
+    "roiBack": "290,224,894,345",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "寮抽奖标志"
+  },
+  {
+    "itemName": "check_guild_lottery",
+    "imageName": "ku_check_guild_lottery.png",
+    "roiFront": "808,19,54,82",
+    "roiBack": "734,0,259,137",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "寮抽奖页面"
+  },
+  {
+    "itemName": "ku_check_can_lottery",
+    "imageName": "ku_ku_check_can_lottery.png",
+    "roiFront": "664,261,21,77",
+    "roiBack": "600,187,147,186",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "检查是否可以抽奖"
+  },
+  {
+    "itemName": "guild_lottery_special_reward",
+    "imageName": "ku_guild_lottery_special_reward.png",
+    "roiFront": "540,197,208,69",
+    "roiBack": "345,137,591,359",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "寮抽奖特别奖励"
   }
 ]

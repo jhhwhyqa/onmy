@@ -29,11 +29,21 @@ class KekkaiUtilizeAssets:
 	I_GUILD_COLLAPSE = RuleImage(roi_front=(28,159,19,22), roi_back=(12,125,88,101), threshold=0.8, method="Template matching", file="./tasks/KekkaiUtilize/ku/ku_guild_collapse.png")
 	# 展开的寮活动横幅 
 	I_GUILD_EXPAND = RuleImage(roi_front=(264,162,16,18), roi_back=(212,102,110,124), threshold=0.8, method="Template matching", file="./tasks/KekkaiUtilize/ku/ku_guild_expand.png")
+	# 寮抽奖标志 
+	I_GUILD_LOTTERY = RuleImage(roi_front=(569,315,22,22), roi_back=(290,224,894,345), threshold=0.8, method="Template matching", file="./tasks/KekkaiUtilize/ku/ku_guild_lottery.png")
+	# 寮抽奖页面 
+	I_CHECK_GUILD_LOTTERY = RuleImage(roi_front=(808,19,54,82), roi_back=(734,0,259,137), threshold=0.8, method="Template matching", file="./tasks/KekkaiUtilize/ku/ku_check_guild_lottery.png")
+	# 检查是否可以抽奖 
+	I_KU_CHECK_CAN_LOTTERY = RuleImage(roi_front=(664,261,21,77), roi_back=(600,187,147,186), threshold=0.8, method="Template matching", file="./tasks/KekkaiUtilize/ku/ku_ku_check_can_lottery.png")
+	# 寮抽奖特别奖励 
+	I_GUILD_LOTTERY_SPECIAL_REWARD = RuleImage(roi_front=(540,197,208,69), roi_back=(345,137,591,359), threshold=0.8, method="Template matching", file="./tasks/KekkaiUtilize/ku/ku_guild_lottery_special_reward.png")
 
 
 	# Swipe Rule Assets
 	# 移动寻找寮体力 
 	S_GUILD_FIND_AP = RuleSwipe(roi_front=(420,546,40,40), roi_back=(8,546,40,40), mode="default", name="guild_find_ap")
+	# 寮抽奖 
+	S_GUILD_LOTTERY = RuleSwipe(roi_front=(627,190,24,23), roi_back=(644,258,23,25), mode="default", name="guild_lottery")
 
 
 	# Image Rule Assets

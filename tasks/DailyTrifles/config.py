@@ -27,6 +27,8 @@ class DoneRecord(ConfigBase):
 
 class DailyGuildDonate(ConfigBase):
     enable: bool = Field(default=False)
+    auto_get_rewards: bool = Field(default=True)
+    notify_enable: bool = Field(default=False, description='guild_donate_notify_help')
     guild_member_list: MultiLine = Field(default='', description='guild_member_list_help')
     friend_list: MultiLine = Field(default='', description='invite_friend_list_help')
     name_check: bool = Field(default=True, description='guild_donate_name_check_help')

@@ -32,13 +32,11 @@ class UtilizeConfig(BaseModel):
     auto_fill: bool = Field(default=False, description='auto_fill_help')
     shikigami_class: ShikigamiClass = Field(default=ShikigamiClass.N, description='shikigami_class_help')
     shikigami_order: int = Field(default=4, description='shikigami_order_help')
-    harvest_guild_max_times: int = Field(default=3, description='收取寮资金或体力失败的最大尝试次数')
-    utilize_harvest: bool = Field(default=True, description='是否领取寄养的收获')
-    utilize_enable: bool = Field(default=True, description='是否蹭卡，小号可以选择不蹭卡')
-    guild_ap_enable: bool = Field(default=True, description='guild_ap_enable_help')
-    guild_assets_enable: bool = Field(default=True, description='guild_assets_enable_help')
-    box_ap_enable: bool = Field(default=True, description='box_ap_enable_help')
-    box_exp_enable: bool = Field(default=True, description='box_exp_enable_help')
+    harvest_guild_max_times: int = Field(default=2, description='harvest_guild_max_times_help')
+    utilize_harvest: bool = Field(default=True, description='utilize_harvest_help')
+    utilize_enable: bool = Field(default=True, description='utilize_enable_help')
+    box_ap_enable: bool = Field(default=True)
+    box_exp_enable: bool = Field(default=True)
     box_exp_waste: bool = Field(default=True, description='box_exp_waste_help')
 
 

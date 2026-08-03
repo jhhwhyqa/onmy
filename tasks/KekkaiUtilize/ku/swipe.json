@@ -5,5 +5,12 @@
     "roiBack": "8,546,40,40",
     "mode": "default",
     "description": "移动寻找寮体力"
+  },
+  {
+    "itemName": "guild_lottery",
+    "roiFront": "627,190,24,23",
+    "roiBack": "644,258,23,25",
+    "mode": "default",
+    "description": "寮抽奖"
   }
 ]
