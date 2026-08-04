@@ -96,7 +96,7 @@ class ScriptTask(GameUi, SoulsTidyAssets):
         if self.config.souls_tidy.simple_tidy.enable_maneki:
             logger.hr('Enter bongna')
             # 确保已弃置界面
-            while 1:
+            while True:
                 self.screenshot()
                 if self.appear(self.I_ST_ABANDONED_SELECTED):
                     break
@@ -107,11 +107,10 @@ class ScriptTask(GameUi, SoulsTidyAssets):
                 self.click(self.I_ST_ABANDONED_SELECTED, interval=1.5)
             self.pre_confirm()
             # 开始奉纳
-            while 1:
+            while True:
                 found = self.find_discard_souls()
-                if found is None:
-                    continue
                 if not found:
+                    logger.info('No discardable soul found, exit')
                     break
                 self.click(self.L_ONE, interval=2.5)
                 self.screenshot()
@@ -148,9 +147,9 @@ class ScriptTask(GameUi, SoulsTidyAssets):
             if self.ocr_appear_click(self.O_ST_SORT_LOCATION, interval=2):
                 continue
 
-    def find_discard_souls(self) -> Optional[bool]:
+    def find_discard_souls(self) -> bool:
         """寻找是否有可弃置的御魂
-        :return: True有 False没有 None待定
+        :return: True有 False没有/识别失败
         """
         timeout_timer = Timer(3).start()
         interval_timer = Timer(0.6).start()
@@ -171,8 +170,7 @@ class ScriptTask(GameUi, SoulsTidyAssets):
                 return True
             first_soul_level = self.O_ST_FIRST_LEVEL.ocr(self.device.image)
             if not first_soul_level or first_soul_level.strip() == '':
-                logger.info('ocr result is Null')
-                return None
+                continue
             if first_soul_level.strip() in ['+0', '古']:
                 logger.info('Find level 0 discard souls')
                 return True
