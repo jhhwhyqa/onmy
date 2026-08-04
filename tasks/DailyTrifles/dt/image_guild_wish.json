@@ -196,5 +196,32 @@
     "method": "Template matching",
     "threshold": 0.8,
     "description": "已捐满"
+  },
+  {
+    "itemName": "dt_gw_donate_red",
+    "imageName": "dt_dt_gw_donate_red.png",
+    "roiFront": "1024,297,14,18",
+    "roiBack": "979,275,77,125",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "赠送小红点"
+  },
+  {
+    "itemName": "dt_gw_one_collect",
+    "imageName": "dt_dt_gw_one_collect.png",
+    "roiFront": "921,605,51,48",
+    "roiBack": "866,557,164,137",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "一键领取"
+  },
+  {
+    "itemName": "dt_gw_give",
+    "imageName": "dt_dt_gw_give.png",
+    "roiFront": "979,316,44,75",
+    "roiBack": "924,160,142,276",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "赠送"
   }
 ]

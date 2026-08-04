@@ -190,18 +190,34 @@ class ScriptTask(GameUi, Summon, DailyTriflesAssets):
 
     def guild_donate_get_reward(self):
         """领取捐赠碎片的奖励"""
-        timeout_timer = Timer(2).start()
+        timeout_timer = Timer(3).start()
+        has_reward = False
         while not timeout_timer.reached():
             self.screenshot()
-            if self.appear(self.I_DT_GW_DONATE_RECORD_THANKS):
-                self.ui_get_reward(self.I_DT_GW_DONATE_RECORD_THANKS)
+            if self.appear(self.I_UI_BACK_RED, interval=0.6):
                 break
             if self.appear(self.I_DT_GW_DONATE_RECORD_RED):
                 self.ui_click(self.I_DT_GW_DONATE_RECORD, self.I_UI_BACK_RED, interval=1.2)
+                has_reward = True
+                continue
+        if not has_reward:
+            logger.info('No reward can get, exit')
+            return
+        timeout_timer.reset()
+        while not timeout_timer.reached():
+            self.screenshot()
+            if self.appear_then_click(self.I_UI_CONFIRM, interval=0.6):
+                continue
+            if self.appear(self.I_DT_GW_DONATE_RECORD_THANKS):  # 受赠界面的一键感谢
+                self.ui_get_reward(self.I_DT_GW_DONATE_RECORD_THANKS)
                 timeout_timer.reset()
                 continue
-        self.screenshot()
-        self.appear_then_click(self.I_UI_BACK_RED)
+            if self.appear(self.I_DT_GW_DONATE_RED, interval=2.5):  # 赠予界面的一键领取
+                self.ui_click(self.I_DT_GW_GIVE, self.I_DT_GW_ONE_COLLECT)
+                self.appear_then_click(self.I_DT_GW_ONE_COLLECT, interval=0.6)
+                timeout_timer.reset()
+                continue
+        self.ui_click_until_disappear(self.I_UI_BACK_RED)
 
     def donate(self, name_list: List[str], switch_func: Callable, name_check: bool) -> bool:
         """执行碎片捐赠流程

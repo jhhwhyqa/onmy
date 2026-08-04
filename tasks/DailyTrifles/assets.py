@@ -75,6 +75,12 @@ class DailyTriflesAssets:
 	I_DT_GW_INSUFFICIENT = RuleImage(roi_front=(899,401,116,35), roi_back=(834,126,245,460), threshold=0.8, method="Template matching", file="./tasks/DailyTrifles/dt/dt_dt_gw_insufficient.png")
 	# 已捐满 
 	I_DT_GW_FULL = RuleImage(roi_front=(915,120,94,33), roi_back=(894,89,139,492), threshold=0.8, method="Template matching", file="./tasks/DailyTrifles/dt/dt_dt_gw_full.png")
+	# 赠送小红点 
+	I_DT_GW_DONATE_RED = RuleImage(roi_front=(1024,297,14,18), roi_back=(979,275,77,125), threshold=0.8, method="Template matching", file="./tasks/DailyTrifles/dt/dt_dt_gw_donate_red.png")
+	# 一键领取 
+	I_DT_GW_ONE_COLLECT = RuleImage(roi_front=(921,605,51,48), roi_back=(866,557,164,137), threshold=0.8, method="Template matching", file="./tasks/DailyTrifles/dt/dt_dt_gw_one_collect.png")
+	# 赠送 
+	I_DT_GW_GIVE = RuleImage(roi_front=(979,316,44,75), roi_back=(924,160,142,276), threshold=0.8, method="Template matching", file="./tasks/DailyTrifles/dt/dt_dt_gw_give.png")
 
 
 	# Image Rule Assets
