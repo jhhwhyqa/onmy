@@ -19,8 +19,8 @@
   },
   {
     "itemName": "sca_number_sea",
-    "roiFront": "923,321,29,21",
-    "roiBack": "923,321,29,21",
+    "roiFront": "920,320,36,22",
+    "roiBack": "920,320,36,22",
     "mode": "Quantity",
     "method": "Default",
     "keyword": "",

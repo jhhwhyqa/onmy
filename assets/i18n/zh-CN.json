@@ -192,5 +192,9 @@
   "utilize_harvest": "是否领取寄养奖励",
   "utilize_enable": "是否蹭卡",
   "utilize_enable_help": "关闭则不会蹭卡, 但是其他操作会执行(例如收取寮奖励等)",
-  "utilize_harvest_help": "关闭则不领取, 可以屯奖励"
+  "utilize_harvest_help": "关闭则不领取, 可以屯奖励",
+  "check_true_orochi_enable": "是否在结束后检测真蛇",
+  "check_true_orochi_enable_help": "开启后会在任务结束后检测是否出现真蛇, 若出现则自动拉起真蛇",
+  "enable_book_auto": "自动选择",
+  "enable_book_auto_help": "游戏内是否开启自动选择御魂"
 }
