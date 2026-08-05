@@ -206,10 +206,10 @@ class ScriptTask(GameUi, Summon, DailyTriflesAssets):
         timeout_timer.reset()
         while not timeout_timer.reached():
             self.screenshot()
+            self.ui_reward_appear_click()
             if self.appear_then_click(self.I_UI_CONFIRM, interval=0.6):
                 continue
-            if self.appear(self.I_DT_GW_DONATE_RECORD_THANKS):  # 受赠界面的一键感谢
-                self.ui_get_reward(self.I_DT_GW_DONATE_RECORD_THANKS)
+            if self.appear_then_click(self.I_DT_GW_DONATE_RECORD_THANKS, interval=1.5):  # 受赠界面的一键感谢
                 timeout_timer.reset()
                 continue
             if self.appear(self.I_DT_GW_DONATE_RED, interval=2.5):  # 赠予界面的一键领取
@@ -271,7 +271,7 @@ class ScriptTask(GameUi, Summon, DailyTriflesAssets):
                 if self.config.daily_trifles.guild_donate.notify_enable:
                     self.config.notifier.push(title='好友搜索失败', content=f'{name} 搜索失败, 没有搜索到对应用户, 无法捐赠')
                 return False
-            if self.appear_then_click(donate_btn, interval=0.6):
+            if self.appear_then_click(donate_btn, interval=1.5):
                 timeout_timer.reset()
                 continue
             if self.appear(self.I_DT_GW_INSUFFICIENT, interval=0.6):
@@ -279,7 +279,7 @@ class ScriptTask(GameUi, Summon, DailyTriflesAssets):
                 if self.config.daily_trifles.guild_donate.notify_enable:
                     self.config.notifier.push(title='捐赠碎片不足', content=f'捐给{name}的碎片不足, 请上线查看')
                 return False
-            if self.appear(self.I_DT_GW_FULL, interval=1.2):
+            if self.appear(self.I_DT_GW_FULL, interval=0.6):
                 logger.info(f'Donate success!')
                 return True
         return False
