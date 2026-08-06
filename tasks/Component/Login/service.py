@@ -26,13 +26,21 @@ class LoginService(BaseTask, RestartAssets, GameUiAssets):
         click_count = 0
 
         while not timeout_timer.reached():
+            self.screenshot()
+            if self.appear(self.I_LOGIN_8):
+                logger.info('Redroid login preparation: login screen already appeared')
+                return True
+
             if center_click_timer.reached():
                 self.device.click(x=640, y=360, control_name='REDROID_LOGIN_CENTER')
                 click_count += 1
                 logger.info(f'Redroid login preparation: clicked screen center (attempt {click_count})')
                 center_click_timer = Timer(3).start()
+                self.screenshot()
+                if self.appear(self.I_LOGIN_8):
+                    logger.info('Redroid login preparation: login screen appeared after center click')
+                    return True
 
-            self.screenshot()
             if self.ocr_appear(self.O_LOGIN_REDROID_SKIP):
                 self.click(self.O_LOGIN_REDROID_SKIP)
                 logger.info('Redroid login preparation: detected 跳过, clicked skip button')
