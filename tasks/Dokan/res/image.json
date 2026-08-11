@@ -227,7 +227,7 @@
   {
     "itemName": "ryou_dokan_battle_master_first",
     "imageName": "res_ryou_dokan_battle_master_first.png",
-    "roiFront": "1080,180,160,70",
+    "roiFront": "1113,205,50,28",
     "roiBack": "1080,180,160,70",
     "method": "Template matching",
     "threshold": 0.8,
@@ -236,11 +236,11 @@
   {
     "itemName": "ryou_dokan_battle_master_second",
     "imageName": "res_ryou_dokan_battle_master_second.png",
-    "roiFront": "1080,180,160,70",
+    "roiFront": "1114,208,48,25",
     "roiBack": "1080,180,160,70",
     "method": "Template matching",
     "threshold": 0.8,
-    "description": "馆主战,第二阵容 # TODO 截图"
+    "description": "馆主战,第二阵容"
   },
   {
     "itemName": "ryou_dokan_battle_over",

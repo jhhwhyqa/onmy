@@ -40,6 +40,8 @@ class ScriptTask(GameUi, SwitchSoul, GeneralBattle, DokanAssets):
     attack_priority_selected: bool = False
     switch_member_soul_done: bool = False
     switch_owner_soul_done: bool = False
+    dokan_owner_battle: bool = False  # 馆主战标识(会在多个可识别到馆主战的位置进行设置)
+    first_master_killed: bool = False  # 一阵是否被击败(只有识别到二阵这个标识才会设置为true)
     conf: Dokan = None
 
     def _register_custom_pages(self) -> None:
@@ -66,11 +68,15 @@ class ScriptTask(GameUi, SwitchSoul, GeneralBattle, DokanAssets):
 
     def _handle_in_battle(self, context: BattleContext, config: GeneralBattleConfig) -> BattleAction:
         count = self.conf.attack_count_config.attack_dokan_master_count()
-        if context.battle_key == 'dokan_owner':
+        if self.appear(self.I_RYOU_DOKAN_BATTLE_MASTER_FIRST) or self.appear(self.I_RYOU_DOKAN_BATTLE_MASTER_SECOND):
+            self.dokan_owner_battle = True  # 防止直接在战斗界面识别, 因此在这继续更新一次馆主战标识
+        if self.dokan_owner_battle:
             if count <= 0:  # 不让打直接退
                 return BattleAction.QUICK_EXIT
-            if context.continuous_count == 2 and count == 1:  # 2阵但只允许打一次
-                return BattleAction.QUICK_EXIT
+            if self.appear(self.I_RYOU_DOKAN_BATTLE_MASTER_SECOND):
+                self.first_master_killed = True  # 别到二阵则说明一阵被击败了
+                if count <= 1:  # 2阵但只允许打一次
+                    return BattleAction.QUICK_EXIT
         return super()._handle_in_battle(context, config)
 
     def exit_battle(self, skip_first: bool = False) -> bool:
@@ -92,10 +98,6 @@ class ScriptTask(GameUi, SwitchSoul, GeneralBattle, DokanAssets):
             if self.appear(self.I_RYOU_DOKAN_QUIT_BATTLE_ENSURE):
                 self.ui_click_until_disappear(self.I_RYOU_DOKAN_QUIT_BATTLE_ENSURE)
                 return True
-            # 退出时,意外弹出"确认退出集结场景" 弹窗,导致卡住
-            # 只能怀疑是上面两个appear的耗时 导致screenshot 过时导致错误点击
-            # TODO: 待验证
-            # 还有一种可能:在退出战斗过程中,在过场图出现前,点击左上角退出按钮,会导致该弹窗弹出(恶心)
             self.screenshot()
             if not self.appear(self.I_RYOU_DOKAN_CENTER_TOP):
                 self.click(self.C_DOKAN_BATTLE_QUIT_AREA, interval=3)
@@ -104,6 +106,8 @@ class ScriptTask(GameUi, SwitchSoul, GeneralBattle, DokanAssets):
         return False
 
     def before_run(self):
+        self.dokan_owner_battle = False
+        self.first_master_killed = False
         pages.page_dokan_rank = self.navigator.add_page(pages.Page(self.I_RYOU_DOKAN_TOPPA_RANK, priority=75, register=False))
         pages.page_dokan_rank.connect(pages.page_dokan, pages.random_click, key="page_dokan_rank->page_dokan")
 
@@ -170,25 +174,23 @@ class ScriptTask(GameUi, SwitchSoul, GeneralBattle, DokanAssets):
             self.switch_soul_in_dokan('member')  # 切换馆员御魂
             self.device.click_record_clear()
             return
-        if not self.appear(self.I_DOKAN_BOSS_WAITING) and self.appear(self.I_RYOU_DOKAN_MASTER_BATTLE) and \
-                self.appear(self.I_RYOU_DOKAN_START_CHALLENGE):  # 馆主可挑战
-            count = self.conf.attack_count_config.attack_dokan_master_count()
-            first_master_killed = False
-            if self._battle_context is not None:
-                first_master_killed = self._battle_context.continuous_count > 1
-            logger.info(f"Dokan master count:{count}, first master killed:{first_master_killed}")
-            if (count - (1 if first_master_killed else 0)) > 0:
-                logger.info("start Master first")
+        if self.appear(self.I_DOKAN_BOSS_WAITING) or self.appear(self.I_RYOU_DOKAN_MASTER_BATTLE):  # 馆主战标识
+            self.dokan_owner_battle = True
+        if not self.appear(self.I_DOKAN_BOSS_WAITING) and self.appear(self.I_RYOU_DOKAN_START_CHALLENGE):  # 可挑战
+            if self.dokan_owner_battle:  # 馆主战
+                count = self.conf.attack_count_config.attack_dokan_master_count()
+                if (count - (1 if self.first_master_killed else 0)) > 0:
+                    logger.info("Start owner battle")
+                    self.switch_soul_in_dokan('owner')
+                    if self.click_until_in_battle():
+                        self.run_general_battle(self.conf.dokan_owner_battle_conf, battle_key='dokan_owner')
+                # 有权限且当前道馆突破 不再打馆主,直接放弃突破
+                elif self.conf.dokan_config.try_start_dokan:
+                    self.abandoned_toppa()
+            else:  # 馆员战
+                self.switch_soul_in_dokan('member')  # 防止进来晚了没有识别到集结导致错过切换御魂
                 if self.click_until_in_battle():
-                    self.run_general_battle(self.conf.dokan_owner_battle_conf, battle_key='dokan_owner')
-            # 有权限且当前道馆突破 不再打馆主,直接放弃突破
-            elif self.conf.dokan_config.try_start_dokan:
-                self.abandoned_toppa()
-            return
-        if not self.appear(self.I_DOKAN_BOSS_WAITING) and self.appear(self.I_RYOU_DOKAN_START_CHALLENGE):  # 非馆主且可挑战
-            self.switch_soul_in_dokan('member')
-            if self.click_until_in_battle():
-                self.run_general_battle(self.conf.dokan_member_battle_conf, battle_key='dokan_member')
+                    self.run_general_battle(self.conf.dokan_member_battle_conf, battle_key='dokan_member')
             return
         if not self.appear(self.I_DOKAN_BOSS_WAITING) and self.appear(self.I_RYOU_DOKAN_CD):  # 可观战
             self.device.click_record_clear()
@@ -247,6 +249,8 @@ class ScriptTask(GameUi, SwitchSoul, GeneralBattle, DokanAssets):
         """处理战斗页面逻辑(正常来说是一定不会进入该逻辑的)"""
         if self.appear(self.I_RYOU_DOKAN_BATTLE_MASTER_FIRST) or \
                 self.appear(self.I_RYOU_DOKAN_BATTLE_MASTER_SECOND):
+            self.dokan_owner_battle = True
+            self.first_master_killed = self.appear(self.I_RYOU_DOKAN_BATTLE_MASTER_SECOND)
             self.run_general_battle(self.conf.dokan_owner_battle_conf, battle_key='dokan_owner')
             return
         self.run_general_battle(self.conf.dokan_member_battle_conf, battle_key='dokan_member')

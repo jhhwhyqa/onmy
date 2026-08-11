@@ -91,9 +91,9 @@ class DokanAssets:
 	# 状态：进入战斗，待开始，右下角图标。 
 	I_RYOU_DOKAN_IN_FIELD2 = RuleImage(roi_front=(1131,562,88,48), roi_back=(1131,562,88,48), threshold=0.8, method="Template matching", file="./tasks/Dokan/res/res_ryou_dokan_in_field2.png")
 	# 馆主战,第一阵容 
-	I_RYOU_DOKAN_BATTLE_MASTER_FIRST = RuleImage(roi_front=(1080,180,160,70), roi_back=(1080,180,160,70), threshold=0.8, method="Template matching", file="./tasks/Dokan/res/res_ryou_dokan_battle_master_first.png")
-	# 馆主战,第二阵容 # TODO 截图 
-	I_RYOU_DOKAN_BATTLE_MASTER_SECOND = RuleImage(roi_front=(1080,180,160,70), roi_back=(1080,180,160,70), threshold=0.8, method="Template matching", file="./tasks/Dokan/res/res_ryou_dokan_battle_master_second.png")
+	I_RYOU_DOKAN_BATTLE_MASTER_FIRST = RuleImage(roi_front=(1113,205,50,28), roi_back=(1080,180,160,70), threshold=0.8, method="Template matching", file="./tasks/Dokan/res/res_ryou_dokan_battle_master_first.png")
+	# 馆主战,第二阵容 
+	I_RYOU_DOKAN_BATTLE_MASTER_SECOND = RuleImage(roi_front=(1114,208,48,25), roi_back=(1080,180,160,70), threshold=0.8, method="Template matching", file="./tasks/Dokan/res/res_ryou_dokan_battle_master_second.png")
 	# 状态：战斗结算，可能是打完小朋友了，也可能是失败了。 
 	I_RYOU_DOKAN_BATTLE_OVER = RuleImage(roi_front=(571,503,106,49), roi_back=(571,503,106,49), threshold=0.8, method="Template matching", file="./tasks/Dokan/res/res_ryou_dokan_battle_over.png")
 	# 状态：战斗中，左上角的加油图标 
