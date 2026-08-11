@@ -339,15 +339,7 @@ class ScriptTask(GameUi, GeneralInvite, GeneralRoom, GeneralBattle, SwitchSoul, 
                 # 否则就是模式1
                 break
 
-        # 退出的时候如果是在结契的界面，要退回到探查界面
-        while 1:
-            self.screenshot()
-            if self.in_search_ui():
-                break
-            if self.in_catch_ui():
-                self.appear_then_click(self.I_UI_BACK_YELLOW, interval=1)
         logger.info('BondlingFairyland task finished')
-
         self.goto_page(page_main)
         self.set_next_run(task='BondlingFairyland', finish=True, success=True)
         raise TaskEnd
