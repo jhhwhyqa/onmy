@@ -99,11 +99,11 @@ class AbyssShadowsAssets:
 	# 选择难度按钮 
 	I_SELECT_DIFFICULTY = RuleImage(roi_front=(703,645,50,55), roi_back=(703,645,50,55), threshold=0.8, method="Template matching", file="./tasks/AbyssShadows/res/res_select_difficulty.png")
 	# 容易难度 
-	I_DIFFICULTY_EASY = RuleImage(roi_front=(620,445,90,210), roi_back=(620,445,90,210), threshold=0.8, method="Template matching", file="./tasks/AbyssShadows/res/res_difficulty_easy.png")
+	I_DIFFICULTY_EASY = RuleImage(roi_front=(644,389,35,41), roi_back=(619,374,91,275), threshold=0.8, method="Template matching", file="./tasks/AbyssShadows/res/res_difficulty_easy.png")
 	# 普通难度 
-	I_DIFFICULTY_NORMAL = RuleImage(roi_front=(620,445,90,210), roi_back=(620,445,90,210), threshold=0.8, method="Template matching", file="./tasks/AbyssShadows/res/res_difficulty_normal.png")
+	I_DIFFICULTY_NORMAL = RuleImage(roi_front=(642,453,38,47), roi_back=(621,378,87,272), threshold=0.8, method="Template matching", file="./tasks/AbyssShadows/res/res_difficulty_normal.png")
 	# 困难难度 
-	I_DIFFICULTY_HARD = RuleImage(roi_front=(620,445,90,210), roi_back=(620,445,90,210), threshold=0.8, method="Template matching", file="./tasks/AbyssShadows/res/res_difficulty_hard.png")
+	I_DIFFICULTY_HARD = RuleImage(roi_front=(645,527,40,39), roi_back=(620,383,89,263), threshold=0.8, method="Template matching", file="./tasks/AbyssShadows/res/res_difficulty_hard.png")
 	# 开启按钮 
 	I_BTN_START = RuleImage(roi_front=(1120,570,100,120), roi_back=(1120,570,100,120), threshold=0.8, method="Template matching", file="./tasks/AbyssShadows/res/res_btn_start.png")
 	# 开启确认按钮 
@@ -116,6 +116,8 @@ class AbyssShadowsAssets:
 	I_CHECK_SHENSHE = RuleImage(roi_front=(72,76,45,115), roi_back=(31,27,119,207), threshold=0.8, method="Template matching", file="./tasks/AbyssShadows/res/res_check_shenshe.png")
 	# 狭间暗域页面标志 
 	I_CHECK_ABYSS = RuleImage(roi_front=(1082,14,52,50), roi_back=(992,0,247,80), threshold=0.8, method="Template matching", file="./tasks/AbyssShadows/res/res_check_abyss.png")
+	# 极难度 
+	I_DIFFICULTY_EXTREME = RuleImage(roi_front=(644,593,40,39), roi_back=(620,383,89,263), threshold=0.8, method="Template matching", file="./tasks/AbyssShadows/res/res_difficulty_extreme.png")
 
 
 	# List Rule Assets

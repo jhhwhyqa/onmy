@@ -413,6 +413,8 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, AbyssShadowsAssets):
                 difficulty_btn = self.I_DIFFICULTY_HARD
             case AbyssShadowsDifficulty.NORMAL:
                 difficulty_btn = self.I_DIFFICULTY_NORMAL
+            case AbyssShadowsDifficulty.EXTREME:
+                difficulty_btn = self.I_DIFFICULTY_EXTREME
         self.ui_click_until_disappear(difficulty_btn, interval=2)
         # 开始
         self.ui_click(self.I_BTN_START, stop=self.I_START_ENSURE, interval=2)

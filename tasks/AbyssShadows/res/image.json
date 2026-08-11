@@ -218,8 +218,8 @@
   {
     "itemName": "difficulty_easy",
     "imageName": "res_difficulty_easy.png",
-    "roiFront": "620,445,90,210",
-    "roiBack": "620,445,90,210",
+    "roiFront": "644,389,35,41",
+    "roiBack": "619,374,91,275",
     "method": "Template matching",
     "threshold": 0.8,
     "description": "容易难度"
@@ -227,8 +227,8 @@
   {
     "itemName": "difficulty_normal",
     "imageName": "res_difficulty_normal.png",
-    "roiFront": "620,445,90,210",
-    "roiBack": "620,445,90,210",
+    "roiFront": "642,453,38,47",
+    "roiBack": "621,378,87,272",
     "method": "Template matching",
     "threshold": 0.8,
     "description": "普通难度"
@@ -236,8 +236,8 @@
   {
     "itemName": "difficulty_hard",
     "imageName": "res_difficulty_hard.png",
-    "roiFront": "620,445,90,210",
-    "roiBack": "620,445,90,210",
+    "roiFront": "645,527,40,39",
+    "roiBack": "620,383,89,263",
     "method": "Template matching",
     "threshold": 0.8,
     "description": "困难难度"
@@ -295,5 +295,14 @@
     "method": "Template matching",
     "threshold": 0.8,
     "description": "狭间暗域页面标志"
+  },
+  {
+    "itemName": "difficulty_extreme",
+    "imageName": "res_difficulty_extreme.png",
+    "roiFront": "644,593,40,39",
+    "roiBack": "620,383,89,263",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "极难度"
   }
 ]
