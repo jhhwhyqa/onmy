@@ -17,40 +17,6 @@ class LoginService(BaseTask, RestartAssets, GameUiAssets):
         self.character = self.config.restart.login_character_config.character
         self.O_LOGIN_SPECIFIC_SERVE.keyword = self.character
 
-    def prepare_redroid_login(self) -> bool:
-        """触发 Redroid 视频页的跳过按钮并点击。"""
-        logger.hr('Redroid login preparation')
-        self.device.sleep(3)
-        timeout_timer = Timer(30).start()
-        center_click_timer = Timer(0).start()
-        click_count = 0
-
-        while not timeout_timer.reached():
-            self.screenshot()
-            if self.appear(self.I_LOGIN_8):
-                logger.info('Redroid login preparation: login screen already appeared')
-                return True
-
-            if center_click_timer.reached():
-                self.device.click(x=640, y=360, control_name='REDROID_LOGIN_CENTER')
-                click_count += 1
-                logger.info(f'Redroid login preparation: clicked screen center (attempt {click_count})')
-                center_click_timer = Timer(3).start()
-                self.screenshot()
-                if self.appear(self.I_LOGIN_8):
-                    logger.info('Redroid login preparation: login screen appeared after center click')
-                    return True
-
-            if self.ocr_appear(self.O_LOGIN_REDROID_SKIP):
-                self.click(self.O_LOGIN_REDROID_SKIP)
-                logger.info('Redroid login preparation: detected 跳过, clicked skip button')
-                return True
-
-            self.device.sleep(0.5)
-
-        logger.warning('Redroid login preparation: skip button not detected')
-        return False
-
     def _app_handle_login(self) -> bool:
         """
         最终是在庭院界面
@@ -61,6 +27,12 @@ class LoginService(BaseTask, RestartAssets, GameUiAssets):
 
         confirm_timer = Timer(1.5, count=2).start()
         orientation_timer = Timer(10)
+        login_animation_timer = Timer(5).start()
+        login_animation_timeout_timer = Timer(30).start()
+        center_click_timer = Timer(0).start()
+        skip_click_timer = Timer(0).start()
+        center_click_count = 0
+        login_animation_timeout_logged = False
         login_success = False
 
         while 1:
@@ -140,6 +112,40 @@ class LoginService(BaseTask, RestartAssets, GameUiAssets):
                 self.device.click(x=106, y=535)
 
             if not self.appear(self.I_LOGIN_8):
+                if self.ocr_appear(self.O_LOGIN_ENTER_GAME):
+                    x, y = self.O_LOGIN_ENTER_GAME.coord()
+                    self.device.click(x=x, y=y, control_name=self.O_LOGIN_ENTER_GAME.name)
+                    logger.info('Login: detected 进入游戏, clicked enter game')
+                    self.wait_until_appear(self.I_LOGIN_SPECIFIC_SERVE, True, wait_time=5)
+                    continue
+
+                if not login_animation_timer.reached():
+                    continue
+
+                if login_animation_timeout_timer.reached():
+                    if not login_animation_timeout_logged:
+                        logger.warning('Login animation: fallback timeout, continue with normal login flow')
+                        login_animation_timeout_logged = True
+                    continue
+
+                if center_click_timer.reached():
+                    self.device.click(x=640, y=360, control_name='LOGIN_ANIMATION_CENTER')
+                    center_click_count += 1
+                    logger.info(f'Login animation: clicked center area (attempt {center_click_count})')
+                    center_click_timer = Timer(3).start()
+                    self.screenshot()
+
+                if skip_click_timer.reached() and self.ocr_appear(self.O_LOGIN_ANIMATION_SKIP):
+                    x, y = self.O_LOGIN_ANIMATION_SKIP.coord()
+                    self.device.click(x=x, y=y, control_name=self.O_LOGIN_ANIMATION_SKIP.name)
+                    logger.info('Login animation: detected 跳过, clicked skip button')
+                    skip_click_timer = Timer(1).start()
+
+                    self.screenshot()
+                    if self.appear(self.I_LOGIN_8) or not self.ocr_appear(self.O_LOGIN_ANIMATION_SKIP):
+                        logger.info('Login animation: skip click confirmed')
+                    else:
+                        logger.warning('Login animation: skip click not confirmed, retrying')
                 continue
 
             if self.appear(self.I_EARLY_SERVER):
