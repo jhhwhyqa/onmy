@@ -41,8 +41,7 @@ class ScriptTask(BaseTask):
         logger.hr('App start')
         self.device.app_start()
         self.device.wait_app_start_ready()
-        login_service = LoginService(config=self.config, device=self.device)
-        login_service.app_handle_login()
+        LoginService(config=self.config, device=self.device).app_handle_login()
 
     def app_restart(self):
         logger.hr('App restart')

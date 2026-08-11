@@ -64,6 +64,8 @@ class RestartAssets:
 	C_LOGIN_ENSURE_LOGIN_CHARACTER_IN_SAME_SVR = RuleClick(roi_front=(600,240,500,400), roi_back=(600,240,500,400), name="login_ensure_login_character_in_same_svr")
 	# 卷轴关闭区域点击(用于点击I_LOGIN_SCROOLL_CLOSE的区域而不依赖图片识别) 
 	C_LOGIN_SCROLL_CLOSE_AREA = RuleClick(roi_front=(1181,634,28,39), roi_back=(1162,595,77,112), name="login_scroll_close_area")
+	# 登录动画点击屏幕中央区域
+	C_LOGIN_ANIMATION_CENTER = RuleClick(roi_front=(580,300,120,120), roi_back=(580,300,120,120), name="login_animation_center")
 
 
 	# Image Rule Assets
