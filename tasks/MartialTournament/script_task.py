@@ -211,7 +211,8 @@ class ScriptTask(GameUi, GeneralBattle, SwitchSoul, MartialTournamentAssets):
             self.team_locked = True
         if self.enter_battle():
             self.current_count += 1
-            self.run_general_battle(self.current_battle_conf, battle_key='mt')
+            # boss类型变了则重新切换预设
+            self.run_general_battle(self.current_battle_conf, battle_key=f'mt_{boss_type}')
 
     def _run_ap(self):
         """体力爬塔界面处理: 检查体力 -> 切换御魂 -> 锁定阵容 -> 挑战 -> 战斗"""
