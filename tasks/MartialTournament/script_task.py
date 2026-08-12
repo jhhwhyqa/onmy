@@ -194,12 +194,9 @@ class ScriptTask(GameUi, GeneralBattle, SwitchSoul, MartialTournamentAssets):
         if self.appear(self.I_NO_SEARCH) and self.appear_then_click(self.I_SEARCH_BOSS, interval=1.5):
             logger.info('Found existing boss, enter challenge directly')
         else:
-            # 没有已发现的boss, 检查门票后搜索
-            if not self.check_tickets_enough():
-                logger.warning('No tickets left, wait for next time')
-                raise TicketsNotEnough
+            # 没有已发现的boss, 搜索
             if not self.search_boss():
-                return
+                raise TicketsNotEnough
         boss_type = self.detect_boss_type()
         self.switch_soul(self.I_MT_RECORDS, boss_type)
         if self.conf.general_climb.random_sleep:
@@ -216,9 +213,6 @@ class ScriptTask(GameUi, GeneralBattle, SwitchSoul, MartialTournamentAssets):
 
     def _run_ap(self):
         """体力爬塔界面处理: 检查体力 -> 切换御魂 -> 锁定阵容 -> 挑战 -> 战斗"""
-        if not self.check_ap_enough():
-            logger.warning('No AP left, wait for next time')
-            raise TicketsNotEnough
         self.switch_soul(self.I_MT_RECORDS, 'ap')
         if self.conf.general_climb.random_sleep:
             random_sleep(probability=0.2)
@@ -253,7 +247,7 @@ class ScriptTask(GameUi, GeneralBattle, SwitchSoul, MartialTournamentAssets):
                 return False
             if search_times >= max_times:
                 logger.warning(f'Search boss click reach max times')
-                continue
+                return False
             if self.appear_then_click(self.I_UI_CONFIRM_SAMLL, interval=1) or \
                     self.appear_then_click(self.I_UI_CONFIRM, interval=1):
                 continue
@@ -263,6 +257,7 @@ class ScriptTask(GameUi, GeneralBattle, SwitchSoul, MartialTournamentAssets):
                 search_times += 1
                 logger.info(f'Try search boss ({self.ticket_type}), remain times[{max_times - search_times}]')
                 continue
+        return False
 
     def enter_battle(self) -> bool:
         """点击挑战按钮进入战斗 (挑战界面为浮窗)"""
@@ -283,6 +278,7 @@ class ScriptTask(GameUi, GeneralBattle, SwitchSoul, MartialTournamentAssets):
                 click_times += 1
                 logger.info(f'Try click challenge, remain times[{max_times - click_times}]')
                 continue
+        return False
 
     def enter_ap_battle(self) -> bool:
         """点击体力界面的挑战按钮进入战斗"""
@@ -303,6 +299,7 @@ class ScriptTask(GameUi, GeneralBattle, SwitchSoul, MartialTournamentAssets):
                 click_times += 1
                 logger.info(f'Try click AP challenge, remain times[{max_times - click_times}]')
                 continue
+        return False
 
     def detect_boss_type(self) -> str:
         """检测当前浮窗中的boss类型: 'single'单体, 'group'群体"""
