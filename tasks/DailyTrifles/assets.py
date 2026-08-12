@@ -32,7 +32,7 @@ class DailyTriflesAssets:
 
 	# Image Rule Assets
 	# 寮祈愿页面标志 
-	I_DT_CHECK_GUILD_WISH = RuleImage(roi_front=(13,569,76,139), roi_back=(0,511,124,209), threshold=0.8, method="Template matching", file="./tasks/DailyTrifles/dt/dt_dt_check_guild_wish.png")
+	I_DT_CHECK_GUILD_WISH = RuleImage(roi_front=(872,639,38,38), roi_back=(741,583,425,137), threshold=0.8, method="Template matching", file="./tasks/DailyTrifles/dt/dt_dt_check_guild_wish.png")
 	# 赠予 
 	I_DT_GW_DONATE = RuleImage(roi_front=(839,167,109,49), roi_back=(816,90,301,490), threshold=0.8, method="Template matching", file="./tasks/DailyTrifles/dt/dt_dt_gw_donate.png")
 	# 交换 
