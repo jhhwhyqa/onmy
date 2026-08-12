@@ -258,22 +258,27 @@ class ScriptTask(GameUi, Summon, DailyTriflesAssets):
 
     def process_donate(self, donate_btn: RuleImage, name: str) -> bool:
         """捐赠式神碎片
+        TODO: 游戏有bug,搜索结束之后会突然神经展开全部寮友/好友,会有一瞬间识别到了好友,点击捐赠结果实际捐错人了
 
         :param name: 被捐方名称
         :param donate_btn: 赠与按钮
-        :return: 捐赠是否成功
+        :return: 捐赠是否成功(点击了捐赠/确定/识别到已满都认为成功)
         """
         timeout_timer = Timer(3).start()
+        donated = False  # 判断是否已执行捐赠
         while not timeout_timer.reached():
             self.screenshot()
+            if self.ui_reward_appear_click():  # 识别到奖励就直接退出
+                return True
             if self.appear_then_click(self.I_UI_CONFIRM, interval=0.6):
+                donated = True
                 continue
             if self.appear(self.I_DT_GW_SEARCH_EMPTY):
                 logger.warning('Maybe not wish or not find, skip')
                 if self.config.daily_trifles.guild_donate.notify_enable:
                     self.config.notifier.push(title='好友搜索失败', content=f'{name} 搜索失败, 没有搜索到对应用户, 无法捐赠')
                 return False
-            if self.appear_then_click(donate_btn, interval=1.5):
+            if not donated and self.appear_then_click(donate_btn, interval=2.5):
                 timeout_timer.reset()
                 continue
             if self.appear(self.I_DT_GW_INSUFFICIENT, interval=0.6):
@@ -283,8 +288,8 @@ class ScriptTask(GameUi, Summon, DailyTriflesAssets):
                 return False
             if self.appear(self.I_DT_GW_FULL, interval=0.6):
                 logger.info(f'Donate success!')
-                return True
-        return False
+                donated = True
+        return donated
 
     def find_target_name(self, name) -> List[int]:
         """寻找目标名称
