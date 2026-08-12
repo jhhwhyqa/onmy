@@ -64,6 +64,8 @@ class RestartAssets:
 	C_LOGIN_ENSURE_LOGIN_CHARACTER_IN_SAME_SVR = RuleClick(roi_front=(600,240,500,400), roi_back=(600,240,500,400), name="login_ensure_login_character_in_same_svr")
 	# 卷轴关闭区域点击(用于点击I_LOGIN_SCROOLL_CLOSE的区域而不依赖图片识别) 
 	C_LOGIN_SCROLL_CLOSE_AREA = RuleClick(roi_front=(1181,634,28,39), roi_back=(1162,595,77,112), name="login_scroll_close_area")
+	# 登录动画点击屏幕中央区域
+	C_LOGIN_ANIMATION_CENTER = RuleClick(roi_front=(580,300,120,120), roi_back=(580,300,120,120), name="login_animation_center")
 
 
 	# Image Rule Assets
@@ -110,9 +112,9 @@ class RestartAssets:
 	O_LOGIN_NETWORK = RuleOcr(roi=(534,649,189,39), area=(210,492,100,100), mode="Single", method="Default", keyword="正在连接服务器", name="login_network")
 	# Ocr-description 
 	O_LOGIN_ENTER_GAME = RuleOcr(roi=(550,567,176,56), area=(558,574,154,49), mode="Single", method="Default", keyword="进入游戏", name="login_enter_game")
-	# 点击屏幕跳过 
+	# 点击屏幕跳过
 	O_LOGIN_SKIP_1 = RuleOcr(roi=(1046,35,130,37), area=(1046,35,130,37), mode="Single", method="Default", keyword="点击屏幕跳过", name="login_skip_1")
+	# 登录动画-跳过
+	O_LOGIN_ANIMATION_SKIP = RuleOcr(roi=(1110,35,100,45), area=(1135,40,70,35), mode="Single", method="Default", keyword="跳过", name="login_animation_skip")
 	# 登录指定角色，默认第一个 
 	O_LOGIN_SPECIFIC_SERVE = RuleOcr(roi=(110,120,350,600), area=(110,120,350,600), mode="Full", method="Default", keyword="", name="login_specific_serve")
-
-

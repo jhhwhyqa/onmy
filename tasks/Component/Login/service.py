@@ -27,6 +27,7 @@ class LoginService(BaseTask, RestartAssets, GameUiAssets):
 
         confirm_timer = Timer(1.5, count=2).start()
         orientation_timer = Timer(10)
+        skip_login_animation = True
         login_success = False
 
         while 1:
@@ -100,19 +101,23 @@ class LoginService(BaseTask, RestartAssets, GameUiAssets):
             if self.appear(self.I_CREATE_ACCOUNT):
                 logger.warning('Appear create account')
                 raise GameStuckError('Appear create account')
-
             if self.appear(self.I_CHARACTARS, interval=1):
                 logger.info('误入区服设置')
                 self.device.click(x=106, y=535)
-
-            if not self.appear(self.I_LOGIN_8):
+                continue
+            if self.appear(self.I_EARLY_SERVER) and self.appear_then_click(self.I_EARLY_SERVER_CANCEL):
+                logger.info('Cancel switch from early server to normal server')
                 continue
 
-            if self.appear(self.I_EARLY_SERVER):
-                if self.appear_then_click(self.I_EARLY_SERVER_CANCEL):
-                    logger.info('Cancel switch from early server to normal server')
+            if self.appear(self.I_LOGIN_8, interval=0.6): # 进入登录页面后不再处理登录动画逻辑
+                skip_login_animation = False
+            if skip_login_animation:
+                if self.ocr_appear_click(self.O_LOGIN_ANIMATION_SKIP, interval=2.5):  # 点击跳过登录动画
                     continue
+                self.click(self.C_LOGIN_ANIMATION_CENTER, interval=5)  # 每5秒点击一次屏幕中央
+
             if self.ocr_appear_click(self.O_LOGIN_ENTER_GAME, interval=3):
+                skip_login_animation = False  # 进入登录页面后不再处理登录动画逻辑
                 self.wait_until_appear(self.I_LOGIN_SPECIFIC_SERVE, True, wait_time=5)
                 continue
 
