@@ -224,5 +224,5 @@
   "mt_run_sequence": "爬塔运行顺序",
   "mt_run_sequence_help": "pass:门票爬塔,ap:体力爬塔\n逗号分隔,从左到右依次运行",
   "use_pass_2": "使用注灵搜寻券",
-  "mt_use_pass_2_help": "普通搜寻券用完后自动切换到注灵搜寻券继续挑战"
+  "mt_use_pass_2_help": "开启后优先使用注灵搜寻券, 用完后切换到普通搜寻券"
 }
