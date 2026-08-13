@@ -191,7 +191,9 @@ class ScriptTask(GameUi, GeneralBattle, SwitchSoul, MartialTournamentAssets):
         if self.appear(self.I_NO_SEARCH) and self.appear_then_click(self.I_SEARCH_BOSS, interval=1.5):
             logger.info('Found existing boss, enter challenge directly')
         else:
-            # 没有已发现的boss, 搜索
+            # 没有已发现的boss, 检查门票后搜索
+            if not self.check_tickets_enough():
+                raise TicketsNotEnough
             if not self.search_boss():
                 raise TicketsNotEnough
         boss_type = self.detect_boss_type()
@@ -209,6 +211,8 @@ class ScriptTask(GameUi, GeneralBattle, SwitchSoul, MartialTournamentAssets):
 
     def _run_ap(self):
         """体力爬塔界面处理: 检查体力 -> 切换御魂 -> 锁定阵容 -> 挑战 -> 战斗"""
+        if not self.check_tickets_enough():
+            raise TicketsNotEnough
         self.switch_soul(self.I_MT_RECORDS, 'ap')
         if self.conf.general_climb.random_sleep:
             random_sleep(probability=0.2)
