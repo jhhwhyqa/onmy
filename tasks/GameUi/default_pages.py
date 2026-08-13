@@ -315,6 +315,7 @@ page_reward = Page(
     any_of(
         GeneralBattleAssets.I_REWARD,
         GeneralBattleAssets.I_GB_SKIN_CONFIRM,
+        GeneralBattleAssets.I_OVER_GHOST,
         GeneralBattleAssets.I_REWARD_STATISTICS,
         GeneralBattleAssets.I_REWARD_GOLD,
         GeneralBattleAssets.I_REWARD_EXP_SOUL_4,
@@ -327,7 +328,21 @@ page_reward = Page(
     category="global",
     priority=25
 )
-page_reward.add_enter_success_hooks(lambda _task: random_click())
+
+def handle_battle_reward_page(task) -> bool:
+    """处理战斗奖励页面(页面跳转才会使用该逻辑)
+
+    Args:
+        task: 当前触发页面 hook 的任务实例。
+
+    Returns:
+        bool: 执行结果
+    """
+    if task.appear_then_click(GeneralBattleAssets.I_OVER_GHOST, interval=0.8):
+        return True
+    return task.click(random_click(), interval=0.8)
+
+page_reward.add_enter_success_hooks(handle_battle_reward_page)
 
 page_battle_team_exit = Page(GeneralBattleAssets.I_GB_CHECK_TEAM_EXIT, priority=75)
 page_battle_team = Page(any_of(GeneralInviteAssets.I_GI_EMOJI_1, GeneralInviteAssets.I_GI_EMOJI_2,

@@ -687,6 +687,7 @@ class GeneralBattle(GeneralBuff, GeneralBattleAssets):
         context.reward_no_battle_ts = None
         # TODO: 部分副本奖励界面不一定是战斗成功, 需要重写
         context.is_win = True
+        self.appear_then_click(self.I_OVER_GHOST, interval=0.8)
         self.appear_then_click(self.I_GB_SKIN_CONFIRM, interval=0.8)
         if context.last_page != page_reward:
             self.device.click_record_clear()
