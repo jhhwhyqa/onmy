@@ -10,7 +10,7 @@ from tasks.GlobalGame.assets import GlobalGameAssets
 page_mt = Page(MartialTournamentAssets.I_MT_CHECK)
 page_mt.add_enter_failure_hooks(RightActivityAssets.I_TOGGLE_BUTTON,
                                 conditional_action(GlobalGameAssets.I_UI_REWARD, random_click),
-                                GlobalGameAssets.I_UI_BACK_RED)
+                                GlobalGameAssets.I_UI_BACK_RED,MartialTournamentAssets.I_MT_REWARD)
 page_mt.connect(page_main, GlobalGameAssets.I_UI_BACK_YELLOW, key="page_mt->page_main")
 page_main.connect(page_mt, MartialTournamentAssets.I_MT_ENTER, key="page_main->page_mt")
 

@@ -20,8 +20,8 @@
   {
     "itemName": "mt_check",
     "imageName": "MT_mt_check.png",
-    "roiFront": "158,14,121,44",
-    "roiBack": "22,0,393,112",
+    "roiFront": "563,137,48,68",
+    "roiBack": "504,89,197,151",
     "method": "Template matching",
     "threshold": 0.8,
     "description": "活动界面标志"
@@ -151,5 +151,14 @@
     "method": "Template matching",
     "threshold": 0.8,
     "description": "切换门票模式"
+  },
+  {
+    "itemName": "mt_reward",
+    "imageName": "MT_mt_reward.png",
+    "roiFront": "600,616,85,36",
+    "roiBack": "464,550,337,154",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": ""
   }
 ]
