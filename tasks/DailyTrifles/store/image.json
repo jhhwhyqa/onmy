@@ -12,7 +12,7 @@
     "itemName": "gift_recommend",
     "imageName": "store_gift_recommend.png",
     "roiFront": "1183,454,53,64",
-    "roiBack": "1162,77,98,457",
+    "roiBack": "1162,77,98,480",
     "method": "Template matching",
     "threshold": 0.7,
     "description": "description"
@@ -38,8 +38,8 @@
   {
     "itemName": "store_cost_type_jade",
     "imageName": "store_cost_type_jade.png",
-    "roiFront": "600,490,50,60",
-    "roiBack": "600,490,50,60",
+    "roiFront": "570,362,81,247",
+    "roiBack": "570,362,81,247",
     "method": "Template matching",
     "threshold": 0.8,
     "description": "购买时货币类型为勾玉"
