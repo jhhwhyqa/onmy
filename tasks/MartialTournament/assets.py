@@ -16,7 +16,7 @@ class MartialTournamentAssets:
 	# 活动进入日清门票界面 
 	I_MT_PASS = RuleImage(roi_front=(1117,258,28,132), roi_back=(1004,96,236,439), threshold=0.8, method="Template matching", file="./tasks/MartialTournament/MT/MT_mt_pass.png")
 	# 活动界面标志 
-	I_MT_CHECK = RuleImage(roi_front=(158,14,121,44), roi_back=(22,0,393,112), threshold=0.8, method="Template matching", file="./tasks/MartialTournament/MT/MT_mt_check.png")
+	I_MT_CHECK = RuleImage(roi_front=(563,137,48,68), roi_back=(504,89,197,151), threshold=0.8, method="Template matching", file="./tasks/MartialTournament/MT/MT_mt_check.png")
 	# 日清活动界面标志 
 	I_MT_PASS_CHECK = RuleImage(roi_front=(158,14,121,44), roi_back=(22,0,393,112), threshold=0.8, method="Template matching", file="./tasks/MartialTournament/MT/MT_mt_pass_check.png")
 	# 搜索boss（日清活动界面） 
@@ -45,13 +45,15 @@ class MartialTournamentAssets:
 	I_PASS_2 = RuleImage(roi_front=(1107,581,75,37), roi_back=(944,488,314,232), threshold=0.8, method="Template matching", file="./tasks/MartialTournament/MT/MT_pass_2.png")
 	# 切换门票模式 
 	I_SWITCH_MODE = RuleImage(roi_front=(1164,539,28,26), roi_back=(944,488,314,232), threshold=0.8, method="Template matching", file="./tasks/MartialTournament/MT/MT_switch_mode.png")
+	#  
+	I_MT_REWARD = RuleImage(roi_front=(600,616,85,36), roi_back=(464,550,337,154), threshold=0.8, method="Template matching", file="./tasks/MartialTournament/MT/MT_mt_reward.png")
 
 
 	# Ocr Rule Assets
 	# 门票数量 
 	O_O_PASS = RuleOcr(roi=(940,17,82,26), area=(940,17,82,26), mode="Digit", method="Default", keyword="", name="o_pass")
 	# 体力门票数量 
-	O_O_AP = RuleOcr(roi=(1148,16,82,28), area=(1148,16,82,28), mode="Single", method="Default", keyword="", name="o_ap")
+	O_O_AP = RuleOcr(roi=(1148,16,82,28), area=(1148,16,82,28), mode="Digit", method="Default", keyword="", name="o_ap")
 	# 注灵门票数量 
 	O_O_PASS2 = RuleOcr(roi=(1151,19,69,26), area=(1151,19,69,26), mode="Digit", method="Default", keyword="", name="o_pass2")
 

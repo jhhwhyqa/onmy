@@ -17,7 +17,7 @@ class MartialTournamentConfig(ConfigBase):
                               description='mt_run_sequence_help')
     pass_limit: int = Field(default=50, description='mt_pass_limit_help')
     ap_limit: int = Field(default=300, description='ap_limit')
-    # 用完普通搜寻券后自动切换到注灵搜寻券
+    # 开启使用注灵搜寻券
     use_pass_2: bool = Field(default=False, description='mt_use_pass_2_help')
     # 结束后激活御魂清理
     active_souls_clean: bool = Field(default=False, description='active_souls_clean_help')

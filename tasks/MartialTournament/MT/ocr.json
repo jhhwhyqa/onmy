@@ -12,7 +12,7 @@
     "itemName": "o_ap",
     "roiFront": "1148,16,82,28",
     "roiBack": "1148,16,82,28",
-    "mode": "Single",
+    "mode": "Digit",
     "method": "Default",
     "keyword": "",
     "description": "体力门票数量"
