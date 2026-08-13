@@ -42,6 +42,7 @@ class ScriptTask(GameUi, SwitchSoul, GeneralBattle, DokanAssets):
     switch_owner_soul_done: bool = False
     dokan_owner_battle: bool = False  # 馆主战标识(会在多个可识别到馆主战的位置进行设置)
     first_master_killed: bool = False  # 一阵是否被击败(只有识别到二阵这个标识才会设置为true)
+    found_dokan_cnt: int = 0  # 已经寻找道馆的次数
     conf: Dokan = None
 
     def _register_custom_pages(self) -> None:
@@ -108,6 +109,7 @@ class ScriptTask(GameUi, SwitchSoul, GeneralBattle, DokanAssets):
     def before_run(self):
         self.dokan_owner_battle = False
         self.first_master_killed = False
+        self.found_dokan_cnt = 0
         pages.page_dokan_rank = self.navigator.add_page(pages.Page(self.I_RYOU_DOKAN_TOPPA_RANK, priority=75, register=False))
         pages.page_dokan_rank.connect(pages.page_dokan, pages.random_click, key="page_dokan_rank->page_dokan")
 
@@ -230,7 +232,7 @@ class ScriptTask(GameUi, SwitchSoul, GeneralBattle, DokanAssets):
         """道馆地图页面逻辑处理"""
         if self.appear(self.I_RYOU_DOKAN_FINDING_DOKAN):  # 道馆未开启
             try_start_dokan = self.config.dokan.dokan_config.try_start_dokan
-            if not try_start_dokan:  # 未设置开启道馆则退出
+            if not try_start_dokan or self.found_dokan_cnt > 0:  # 未设置开启道馆/已经找过道馆但是没进去则退出
                 raise DokanNotStartedError
             if self.update_remain_attack_count() <= 0:  # 可挑战次数为<=0,当作道馆成功完成
                 raise DokanFinishedError
@@ -273,7 +275,7 @@ class ScriptTask(GameUi, SwitchSoul, GeneralBattle, DokanAssets):
         返回:
         bool: 是否找到了符合条件的道馆并进行挑战。
         """
-
+        self.found_dokan_cnt += 1
         # 刷新按钮点击次数
         num_fresh = 0
         # 备份一些重要的ROI区域，以便在循环中恢复
@@ -373,6 +375,7 @@ class ScriptTask(GameUi, SwitchSoul, GeneralBattle, DokanAssets):
                     self.device.click(x, y)
                     sleep(0.5)
             return False
+
         while num_fresh < self.config.dokan.dokan_config.find_dokan_refresh_count:
             for i in range(3):
                 sleep(3)
