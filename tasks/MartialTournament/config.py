@@ -6,6 +6,7 @@ from datetime import timedelta, time
 from pydantic import BaseModel, Field, validator
 
 from tasks.Component.GeneralBattle.config_general_battle import GeneralBattleConfig
+from tasks.Component.QuickLoadout.config import NamedQuickLoadoutConfig
 from tasks.Component.config_scheduler import Scheduler
 from tasks.Component.config_base import ConfigBase, Time
 
@@ -77,9 +78,17 @@ class MartialTournament(ConfigBase):
     scheduler: Scheduler = Field(default_factory=Scheduler)
     general_climb: MartialTournamentConfig = Field(default_factory=MartialTournamentConfig)
     switch_soul_config: SwitchSoulConfig = Field(default_factory=SwitchSoulConfig)
+    # 首领战一键配置
+    boss_quick_loadout_config: NamedQuickLoadoutConfig = Field(
+        default_factory=NamedQuickLoadoutConfig
+    )
     # 群体boss战斗配置
-    group_battle_conf: GeneralBattleConfig = Field(default_factory=GeneralBattleConfig)
+    group_battle_conf: GeneralBattleConfig = Field(
+        default_factory=lambda: GeneralBattleConfig(battle_timeout=600)
+    )
     # 单体boss战斗配置
-    single_battle_conf: GeneralBattleConfig = Field(default_factory=GeneralBattleConfig)
+    single_battle_conf: GeneralBattleConfig = Field(
+        default_factory=lambda: GeneralBattleConfig(battle_timeout=600)
+    )
     # 体力爬塔战斗配置
     mt_ap_battle_conf: GeneralBattleConfig = Field(default_factory=GeneralBattleConfig)

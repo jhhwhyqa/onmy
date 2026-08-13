@@ -16,7 +16,7 @@ from module.atom.ocr import RuleOcr
 from module.atom.swipe import RuleSwipe
 from module.base.timer import Timer
 from module.logger import logger
-from tasks.Component.QuickLoadout.config_quick_loadout import (
+from tasks.Component.QuickLoadout.config import (
     NamedQuickLoadoutConfig,
     QuickLoadoutConfig,
     QuickLoadoutMode,

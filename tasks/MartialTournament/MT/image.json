@@ -160,5 +160,23 @@
     "method": "Template matching",
     "threshold": 0.8,
     "description": ""
+  },
+  {
+    "itemName": "mt_goto_quick_loadout",
+    "imageName": "MT_mt_goto_quick_loadout.png",
+    "roiFront": "910,597,32,36",
+    "roiBack": "900,586,52,56",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "首领挑战浮窗打开一键配置"
+  },
+  {
+    "itemName": "mt_quick_loadout_fight",
+    "imageName": "MT_mt_quick_loadout_fight.png",
+    "roiFront": "809,518,119,42",
+    "roiBack": "804,513,129,52",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "一键配置面板出战按钮"
   }
 ]

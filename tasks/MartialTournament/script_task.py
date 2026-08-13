@@ -17,6 +17,7 @@ from tasks.base_task import BaseTask
 from tasks.MartialTournament.assets import MartialTournamentAssets
 from tasks.MartialTournament.config import MartialTournament, GeneralBattleConfig
 from tasks.Component.GeneralBattle.general_battle import GeneralBattle, ExitMatcher
+from tasks.Component.QuickLoadout.quick_loadout import QuickLoadout
 from tasks.Component.SwitchSoul.switch_soul import SwitchSoul
 from tasks.GameUi.game_ui import GameUi
 import tasks.MartialTournament.page as pages
@@ -36,7 +37,9 @@ class TicketsNotEnough(Exception):
     pass
 
 
-class ScriptTask(GameUi, GeneralBattle, SwitchSoul, MartialTournamentAssets):
+class ScriptTask(GameUi, GeneralBattle, SwitchSoul, QuickLoadout, MartialTournamentAssets):
+
+    AP_COST = 30
 
     @cached_property
     def conf(self) -> MartialTournament:
@@ -197,14 +200,31 @@ class ScriptTask(GameUi, GeneralBattle, SwitchSoul, MartialTournamentAssets):
             if not self.search_boss():
                 raise TicketsNotEnough
         boss_type = self.detect_boss_type()
-        self.switch_soul(self.I_MT_RECORDS, boss_type)
+        quick_loadout_conf = self.conf.boss_quick_loadout_config
+        if not self.boss_ap_enough():
+            raise TicketsNotEnough
+        if quick_loadout_conf.enable:
+            if not self.run_quick_loadout(
+                quick_loadout_conf,
+                entry=self.I_MT_GOTO_QUICK_LOADOUT,
+                fight_anchor=self.I_MT_QUICK_LOADOUT_FIGHT,
+                dismiss=self.C_MT_QUICK_LOADOUT_CLOSE,
+                name_ocr=self.O_BOSS_NAME,
+            ):
+                raise TicketsNotEnough
+        else:
+            self.switch_soul(self.I_MT_RECORDS, boss_type)
         if self.conf.general_climb.random_sleep:
             random_sleep(probability=0.2)
         self.current_battle_conf = self.conf.single_battle_conf if boss_type == 'single' else self.conf.group_battle_conf
-        # 挑战浮窗中锁定/解锁阵容 (只需锁定一次)
-        if not self.team_locked:
-            self.lock_team(self.current_battle_conf)
-            self.team_locked = True
+        if quick_loadout_conf.enable and self.current_battle_conf.preset_enable:
+            logger.warning('Quick loadout enabled, disable legacy battle preset for this battle')
+            self.current_battle_conf = self.current_battle_conf.model_copy(
+                update={'preset_enable': False}
+            )
+        # 首领战每轮确认锁定状态；一键配置不受页面锁定开关影响
+        self.lock_team(self.current_battle_conf)
+        self.team_locked = True
         if self.enter_battle():
             # current_count由run_general_battle内部递增, 不需要手动+1
             self.run_general_battle(self.current_battle_conf, battle_key=f'mt_{boss_type}')
@@ -231,6 +251,21 @@ class ScriptTask(GameUi, GeneralBattle, SwitchSoul, MartialTournamentAssets):
             self.ticket_type = 'pass_2'
         else:
             self.ticket_type = 'pass_1'
+
+    def boss_ap_enough(self) -> bool:
+        """首领挑战浮窗打开后、开始挑战前检测体力。"""
+        best_ap = 0
+        for attempt in range(1, 4):
+            self.screenshot()
+            ap = int(self.O_BOSS_AP_COUNT.ocr(self.device.image) or 0)
+            best_ap = max(best_ap, ap)
+            logger.info(f'MartialTournament boss AP OCR {attempt}/3: AP={ap}')
+            if ap > self.AP_COST:
+                return True
+            if attempt < 3:
+                time.sleep(0.5)
+        logger.info(f'MartialTournament boss AP insufficient: {best_ap} <= {self.AP_COST}')
+        return False
 
     def search_boss(self) -> bool:
         """搜索boss, 等待挑战浮窗出现"""
@@ -382,7 +417,7 @@ class ScriptTask(GameUi, GeneralBattle, SwitchSoul, MartialTournamentAssets):
         self.screenshot()
         # ap模式
         if self.current_mode == 'ap':
-            remain_times = self.O_O_AP.ocr_digit(self.device.image)
+            remain_times = int(self.O_O_AP.ocr(self.device.image) or 0)
             logger.info(f'AP remain: {remain_times}')
             if self.pre_tickets_map['ap'] - remain_times > 1:
                 self.pre_tickets_map['ap'] -= 1
