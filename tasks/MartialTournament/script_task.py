@@ -207,8 +207,7 @@ class ScriptTask(GameUi, GeneralBattle, SwitchSoul, MartialTournamentAssets):
             self.lock_team(self.current_battle_conf)
             self.team_locked = True
         if self.enter_battle():
-            self.current_count += 1
-            # boss类型变了则重新切换预设
+            # current_count由run_general_battle内部递增, 不需要手动+1
             self.run_general_battle(self.current_battle_conf, battle_key=f'mt_{boss_type}')
 
     def _run_ap(self):
@@ -222,7 +221,7 @@ class ScriptTask(GameUi, GeneralBattle, SwitchSoul, MartialTournamentAssets):
             self.lock_team(self.current_battle_conf)
             self.team_locked = True
         if self.enter_ap_battle():
-            self.current_count += 1
+            # current_count由run_general_battle内部递增, 不需要手动+1
             self.run_general_battle(self.current_battle_conf, battle_key='mt')
 
     def detect_ticket_type(self):
