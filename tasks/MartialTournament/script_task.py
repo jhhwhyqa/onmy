@@ -425,8 +425,8 @@ class ScriptTask(GameUi, GeneralBattle, SwitchSoul, QuickLoadout, MartialTournam
             self.pre_tickets_map['ap'] = remain_times
             return remain_times > 0
         # pass模式: 同时读两种券数量
-        pass_1_remain = self.O_O_PASS.ocr_digit(self.device.image)
-        pass_2_remain = self.O_O_PASS2.ocr_digit(self.device.image)
+        pass_1_remain = self.O_O_PASS.ocr(self.device.image)
+        pass_2_remain = self.O_O_PASS2.ocr(self.device.image)
         logger.info(f'pass_1 remain: {pass_1_remain}, pass_2 remain: {pass_2_remain}')
         # 容错: 差值大于1认为识别有误
         if self.pre_tickets_map['pass_1'] - pass_1_remain > 1:

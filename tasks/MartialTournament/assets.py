@@ -60,11 +60,11 @@ class MartialTournamentAssets:
 
 	# Ocr Rule Assets
 	# 门票数量 
-	O_O_PASS = RuleOcr(roi=(940,17,82,26), area=(940,17,82,26), mode="DigitCounter", method="Default", keyword="", name="o_pass")
+	O_O_PASS = RuleOcr(roi=(940,17,82,26), area=(940,17,82,26), mode="Digit", method="Default", keyword="", name="o_pass")
 	# 体力门票数量 
 	O_O_AP = RuleOcr(roi=(1148,16,82,28), area=(1148,16,82,28), mode="Quantity", method="Default", keyword="", name="o_ap")
 	# 注灵门票数量 
-	O_O_PASS2 = RuleOcr(roi=(1151,19,69,26), area=(1151,19,69,26), mode="DigitCounter", method="Default", keyword="", name="o_pass2")
+	O_O_PASS2 = RuleOcr(roi=(1151,19,69,26), area=(1151,19,69,26), mode="Digit", method="Default", keyword="", name="o_pass2")
 	# 首领挑战体力数量
 	O_BOSS_AP_COUNT = RuleOcr(roi=(1138,19,83,27), area=(1138,19,83,27), mode="Quantity", method="Default", keyword="", name="boss_ap_count")
 	# 首领名称（竖排）
