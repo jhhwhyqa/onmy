@@ -6,6 +6,7 @@ from cached_property import cached_property
 from datetime import timedelta, datetime
 from module.atom.gif import RuleGif
 from module.atom.image import RuleImage
+from module.base.timer import Timer
 
 from tasks.Component.SwitchSoul.switch_soul import SwitchSoul
 from tasks.Component.GeneralRoom.general_room import GeneralRoom
@@ -303,7 +304,8 @@ class BaseExploration(GameUi, GeneralBattle, GeneralRoom, GeneralInvite, Replace
         因此这里使用贪心的思想, 只要识别到怪物一次就尽最大可能直接进入战斗, 保证尽可能有怪则打
         """
         max_tries = 4
-        while max_tries > 0:
+        timeout_timer = Timer(10).start()  # 增加最大时间限制, 防止因未知因素引起无限等待
+        while max_tries > 0 and not timeout_timer.reached():
             self.screenshot()
             cur_page = self.get_current_page()
             # 退出动画期间可能再次识别到怪物开始攻击, 因此取消退出
