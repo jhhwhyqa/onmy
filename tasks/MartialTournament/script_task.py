@@ -60,14 +60,11 @@ class ScriptTask(GameUi, GeneralBattle, SwitchSoul, MartialTournamentAssets):
         self._current_count = value
 
     @property
-    def pre_tickets(self) -> int:
-        if not hasattr(self, '_pre_tickets'):
-            self._pre_tickets = -1
-        return self._pre_tickets
-
-    @pre_tickets.setter
-    def pre_tickets(self, value):
-        self._pre_tickets = value
+    def pre_tickets_map(self) -> dict:
+        """上一次识别的票数量, 格式: {'pass_1': -1, 'pass_2': -1, 'ap': -1}"""
+        if not hasattr(self, '_pre_tickets_map'):
+            self._pre_tickets_map = {'pass_1': -1, 'pass_2': -1, 'ap': -1}
+        return self._pre_tickets_map
 
     @property
     def last_soul_type(self) -> str:
@@ -375,47 +372,38 @@ class ScriptTask(GameUi, GeneralBattle, SwitchSoul, MartialTournamentAssets):
         self.ui_click(self.I_LOCK, stop=self.I_UNLOCK, interval=1.5)
 
     def check_tickets_enough(self, switched=False) -> bool:
-        """判断当前门票是否足够, 自动切换: pass1用完切pass2, pass2用完切pass1
+        """统一检查门票/体力是否足够, pass1用完切pass2, pass2用完切pass1
         switched: 是否已尝试过切换, 防止来回切换死循环"""
         logger.hr('Check tickets')
         self.screenshot()
-        # 自动检测当前门票类型
-        self.detect_ticket_type()
-        if self.ticket_type == 'pass_2':
-            # 注灵搜寻券
-            remain = self.O_O_PASS2.ocr(self.device.image)
-            if isinstance(remain, str):
-                try:
-                    remain = int(remain)
-                except ValueError:
-                    logger.warning(f'Cannot parse pass2 value: {remain}')
-                    remain = 0
-            logger.info(f'Pass2 tickets remain: {remain}')
-            if remain > 0:
+        # ap模式
+        if self.current_mode == 'ap':
+            remain_times = self.O_O_AP.ocr_digit(self.device.image)
+            logger.info(f'AP remain: {remain_times}')
+            if self.pre_tickets_map['ap'] - remain_times > 1:
+                self.pre_tickets_map['ap'] -= 1
                 return True
-            # pass2用完, 尝试切换回pass1
-            if not switched:
-                logger.info('Pass2 tickets used up, switch to pass1')
-                self.switch_ticket_mode()
-                # 切换后再次检查, 防止来回切换
-                return self.check_tickets_enough(switched=True)
-            return False
-        else:
-            # 普通搜寻券
-            remain_times = self.O_O_PASS.ocr_digit(self.device.image)
-            logger.info(f'Pass1 tickets remain: {remain_times}')
-            if self.pre_tickets - remain_times > 1:
-                self.pre_tickets -= 1
-                return True
-            self.pre_tickets = remain_times
-            # 普通门票用完, 尝试切换注灵门票
-            if remain_times <= 0 and self.conf.general_climb.use_pass_2:
-                if not switched:
-                    logger.info('Pass1 tickets used up, switch to pass2')
-                    self.switch_ticket_mode()
-                    # 切换后再次检查, 防止来回切换
-                    return self.check_tickets_enough(switched=True)
+            self.pre_tickets_map['ap'] = remain_times
             return remain_times > 0
+        # pass模式: 检测门票类型
+        self.detect_ticket_type()
+        ticket_key = self.ticket_type  # 'pass_1' or 'pass_2'
+        ocr_asset = self.O_O_PASS2 if ticket_key == 'pass_2' else self.O_O_PASS
+        remain_times = ocr_asset.ocr_digit(self.device.image)
+        logger.info(f'{ticket_key} tickets remain: {remain_times}')
+        # 上一次识别的票的数量和这一次识别的数量差距大于1, 则认为票数量有误, 允许继续挑战
+        if self.pre_tickets_map[ticket_key] - remain_times > 1:
+            self.pre_tickets_map[ticket_key] -= 1
+            return True
+        self.pre_tickets_map[ticket_key] = remain_times
+        if remain_times > 0:
+            return True
+        # 门票用完, 尝试切换
+        if not switched:
+            logger.info(f'{ticket_key} tickets used up, switch ticket mode')
+            self.switch_ticket_mode()
+            return self.check_tickets_enough(switched=True)
+        return False
 
     def switch_ticket_mode(self):
         """点击切换门票模式按钮 (I_SWITCH_MODE), 自动检测切换结果"""
@@ -425,23 +413,12 @@ class ScriptTask(GameUi, GeneralBattle, SwitchSoul, MartialTournamentAssets):
             # 切换后截图检测当前模式
             self.screenshot()
             self.detect_ticket_type()
-            self.pre_tickets = -1
+            # 切换后重置pre_tickets
+            self.pre_tickets_map['pass_1'] = -1
+            self.pre_tickets_map['pass_2'] = -1
             logger.info(f'Switched ticket mode to: {self.ticket_type}')
         else:
             logger.warning('I_SWITCH_MODE not found, cannot switch ticket mode')
-
-    def check_ap_enough(self) -> bool:
-        """判断当前体力是否足够"""
-        logger.hr('Check AP')
-        self.screenshot()
-        remain = self.O_O_AP.ocr(self.device.image)
-        if isinstance(remain, str):
-            try:
-                remain = int(remain)
-            except ValueError:
-                logger.warning(f'Cannot parse AP value: {remain}')
-                return False
-        return remain > 0
 
 
 if __name__ == '__main__':
