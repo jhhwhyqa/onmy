@@ -296,6 +296,7 @@ class ScriptTask(GameUi, GeneralBattle, SwitchSoul, QuickLoadout, BaseActivity, 
         search_times = 0
         max_times = max_times or random.randint(3, 5)
         wait_timer = Timer(10).start()
+        click_limit_logged = False
         while True:
             self.screenshot()
             if self.appear(self.I_MT_CHALLENGE):
@@ -304,11 +305,17 @@ class ScriptTask(GameUi, GeneralBattle, SwitchSoul, QuickLoadout, BaseActivity, 
             if wait_timer.reached():
                 logger.warning('Search boss timeout')
                 return False
-            if search_times >= max_times:
-                logger.warning(f'Search boss click reach max times')
-                return False
             if self.appear_then_click(self.I_UI_CONFIRM_SAMLL, interval=1) or \
                     self.appear_then_click(self.I_UI_CONFIRM, interval=1):
+                continue
+            if search_times >= max_times:
+                if not click_limit_logged:
+                    logger.info(
+                        f'Search boss click limit reached ({search_times}/{max_times}), '
+                        'continue waiting for challenge panel'
+                    )
+                    click_limit_logged = True
+                time.sleep(0.2)
                 continue
             # 根据检测到的门票类型选择搜索按钮
             search_btn = self.I_PASS_2 if self.ticket_type == 'pass_2' else self.I_MT_SEARCH
