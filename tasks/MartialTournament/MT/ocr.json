@@ -12,7 +12,7 @@
     "itemName": "o_ap",
     "roiFront": "1148,16,82,28",
     "roiBack": "1148,16,82,28",
-    "mode": "Digit",
+    "mode": "Quantity",
     "method": "Default",
     "keyword": "",
     "description": "体力门票数量"
@@ -25,5 +25,23 @@
     "method": "Default",
     "keyword": "",
     "description": "注灵门票数量"
+  },
+  {
+    "itemName": "boss_ap_count",
+    "roiFront": "1138,19,83,27",
+    "roiBack": "1138,19,83,27",
+    "mode": "Quantity",
+    "method": "Default",
+    "keyword": "",
+    "description": "首领挑战体力数量"
+  },
+  {
+    "itemName": "boss_name",
+    "roiFront": "364,212,32,139",
+    "roiBack": "364,212,32,139",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "首领名称（竖排）"
   }
 ]

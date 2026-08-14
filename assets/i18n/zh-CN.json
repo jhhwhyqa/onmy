@@ -224,5 +224,16 @@
   "mt_run_sequence": "爬塔运行顺序",
   "mt_run_sequence_help": "pass:门票爬塔,ap:体力爬塔\n逗号分隔,从左到右依次运行",
   "use_pass_2": "使用注灵搜寻券",
-  "mt_use_pass_2_help": "开启后优先使用注灵搜寻券, 用完后切换到普通搜寻券"
+  "mt_use_pass_2_help": "开启后优先使用注灵搜寻券, 用完后切换到普通搜寻券",
+  "boss_quick_loadout_config": "首领战一键配置",
+  "enable": "启用",
+  "mode": "选择方式",
+  "mode_number": "编号",
+  "mode_ocr": "OCR",
+  "group_number": "预设组编号",
+  "preset_number": "预设编号",
+  "group_name": "预设组名称",
+  "preset_name": "预设名称",
+  "custom_preset_enable": "启用自定义配置上阵预设",
+  "custom_preset": "自定义配置上阵预设"
 }

@@ -5,8 +5,8 @@ from pydantic import BaseModel, Field
 
 
 class QuickLoadoutMode(str, Enum):
-    NUMBER = 'number'
-    OCR = 'ocr'
+    NUMBER = 'mode_number'
+    OCR = 'mode_ocr'
 
 
 class QuickLoadoutConfig(BaseModel):
@@ -14,7 +14,7 @@ class QuickLoadoutConfig(BaseModel):
 
     # 是否启用战斗前一键配置
     enable: bool = Field(default=False)
-    # 预设选择模式：number按编号选择，ocr按名称识别
+    # 预设选择模式：mode_number按编号选择，mode_ocr按名称识别
     mode: QuickLoadoutMode = Field(default=QuickLoadoutMode.NUMBER)
     # 一键配置左侧预设组编号
     group_number: int = Field(default=1, ge=1, le=7)

@@ -16,7 +16,7 @@ from module.atom.ocr import RuleOcr
 from module.atom.swipe import RuleSwipe
 from module.base.timer import Timer
 from module.logger import logger
-from tasks.Component.QuickLoadout.config_quick_loadout import (
+from tasks.Component.QuickLoadout.config import (
     NamedQuickLoadoutConfig,
     QuickLoadoutConfig,
     QuickLoadoutMode,
@@ -76,7 +76,9 @@ class QuickLoadout(BaseTask, SwitchSoulAssets):
     STAGE_NAME_MATCH_THRESHOLD = 0.75
 
     @staticmethod
-    def _parse_custom_presets(value: str) -> dict[str, tuple[str, str]]:
+    def _parse_custom_presets(
+        value: str,
+    ) -> dict[str, tuple[int, int] | tuple[str, str]]:
         presets = {}
         for raw_item in re.split(r'[;；]+', value):
             item = raw_item.strip()
@@ -92,9 +94,22 @@ class QuickLoadout(BaseTask, SwitchSoulAssets):
                 raise ValueError(f'Invalid custom quick loadout target: {item}') from exc
             if not isinstance(target, (tuple, list)) or len(target) != 2:
                 raise ValueError(f'Custom quick loadout target must contain two values: {item}')
-            group, preset = (str(part).strip() for part in target)
-            if not group or not preset:
-                raise ValueError(f'Custom quick loadout target cannot be empty: {item}')
+            group, preset = target
+            is_number_target = (
+                isinstance(group, int) and not isinstance(group, bool)
+                and isinstance(preset, int) and not isinstance(preset, bool)
+            )
+            is_ocr_target = isinstance(group, str) and isinstance(preset, str)
+            if not is_number_target and not is_ocr_target:
+                raise ValueError(
+                    f'Custom quick loadout target must be two integers or two strings: {item}'
+                )
+            if is_number_target and (group < 1 or preset < 1):
+                raise ValueError(f'Custom quick loadout numbers must be positive: {item}')
+            if is_ocr_target:
+                group, preset = group.strip(), preset.strip()
+                if not group or not preset:
+                    raise ValueError(f'Custom quick loadout target cannot be empty: {item}')
             presets[stage_name] = (group, preset)
         return presets
 
@@ -153,16 +168,18 @@ class QuickLoadout(BaseTask, SwitchSoulAssets):
             return config
 
         group, preset = best_target
-        if config.mode == QuickLoadoutMode.NUMBER:
-            try:
-                updates = {'group_number': int(group), 'preset_number': int(preset)}
-            except ValueError:
-                logger.warning(
-                    f'Custom quick loadout for {best_name} requires numeric group and preset'
-                )
-                return config
+        if isinstance(group, int) and isinstance(preset, int):
+            updates = {
+                'mode': QuickLoadoutMode.NUMBER,
+                'group_number': group,
+                'preset_number': preset,
+            }
         else:
-            updates = {'group_name': group, 'preset_name': preset}
+            updates = {
+                'mode': QuickLoadoutMode.OCR,
+                'group_name': group,
+                'preset_name': preset,
+            }
         logger.info(
             f'Custom quick loadout matched stage {stage_name} -> '
             f'({group}, {preset}) [{best_score:.2f}]'

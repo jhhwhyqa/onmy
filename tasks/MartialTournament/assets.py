@@ -10,6 +10,11 @@ from module.atom.list import RuleList
 class MartialTournamentAssets: 
 
 
+	# Click Rule Assets
+	# 一键配置面板外安全关闭区域
+	C_MT_QUICK_LOADOUT_CLOSE = RuleClick(roi_front=(491,595,189,73), roi_back=(491,595,189,73), name="mt_quick_loadout_close")
+
+
 	# Image Rule Assets
 	# 庭院进入活动 
 	I_MT_ENTER = RuleImage(roi_front=(1189,462,36,29), roi_back=(1155,131,94,441), threshold=0.8, method="Template matching", file="./tasks/MartialTournament/MT/MT_mt_enter.png")
@@ -47,14 +52,20 @@ class MartialTournamentAssets:
 	I_SWITCH_MODE = RuleImage(roi_front=(1164,539,28,26), roi_back=(944,488,314,232), threshold=0.8, method="Template matching", file="./tasks/MartialTournament/MT/MT_switch_mode.png")
 	#  
 	I_MT_REWARD = RuleImage(roi_front=(600,616,85,36), roi_back=(464,550,337,154), threshold=0.8, method="Template matching", file="./tasks/MartialTournament/MT/MT_mt_reward.png")
+	# 首领挑战浮窗打开一键配置
+	I_MT_GOTO_QUICK_LOADOUT = RuleImage(roi_front=(910,597,32,36), roi_back=(900,586,52,56), threshold=0.8, method="Template matching", file="./tasks/MartialTournament/MT/MT_mt_goto_quick_loadout.png")
+	# 一键配置面板出战按钮
+	I_MT_QUICK_LOADOUT_FIGHT = RuleImage(roi_front=(809,518,119,42), roi_back=(804,513,129,52), threshold=0.8, method="Template matching", file="./tasks/MartialTournament/MT/MT_mt_quick_loadout_fight.png")
 
 
 	# Ocr Rule Assets
 	# 门票数量 
 	O_O_PASS = RuleOcr(roi=(940,17,82,26), area=(940,17,82,26), mode="Digit", method="Default", keyword="", name="o_pass")
 	# 体力门票数量 
-	O_O_AP = RuleOcr(roi=(1148,16,82,28), area=(1148,16,82,28), mode="Digit", method="Default", keyword="", name="o_ap")
+	O_O_AP = RuleOcr(roi=(1148,16,82,28), area=(1148,16,82,28), mode="Quantity", method="Default", keyword="", name="o_ap")
 	# 注灵门票数量 
 	O_O_PASS2 = RuleOcr(roi=(1151,19,69,26), area=(1151,19,69,26), mode="Digit", method="Default", keyword="", name="o_pass2")
-
-
+	# 首领挑战体力数量
+	O_BOSS_AP_COUNT = RuleOcr(roi=(1138,19,83,27), area=(1138,19,83,27), mode="Quantity", method="Default", keyword="", name="boss_ap_count")
+	# 首领名称（竖排）
+	O_BOSS_NAME = RuleOcr(roi=(364,212,32,139), area=(364,212,32,139), mode="Single", method="Default", keyword="", name="boss_name")
