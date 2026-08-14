@@ -198,20 +198,9 @@ class ScriptTask(GameUi, GeneralBattle, SwitchSoul, QuickLoadout, BaseActivity, 
             # 没有已发现的boss, 检查门票后搜索
             if not self.check_tickets_enough():
                 raise TicketsNotEnough
-            if self._boss_ticket_needs_verification:
-                self._boss_ticket_needs_verification = False
-                searched = False
-                for ticket_type in ('pass_1', 'pass_2'):
-                    self.ensure_ticket_mode(ticket_type)
-                    if self.verify_ocr_zero_resource(
-                        f'MartialTournament {ticket_type}',
-                        lambda: self.search_boss(max_times=1),
-                    ):
-                        searched = True
-                        break
-                if not searched:
-                    raise TicketsNotEnough
-            elif not self.search_boss():
+            pass_1, pass_2 = self._boss_ticket_counts
+            if not self.search_boss_with_ticket('pass_1', pass_1) and \
+                    not self.search_boss_with_ticket('pass_2', pass_2):
                 raise TicketsNotEnough
         boss_type = self.detect_boss_type()
         quick_loadout_conf = self.conf.boss_quick_loadout_config
@@ -255,14 +244,7 @@ class ScriptTask(GameUi, GeneralBattle, SwitchSoul, QuickLoadout, BaseActivity, 
         if not self.team_locked:
             self.lock_team(self.current_battle_conf)
             self.team_locked = True
-        if self._ap_ticket_needs_verification:
-            self._ap_ticket_needs_verification = False
-            entered = self.verify_ocr_zero_resource(
-                'MartialTournament AP ticket',
-                lambda: self.enter_ap_battle(max_times=1),
-            )
-        else:
-            entered = self.enter_ap_battle()
+        entered = self.enter_ap_battle()
         if not entered:
             raise TicketsNotEnough
         # current_count由run_general_battle内部递增, 不需要手动+1
@@ -324,6 +306,19 @@ class ScriptTask(GameUi, GeneralBattle, SwitchSoul, QuickLoadout, BaseActivity, 
                 logger.info(f'Try search boss ({self.ticket_type}), remain times[{max_times - search_times}]')
                 continue
         return False
+
+    def search_boss_with_ticket(self, ticket_type: str, ticket_count: int) -> bool:
+        """单独校验一种门票，并执行对应的正常或保底搜寻流程。"""
+        self.ensure_ticket_mode(ticket_type)
+        if ticket_count > 0:
+            logger.info(
+                f'MartialTournament {ticket_type}={ticket_count}, use normal search flow'
+            )
+            return self.search_boss()
+        return self.verify_zero_ticket(
+            f'MartialTournament {ticket_type}',
+            lambda: self.search_boss(max_times=1),
+        )
 
     def enter_battle(self) -> bool:
         """点击挑战按钮进入战斗 (挑战界面为浮窗)"""
@@ -452,49 +447,29 @@ class ScriptTask(GameUi, GeneralBattle, SwitchSoul, QuickLoadout, BaseActivity, 
         self.screenshot()
         # ap模式
         if self.current_mode == 'ap':
-            self._ap_ticket_needs_verification = False
             remain_times = int(self.O_O_AP.ocr(self.device.image) or 0)
             logger.info(f'AP remain: {remain_times}')
-            if remain_times <= 0:
-                self._ap_ticket_needs_verification = True
-                return True
             if self.pre_tickets_map['ap'] - remain_times > 1:
                 self.pre_tickets_map['ap'] -= 1
                 return True
             self.pre_tickets_map['ap'] = remain_times
-            self._ap_ticket_needs_verification = remain_times <= 0
-            return True
+            return remain_times > 0
         # pass模式: 同时读两种券数量
-        self._boss_ticket_needs_verification = False
         pass_1_remain = self.O_O_PASS.ocr(self.device.image)
         pass_2_remain = self.O_O_PASS2.ocr(self.device.image)
         logger.info(f'pass_1 remain: {pass_1_remain}, pass_2 remain: {pass_2_remain}')
         # 容错: 差值大于1认为识别有误
-        if self.pre_tickets_map['pass_1'] - pass_1_remain > 1:
+        if pass_1_remain > 0 and self.pre_tickets_map['pass_1'] - pass_1_remain > 1:
             self.pre_tickets_map['pass_1'] -= 1
             pass_1_remain = self.pre_tickets_map['pass_1']
         else:
             self.pre_tickets_map['pass_1'] = pass_1_remain
-        if self.pre_tickets_map['pass_2'] - pass_2_remain > 1:
+        if pass_2_remain > 0 and self.pre_tickets_map['pass_2'] - pass_2_remain > 1:
             self.pre_tickets_map['pass_2'] -= 1
             pass_2_remain = self.pre_tickets_map['pass_2']
         else:
             self.pre_tickets_map['pass_2'] = pass_2_remain
-        # 决定使用哪种券
-        use_pass_2 = self.conf.general_climb.use_pass_2
-        if use_pass_2 and pass_2_remain > 0:
-            target_type = 'pass_2'
-        elif pass_1_remain > 0:
-            target_type = 'pass_1'
-        else:
-            logger.info('Both pass_1 and pass_2 OCR results are zero; verify by search')
-            self._boss_ticket_needs_verification = True
-            return True
-        # 确保在目标模式
-        self.detect_ticket_type()
-        if self.ticket_type != target_type:
-            logger.info(f'Switch ticket mode to {target_type}')
-            self.switch_ticket_mode()
+        self._boss_ticket_counts = (pass_1_remain, pass_2_remain)
         return True
 
     def ensure_ticket_mode(self, target_type: str) -> None:
