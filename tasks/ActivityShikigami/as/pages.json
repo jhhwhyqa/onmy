@@ -2,7 +2,7 @@
   {
     "itemName": "main_goto_act",
     "imageName": "as_main_goto_act.png",
-    "roiFront": "1188,462,35,28",
+    "roiFront": "1188,296,35,28",
     "roiBack": "1164,134,83,393",
     "method": "Template matching",
     "threshold": 0.7,
@@ -20,8 +20,8 @@
   {
     "itemName": "to_battle_main",
     "imageName": "as_to_battle_main.png",
-    "roiFront": "1040,184,39,139",
-    "roiBack": "994,76,155,370",
+    "roiFront": "597,413,39,139",
+    "roiBack": "554,286,155,370",
     "method": "Template matching",
     "threshold": 0.8,
     "description": "进入主要的战斗界面"
@@ -47,7 +47,7 @@
   {
     "itemName": "battle_main_to_records",
     "imageName": "as_battle_main_to_records.png",
-    "roiFront": "1015,560,39,42",
+    "roiFront": "999,560,39,42",
     "roiBack": "674,539,439,157",
     "method": "Template matching",
     "threshold": 0.8,

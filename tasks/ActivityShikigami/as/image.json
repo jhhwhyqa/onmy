@@ -38,8 +38,8 @@
   {
     "itemName": "climb_mode_switch",
     "imageName": "as_climb_mode_switch.png",
-    "roiFront": "1232,545,29,26",
-    "roiBack": "1174,511,104,82",
+    "roiFront": "1238,545,28,25",
+    "roiBack": "1200,525,78,68",
     "method": "Template matching",
     "threshold": 0.8,
     "description": "切换按键"
