@@ -192,8 +192,36 @@ class GameUiAssets:
 	I_TOWN_GOTO_HYAKKIYAKOU = RuleImage(roi_front=(880,165,53,69), roi_back=(827,149,148,100), threshold=0.8, method="Template matching", file="./tasks/GameUi/page/page_town_goto_hyakkiyakou.png")
 	# 百鬼夜行标志 
 	I_CHECK_KYAKKIYAKOU = RuleImage(roi_front=(1062,564,84,73), roi_back=(68,519,1185,141), threshold=0.8, method="Template matching", file="./tasks/GameUi/page/page_check_kyakkiyakou.png")
-	# 逢魔之时新页面标志 
+	# 逢魔之时新页面标志
 	I_CHECK_DEMON_ENCOUNTER_2 = RuleImage(roi_front=(501,441,53,122), roi_back=(358,326,370,288), threshold=0.8, method="Template matching", file="./tasks/GameUi/page/page_check_demon_encounter_2.png")
+
+	# 町中进入娱乐标志
+	I_TOWN_GOTO_ENTERTAINMENT = RuleImage(roi_front=(201,144,35,26), roi_back=(201,144,35,26), threshold=0.8, method="Template matching", file="./tasks/GameUi/page/page_town_goto_entertainment.png")
+	# 娱乐界面标志
+	I_CHECK_ENTERTAINMENT = RuleImage(roi_front=(151,18,102,40), roi_back=(151,18,102,40), threshold=0.8, method="Template matching", file="./tasks/GameUi/page/page_check_entertainment.png")
+	# 娱乐界面进入百鬼棋局
+	I_ENTERTAINMENT_GOTO_CHESS = RuleImage(roi_front=(304,175,41,127), roi_back=(304,175,41,127), threshold=0.8, method="Template matching", file="./tasks/GameUi/page/page_entertainment_goto_chess.png")
+	# 百鬼棋局大厅标志
+	I_CHECK_CHESS = RuleImage(roi_front=(1159,592,66,70), roi_back=(1159,592,66,70), threshold=0.8, method="Template matching", file="./tasks/GameUi/page/page_check_chess.png")
+
+	# 百鬼棋局局内页面标志
+	I_CHECK_CHESS_BATTLE = RuleImage(roi_front=(270,19,37,32), roi_back=(264,12,47,44), threshold=0.8, method="Template matching", file="./tasks/GameUi/page/page_check_chess_battle.png")
+	# 百鬼棋局主动退出
+	I_CHESS_EXIT = RuleImage(roi_front=(12,14,48,38), roi_back=(12,14,48,38), threshold=0.8, method="Template matching", file="./tasks/GameUi/page/page_chess_exit.png")
+	# 百鬼棋局确认退出
+	I_CHESS_EXIT_CONFIRM = RuleImage(roi_front=(716,409,88,45), roi_back=(716,409,88,45), threshold=0.8, method="Template matching", file="./tasks/GameUi/page/page_chess_exit_confirm.png")
+	# 百鬼棋局退出确认弹窗
+	I_CHESS_EXIT_CANCEL = RuleImage(roi_front=(478,409,88,45), roi_back=(478,409,88,45), threshold=0.8, method="Template matching", file="./tasks/GameUi/page/page_chess_exit_cancel.png")
+	# 百鬼棋局正常结算返回大厅
+	I_CHESS_EXIT_TO_LOBBY = RuleImage(roi_front=(384,591,172,47), roi_back=(340,570,270,100), threshold=0.8, method="Template matching", file="./tasks/GameUi/page/page_chess_exit_to_lobby.png")
+	# 百鬼棋局结算返回大厅
+	I_CHESS_EXIT_TO_LOBBY_2 = RuleImage(roi_front=(580,593,123,43), roi_back=(580,593,123,43), threshold=0.8, method="Template matching", file="./tasks/GameUi/page/page_chess_exit_to_lobby_2.png")
+	# 百鬼棋局分享
+	I_CHESS_SHARE = RuleImage(roi_front=(1138,560,107,113), roi_back=(1138,560,107,113), threshold=0.8, method="Template matching", file="./tasks/GameUi/page/page_chess_share.png")
+	# 百鬼棋局排名页标志
+	I_CHECK_CHESS_RANK = RuleImage(roi_front=(14,75,79,38), roi_back=(14,75,79,38), threshold=0.8, method="Template matching", file="./tasks/GameUi/page/page_check_chess_rank.png")
+	# 百鬼棋局排名返回大厅
+	I_CHESS_RANK_GOTO_LOBBY = RuleImage(roi_front=(66,646,133,42), roi_back=(66,646,133,42), threshold=0.8, method="Template matching", file="./tasks/GameUi/page/page_chess_rank_goto_lobby.png")
 
 
 	# List Rule Assets
