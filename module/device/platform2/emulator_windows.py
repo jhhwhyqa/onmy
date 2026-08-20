@@ -404,7 +404,17 @@ class EmulatorManager(EmulatorManagerBase):
         for emulator in self.all_emulators:
             instances += list(emulator.iter_instances())
 
-        instances: t.List[EmulatorInstance] = sorted(instances, key=lambda x: str(x))
+        # Deduplicate instances that resolve to the same adb serial.
+        # Emulator folders sometimes keep stale config files, e.g. leftover
+        # *.nemu from a MuMu 12.0 -> 15.0 upgrade, so one running instance can
+        # be reported more than once. Duplicates break the serial-based lookup
+        # in find_emulator_instance(), which then refuses to start the emulator.
+        unique: t.Dict[str, EmulatorInstance] = {}
+        for instance in instances:
+            key = instance.serial or str(instance)
+            unique.setdefault(key, instance)
+
+        instances: t.List[EmulatorInstance] = sorted(unique.values(), key=lambda x: str(x))
         return instances
 
 
