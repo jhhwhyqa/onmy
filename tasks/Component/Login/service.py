@@ -28,6 +28,7 @@ class LoginService(BaseTask, RestartAssets, GameUiAssets):
         confirm_timer = Timer(1.5, count=2).start()
         orientation_timer = Timer(10)
         skip_login_animation = True
+        skip_click_mx_cnt = 3
         login_success = False
 
         while 1:
@@ -41,6 +42,7 @@ class LoginService(BaseTask, RestartAssets, GameUiAssets):
                 continue
             if self.appear(self.I_CHECK_MAIN, interval=0.2) and not self.appear(self.I_MAIN_GOTO_SHIKIGAMI_RECORDS):
                 logger.info('The main had already appeared, but shikigami records had not yet appeared')
+                skip_login_animation = False
                 if self.click(self.C_LOGIN_SCROLL_CLOSE_AREA, interval=2):
                     continue
             if self.appear(self.I_MAIN_GOTO_SHIKIGAMI_RECORDS, interval=0.2):
@@ -52,6 +54,7 @@ class LoginService(BaseTask, RestartAssets, GameUiAssets):
             if self.appear(self.I_MAIN_GOTO_SHIKIGAMI_RECORDS, interval=0.5):
                 logger.info('Login success: shikigami records button appears')
                 login_success = True
+                skip_login_animation = False
             if self.appear(self.I_HARVEST_ZIDU, interval=1):
                 self.I_HARVEST_ZIDU.roi_front[0] -= 200
                 self.I_HARVEST_ZIDU.roi_front[1] -= 200
@@ -109,12 +112,14 @@ class LoginService(BaseTask, RestartAssets, GameUiAssets):
                 logger.info('Cancel switch from early server to normal server')
                 continue
 
-            if self.appear(self.I_LOGIN_8, interval=0.6): # 进入登录页面后不再处理登录动画逻辑
+            # 进入登录页面后或点击超过一定次数不再处理登录动画逻辑
+            if self.appear(self.I_LOGIN_8, interval=0.6) or skip_click_mx_cnt <= 0:
                 skip_login_animation = False
             if skip_login_animation:
                 if self.ocr_appear_click(self.O_LOGIN_ANIMATION_SKIP, interval=2.5):  # 点击跳过登录动画
                     continue
-                self.click(self.C_LOGIN_ANIMATION_CENTER, interval=5)  # 每5秒点击一次屏幕中央
+                if self.click(self.C_LOGIN_ANIMATION_CENTER, interval=5):  # 点击屏幕中央触发跳过显示
+                    skip_click_mx_cnt -= 1
 
             if self.ocr_appear_click(self.O_LOGIN_ENTER_GAME, interval=3):
                 skip_login_animation = False  # 进入登录页面后不再处理登录动画逻辑
