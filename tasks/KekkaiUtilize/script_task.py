@@ -32,6 +32,8 @@ class ScriptTask(GameUi, ReplaceShikigami, KekkaiUtilizeAssets):
     utilize_failed_count = 0
     utilize_terminal_failure = False
     utilize_found_eligible_card = False
+    utilize_current_group_has_eligible_card = False
+    utilize_current_group_scan_completed = False
     ap_max_num = 0
     jade_max_num = 0
 
@@ -51,6 +53,8 @@ class ScriptTask(GameUi, ReplaceShikigami, KekkaiUtilizeAssets):
         self.utilize_failed_count = 0
         self.utilize_terminal_failure = False
         self.utilize_found_eligible_card = False
+        self.utilize_current_group_has_eligible_card = False
+        self.utilize_current_group_scan_completed = False
         self.ap_max_num = 0
         self.jade_max_num = 0
         # 进入寮结界
@@ -398,9 +402,31 @@ class ScriptTask(GameUi, ReplaceShikigami, KekkaiUtilizeAssets):
         self.set_next_run(
             task='KekkaiUtilize',
             finish=True,
-            success=False,
             server=False,
             target=datetime.now() + timedelta(minutes=10),
+        )
+        self.utilize_terminal_failure = True
+        return False
+
+    def _finish_low_value_utilize(self) -> bool:
+        """两个好友分组都没有当前策略的四星以上卡，失败并延迟任务。"""
+        rule = self.config.kekkai_utilize.utilize_config.utilize_rule
+        target_name = {
+            UtilizeRule.TAIKO: '太鼓',
+            UtilizeRule.FISH: '斗鱼',
+            UtilizeRule.DEFAULT: '太鼓或斗鱼',
+        }.get(rule, '目标结界卡')
+        message = (
+            f'同区和跨区全是当前策略低价值卡，未检测到四星及以上{target_name}，'
+            '任务失败，20分钟后重试'
+        )
+        logger.error(message)
+        self.push_notify(content=message)
+        self.set_next_run(
+            task='KekkaiUtilize',
+            finish=True,
+            server=False,
+            target=datetime.now() + timedelta(minutes=20),
         )
         self.utilize_terminal_failure = True
         return False
@@ -417,12 +443,39 @@ class ScriptTask(GameUi, ReplaceShikigami, KekkaiUtilizeAssets):
         :return:
         """
         logger.hr('Start utilize')
-        # 不管什么时候进来都要切换刷新列表(同区与跨区保持一致先切换滑动再切换)
-        self._reset_utilize_friend_list(friend)
+        fallback_friend = (
+            SelectFriendList.DIFFERENT_SERVER
+            if friend == SelectFriendList.SAME_SERVER
+            else SelectFriendList.SAME_SERVER
+        )
+        selected_friend = None
 
-        # --------------- 结界卡选择 ---------------
-        if not self._select_optimal_resource_card(friend):
-            return False
+        # 配置项仅决定优先分组。优先分组没有当前策略可用的四星以上卡时，
+        # 才扫描另一个分组；一旦选中目标便立即停止，不再扫描另一区。
+        for index, target_friend in enumerate((friend, fallback_friend), start=1):
+            priority_text = '优先' if index == 1 else '备选'
+            logger.hr(f'{priority_text}好友分组: {target_friend.value}', 2)
+            self._reset_utilize_friend_list(target_friend)
+            select_result = self._select_optimal_resource_card(target_friend)
+            if select_result is True:
+                selected_friend = target_friend
+                logger.info(
+                    f'已在{priority_text}分组[{target_friend.value}]选中蹭卡目标，'
+                    '不再检查其他分组'
+                )
+                break
+            if select_result is False:
+                logger.warning(
+                    f'分组[{target_friend.value}]存在可用卡，但目标重新定位失败，'
+                    '本轮不切换分组'
+                )
+                return False
+            logger.info(
+                f'分组[{target_friend.value}]没有当前策略可用的四星以上结界卡'
+            )
+
+        if selected_friend is None:
+            return self._finish_low_value_utilize()
 
         # 找到卡,重置次数
         self.utilize_add_count = 0
@@ -467,9 +520,17 @@ class ScriptTask(GameUi, ReplaceShikigami, KekkaiUtilizeAssets):
         self.utilize_failed_count = 0
         return True
 
-    def _select_optimal_resource_card(self, friend: SelectFriendList):
-        """浏览完整个列表，选出最佳资源卡并重新定位到该卡。"""
+    def _select_optimal_resource_card(
+            self, friend: SelectFriendList
+    ) -> bool | None:
+        """浏览并定位当前分组的最佳卡。
+
+        :return: True=已定位；None=当前策略没有四星以上卡；
+                 False=检测到可用卡但识别或重新定位失败。
+        """
         self.ap_max_num, self.jade_max_num = 0, 0
+        self.utilize_current_group_has_eligible_card = False
+        self.utilize_current_group_scan_completed = False
         logger.hr('第一阶段：浏览列表并记录最佳奖励', 2)
         self._current_select_best()
         logger.info(f'📝 记录最佳值 | 斗鱼:{self.ap_max_num} 太鼓:{self.jade_max_num}')
@@ -494,8 +555,14 @@ class ScriptTask(GameUi, ReplaceShikigami, KekkaiUtilizeAssets):
                 else:
                     res_type, target = '太鼓', self.jade_max_num
             else:
-                logger.warning('🔄 未找到可用的四星及以上太鼓或斗鱼')
-                return False
+                if self.utilize_current_group_has_eligible_card:
+                    logger.warning('🔄 检测到四星以上目标，但奖励数值识别失败')
+                    return False
+                if not self.utilize_current_group_scan_completed:
+                    logger.warning('当前好友分组未能完整扫描，不能判定为全是低价值卡')
+                    return False
+                logger.info('当前分组全是当前策略低价值结界卡')
+                return None
 
             logger.info(f'⚖️ 选择{res_type}卡 | 目标: {target}')
 
@@ -552,9 +619,14 @@ class ScriptTask(GameUi, ReplaceShikigami, KekkaiUtilizeAssets):
             if not cards:
                 miss_count += 1
                 logger.info(f'第{swipe_count}次滑动 | 未检测到结界卡' if swipe_count > 0 else '初始界面 | 未检测到结界卡')
-                # 连续无卡超过阈值则终止/已经出现空卡也不再滑动
+                # 游戏会优先排列有结界卡的好友，连续未命中或出现空卡时
+                # 即可视为当前分组已扫描完成。
                 if miss_count > CONSEC_MISS or self.appear(self.I_U_EMPTY_CARD):
-                    logger.warning(f'⚠️ 连续{miss_count}次 | 未检测到结界卡, 终止流程')
+                    logger.warning(
+                        f'⚠️ 连续{miss_count}次未检测到目标结界卡，终止当前分组扫描'
+                    )
+                    if not selected_card:
+                        self.utilize_current_group_scan_completed = True
                     return None
                 # 执行滑动操作
                 self.perform_swipe_action()
@@ -572,6 +644,8 @@ class ScriptTask(GameUi, ReplaceShikigami, KekkaiUtilizeAssets):
                 tier_info = self.CARD_TIER_INFO.get(card_class)
                 if tier_info:
                     self.utilize_found_eligible_card = True
+                    if not selected_card:
+                        self.utilize_current_group_has_eligible_card = True
 
                 if not selected_card and card_class in maxed_card_classes:
                     card_type, star, tier_max = tier_info
@@ -626,12 +700,20 @@ class ScriptTask(GameUi, ReplaceShikigami, KekkaiUtilizeAssets):
 
             if self.appear(self.I_U_EMPTY_CARD):
                 logger.info('Empty card already appeared, exit explore')
+                if not selected_card:
+                    self.utilize_current_group_scan_completed = True
                 return None
             # ------ 步骤3: 滑动到下一屏 ------#
             self.perform_swipe_action()
 
         # ============== 终止处理 ==============#
-        logger.warning(f'⚠️ 已达到最大滑动次数{MAX_SWIPES}, 终止流程')
+        if not selected_card:
+            self.utilize_current_group_scan_completed = True
+            logger.info(
+                f'已按最大滑动次数{MAX_SWIPES}完成当前分组的有界全量扫描'
+            )
+        else:
+            logger.warning(f'⚠️ 已达到最大滑动次数{MAX_SWIPES}, 目标定位失败')
         return None
 
     def perform_swipe_action(self):

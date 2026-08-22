@@ -192,6 +192,8 @@
   "utilize_harvest": "是否领取寄养奖励",
   "utilize_enable": "是否蹭卡",
   "utilize_enable_help": "关闭则不会蹭卡, 但是其他操作会执行(例如收取寮奖励等)",
+  "select_friend_list": "蹭卡好友优先范围",
+  "select_friend_list_help": "仅决定优先扫描同区或跨区；优先范围全是当前策略低价值卡时会自动检查另一区。",
   "utilize_harvest_help": "关闭则不领取, 可以屯奖励",
   "check_true_orochi_enable": "是否在结束后检测真蛇",
   "check_true_orochi_enable_help": "开启后会在任务结束后检测是否出现真蛇, 若出现则自动拉起真蛇",
