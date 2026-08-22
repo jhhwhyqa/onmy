@@ -137,10 +137,6 @@ class ScriptTask(GameUi, ReplaceShikigami, KekkaiUtilizeAssets):
                 continue
             if timer_check.reached():
                 return False
-            # 关闭展开的寮活动横幅
-            if self.appear_then_click(self.I_GUILD_EXPAND):
-                timer_check.reset()
-                continue
             # 资金收取确认
             if self.appear_then_click(self.I_GUILD_ASSETS_RECEIVE, interval=1):
                 time.sleep(1)
