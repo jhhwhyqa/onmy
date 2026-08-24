@@ -148,6 +148,10 @@ class BondlingFairylandAssets:
 	I_C_MINIMAL_MODE_ENABLE = RuleImage(roi_front=(764,155,48,24), roi_back=(757,149,63,39), threshold=0.8, method="Template matching", file="./tasks/BondlingFairyland/capture/capture_c_minimal_mode_enable.png")
 	# 禁用结契极简模式 
 	I_C_MINIMAL_MODE_DISABLE = RuleImage(roi_front=(764,156,46,23), roi_back=(758,148,62,39), threshold=0.8, method="Template matching", file="./tasks/BondlingFairyland/capture/capture_c_minimal_mode_disable.png")
+	# 结契盘较少 
+	I_C_PLATE_LESS = RuleImage(roi_front=(434,402,177,64), roi_back=(434,402,177,64), threshold=0.8, method="Template matching", file="./tasks/BondlingFairyland/capture/capture_c_plate_less.png")
+	# 购买界面 
+	I_C_PLATE_BUY = RuleImage(roi_front=(664,446,69,69), roi_back=(664,446,69,69), threshold=0.8, method="Template matching", file="./tasks/BondlingFairyland/capture/capture_c_plate_buy.png")
 
 
 	# Click Rule Assets

@@ -142,5 +142,23 @@
     "method": "Template matching",
     "threshold": 0.8,
     "description": "禁用结契极简模式"
+  },
+  {
+    "itemName": "c_plate_less",
+    "imageName": "capture_c_plate_less.png",
+    "roiFront": "434,402,177,64",
+    "roiBack": "434,402,177,64",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "结契盘较少"
+  },
+  {
+    "itemName": "c_plate_buy",
+    "imageName": "capture_c_plate_buy.png",
+    "roiFront": "664,446,69,69",
+    "roiBack": "664,446,69,69",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "购买界面"
   }
 ]
