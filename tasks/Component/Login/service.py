@@ -28,7 +28,7 @@ class LoginService(BaseTask, RestartAssets, GameUiAssets):
         confirm_timer = Timer(1.5, count=2).start()
         orientation_timer = Timer(10)
         skip_login_animation = True
-        skip_click_mx_cnt = 10
+        skip_click_mx_cnt = 5
         login_success = False
 
         while 1:
