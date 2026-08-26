@@ -245,9 +245,9 @@ class BaseCor:
         :return:
         """
         if included:
-            return self.keyword in result
+            return self.keyword.lower() in result.lower()
         else:
-            return self.keyword == result
+            return self.keyword.lower() == result.lower()
 
     def filter(self, boxed_results: list[BoxedResult], keyword: str=None) -> list or None:
         """
@@ -262,8 +262,9 @@ class BaseCor:
         concatenated_string = "".join(strings)
         if keyword is None:
             keyword = self.keyword
-        if keyword in concatenated_string:
-            result = [index for index, word in enumerate(strings) if keyword in word]
+        keyword_l = keyword.lower()
+        if keyword_l in concatenated_string.lower():
+            result = [index for index, word in enumerate(strings) if keyword_l in word.lower()]
         else:
             result = None
 

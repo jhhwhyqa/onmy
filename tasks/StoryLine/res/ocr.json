@@ -1,0 +1,29 @@
+[
+  {
+    "itemName": "story_skip",
+    "roiFront": "832,553,75,35",
+    "roiBack": "821,548,99,45",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "跳过",
+    "description": "底部跳过文字"
+  },
+  {
+    "itemName": "story_confirm_skip",
+    "roiFront": "715,443,136,36",
+    "roiBack": "686,425,185,71",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "确认跳过",
+    "description": "确认跳过文字"
+  },
+  {
+    "itemName": "story_level",
+    "roiFront": "822,253,71,35",
+    "roiBack": "812,232,100,79",
+    "mode": "Full",
+    "method": "Default",
+    "keyword": "Lv",
+    "description": "等级要求 lv.xx 判定"
+  }
+]

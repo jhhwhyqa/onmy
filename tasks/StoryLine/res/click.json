@@ -1,0 +1,8 @@
+[
+  {
+    "itemName": "story_dialog_tap",
+    "roiFront": "500,280,280,200",
+    "roiBack": "500,280,280,200",
+    "description": "随机点击推进对话区域"
+  }
+]

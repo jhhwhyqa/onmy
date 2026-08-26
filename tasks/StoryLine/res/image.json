@@ -1,0 +1,56 @@
+[
+  {
+    "itemName": "story_dialog_dots",
+    "imageName": "story_dialog_dots.png",
+    "roiFront": "839,243,43,14",
+    "roiBack": "0,102,1277,618",
+    "method": "Template matching",
+    "threshold": 0.85,
+    "description": "剧情对话三点"
+  },
+  {
+    "itemName": "story_dialog_question",
+    "imageName": "story_dialog_question.png",
+    "roiFront": "1129,267,23,26",
+    "roiBack": "0,102,1280,618",
+    "method": "Multi-scale template matching",
+    "threshold": 0.8,
+    "description": "剧情问号徽章"
+  },
+  {
+    "itemName": "story_dialog_eye",
+    "imageName": "story_dialog_eye.png",
+    "roiFront": "628,166,22,28",
+    "roiBack": "0,0,1280,720",
+    "method": "Template matching",
+    "threshold": 0.85,
+    "description": "剧情对话眼睛按钮"
+  },
+  {
+    "itemName": "story_skip_right",
+    "imageName": "story_skip_button.png",
+    "roiFront": "1192,40,44,39",
+    "roiBack": "900,0,380,200",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "右上跳过按钮"
+  },
+  {
+    "itemName": "story_end",
+    "imageName": "story_end.png",
+    "roiFront": "604,260,77,15",
+    "roiBack": "598,252,87,203",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "剧情结束终字(模板)"
+  },
+  {
+    "itemName": "story_popup_cancel",
+    "imageName": "story_popup_cancel.png",
+    "roiFront": "1146,70,49,48",
+    "roiBack": "556,43,722,277",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "庭院自动弹窗取消按钮(模板)"
+  }
+]
