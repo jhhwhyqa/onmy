@@ -34,6 +34,7 @@ class ScriptTask(GameUi, ReplaceShikigami, KekkaiUtilizeAssets):
     utilize_found_eligible_card = False
     utilize_current_group_has_eligible_card = False
     utilize_current_group_scan_completed = False
+    utilize_lazy_mode_active = False
     ap_max_num = 0
     jade_max_num = 0
 
@@ -44,7 +45,7 @@ class ScriptTask(GameUi, ReplaceShikigami, KekkaiUtilizeAssets):
         CardClass.TAIKO6: ('太鼓', 6, 76),
         CardClass.FISH4: ('斗鱼', 4, 118),
         CardClass.FISH5: ('斗鱼', 5, 134),
-        CardClass.FISH6: ('斗鱼', 6, 152),
+        CardClass.FISH6: ('斗鱼', 6, 151),
     }
 
     def run(self):
@@ -55,8 +56,20 @@ class ScriptTask(GameUi, ReplaceShikigami, KekkaiUtilizeAssets):
         self.utilize_found_eligible_card = False
         self.utilize_current_group_has_eligible_card = False
         self.utilize_current_group_scan_completed = False
+        self.utilize_lazy_mode_active = False
         self.ap_max_num = 0
         self.jade_max_num = 0
+        if con.utilize_enable and con.lazy_mode:
+            lazy_roll = random.random()
+            self.utilize_lazy_mode_active = (
+                lazy_roll < con.lazy_mode_weight
+            )
+            logger.info(
+                '怠惰模式随机判定: '
+                f'roll={lazy_roll:.4f}, '
+                f'weight={con.lazy_mode_weight:.4f}, '
+                f'active={self.utilize_lazy_mode_active}'
+            )
         # 进入寮结界
         self.goto_page(page_guild_realm)
         # 育成界面去蹭卡
@@ -355,6 +368,15 @@ class ScriptTask(GameUi, ReplaceShikigami, KekkaiUtilizeAssets):
             raise ValueError('Unknown utilize rule')
 
     @cached_property
+    def lazy_scan_targets(self) -> ImageGrid:
+        """怠惰模式用于浏览位置的全部四星以上资源卡。"""
+        return ImageGrid([
+            self.I_U_FISH_6, self.I_U_TAIKO_6,
+            self.I_U_FISH_5, self.I_U_TAIKO_5,
+            self.I_U_FISH_4, self.I_U_TAIKO_4,
+        ])
+
+    @cached_property
     def order_cards(self) -> list[CardClass]:
         rule = self.config.kekkai_utilize.utilize_config.utilize_rule
         result = []
@@ -456,7 +478,10 @@ class ScriptTask(GameUi, ReplaceShikigami, KekkaiUtilizeAssets):
             priority_text = '优先' if index == 1 else '备选'
             logger.hr(f'{priority_text}好友分组: {target_friend.value}', 2)
             self._reset_utilize_friend_list(target_friend)
-            select_result = self._select_optimal_resource_card()
+            if self.utilize_lazy_mode_active:
+                select_result = self._select_lazy_resource_card()
+            else:
+                select_result = self._select_optimal_resource_card()
             if select_result is True:
                 selected_friend = target_friend
                 logger.info(
@@ -519,6 +544,101 @@ class ScriptTask(GameUi, ReplaceShikigami, KekkaiUtilizeAssets):
             )
         self.utilize_failed_count = 0
         return True
+
+    def _lazy_card_matches_rule(self, card_class: CardClass) -> bool:
+        """判断一张四星以上资源卡是否符合当前怠惰策略。"""
+        tier_info = self.CARD_TIER_INFO.get(card_class)
+        if not tier_info:
+            return False
+        card_type, _, _ = tier_info
+        rule = self.config.kekkai_utilize.utilize_config.utilize_rule
+        if rule == UtilizeRule.TAIKO:
+            return card_type == '太鼓'
+        if rule == UtilizeRule.FISH:
+            return card_type == '斗鱼'
+        if rule == UtilizeRule.DEFAULT:
+            return card_type in ('太鼓', '斗鱼')
+        logger.error('Unknown utilize rule')
+        raise ValueError('Unknown utilize rule')
+
+    def _select_lazy_resource_card(self) -> bool | None:
+        """怠惰模式：选当前可见的首张高星卡，否则首张四星卡。"""
+        max_swipes = 20
+        consecutive_miss_limit = 3
+        timeout = Timer(120).start()
+        miss_count = 0
+        self.utilize_current_group_has_eligible_card = False
+        self.utilize_current_group_scan_completed = False
+
+        logger.hr('怠惰模式快速选择结界卡', 2)
+        for swipe_count in range(max_swipes + 1):
+            if timeout.reached():
+                logger.warning('怠惰模式扫描超时，不能确认当前分组无可用卡')
+                return False
+
+            self.screenshot()
+            cards = self.lazy_scan_targets.find_everyone(
+                self.device.image,
+                frame_id=self.device.image_frame_id,
+            )
+            eligible_cards = []
+            if cards:
+                eligible_cards = [
+                    card for card in cards
+                    if self._lazy_card_matches_rule(
+                        target_to_card_class(card[0])
+                    )
+                ]
+
+            if eligible_cards:
+                self.utilize_found_eligible_card = True
+                self.utilize_current_group_has_eligible_card = True
+                high_star_cards = [
+                    card for card in eligible_cards
+                    if self.CARD_TIER_INFO[
+                        target_to_card_class(card[0])
+                    ][1] >= 5
+                ]
+                target, _, area = (
+                    high_star_cards[0]
+                    if high_star_cards
+                    else eligible_cards[0]
+                )
+                card_class = target_to_card_class(target)
+                card_type, star, _ = self.CARD_TIER_INFO[card_class]
+                self.C_SELECT_CARD.roi_front = area
+                self.click(self.C_SELECT_CARD)
+                time.sleep(2)
+                logger.info(
+                    f'怠惰模式已选择首个符合策略的{star}星{card_type}: '
+                    f'swipe={swipe_count}, area={area}'
+                )
+                return True
+
+            # 当前屏即使只有另一策略的四星以上资源卡，也说明仍位于
+            # 有效卡区域，需要继续向下寻找，不能计入连续空屏。
+            miss_count = 0 if cards else miss_count + 1
+            logger.info(
+                f'怠惰模式第{swipe_count}屏未发现当前策略四星以上结界卡'
+            )
+            if self.appear(self.I_U_EMPTY_CARD):
+                logger.info('怠惰模式已到达好友列表空卡区域')
+                self.utilize_current_group_scan_completed = True
+                return None
+            if miss_count > consecutive_miss_limit:
+                logger.info(
+                    f'怠惰模式连续{miss_count}屏没有四星以上资源卡，'
+                    '结束当前分组扫描'
+                )
+                self.utilize_current_group_scan_completed = True
+                return None
+            self.perform_swipe_action()
+
+        self.utilize_current_group_scan_completed = True
+        logger.info(
+            f'怠惰模式已按最大滑动次数{max_swipes}完成当前分组扫描'
+        )
+        return None
 
     def _select_optimal_resource_card(self) -> bool | None:
         """浏览当前分组，并直接保留第一阶段选中的最佳卡。
