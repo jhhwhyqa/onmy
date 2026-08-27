@@ -1,5 +1,6 @@
 from module.atom.image import RuleImage
 from module.atom.click import RuleClick
+from module.atom.scatter import RuleScatter
 from module.atom.long_click import RuleLongClick
 from module.atom.swipe import RuleSwipe
 from module.atom.ocr import RuleOcr
@@ -37,7 +38,7 @@ class ChessAssets:
 	C_GRIGRI_REFRESH_3 = RuleClick(roi_front=(862,599,122,40), roi_back=(862,599,122,40), name="grigri_refresh_3")
 	# 关闭式神详情界面
 	C_CLICK_CLOSE_SPECIFICS_AREA = RuleClick(roi_front=(193,95,91,430), roi_back=(193,95,91,430), name="click_close_specifics_area")
-	# 取消匹配等待
+	# 取消匹配等待 
 	C_CANCEL_WAITING = RuleClick(roi_front=(584,597,111,45), roi_back=(579,592,121,55), name="cancel_waiting")
 
 
@@ -88,6 +89,12 @@ class ChessAssets:
 	I_BACK_RED = RuleImage(roi_front=(977,67,41,46), roi_back=(972,62,51,56), threshold=0.8, method="Template matching", file="./tasks/Chess/c/c_back_red.png")
 	#
 	I_QUESTION_CHECK = RuleImage(roi_front=(209,16,33,34), roi_back=(199,5,57,53), threshold=0.8, method="Template matching", file="./tasks/Chess/c/c_question_check.png")
+	#  
+	I_RESTART_AGAIN = RuleImage(roi_front=(1065,644,178,48), roi_back=(1049,636,202,59), threshold=0.8, method="Template matching", file="./tasks/Chess/c/c_restart_again.png")
+	#  
+	I_REWARD_CHESS = RuleImage(roi_front=(485,227,310,44), roi_back=(480,222,320,54), threshold=0.8, method="Template matching", file="./tasks/Chess/c/c_reward_chess.png")
+	#  
+	I_SHARE = RuleImage(roi_front=(1159,579,65,66), roi_back=(1147,568,85,86), threshold=0.8, method="Template matching", file="./tasks/Chess/c/c_share.png")
 
 
 	# Ocr Rule Assets
@@ -151,3 +158,6 @@ class ChessAssets:
 	O_GRIGRI_OPTION_NAME_3 = RuleOcr(roi=(825,370,191,45), area=(825,370,191,45), mode="Single", method="Default", keyword="", name="grigri_option_name_3")
 	#
 	O_FREE_REFRESH_COUNT = RuleOcr(roi=(1183,392,38,24), area=(1183,392,38,24), mode="Digit", method="Default", keyword="", name="free_refresh_count")
+	# Scatter Rule Assets
+	#  
+	C_C_REWARD_RANDOM_CLICK = RuleScatter(roi_front=(20,19,1239,683), roi_back=(20,19,1239,683), polygon=[(1252, 58), (1258, 537), (1104, 541), (1110, 698), (20, 701), (20, 20), (67, 19), (75, 664), (539, 657), (540, 598), (763, 597), (760, 397), (570, 391), (565, 234), (245, 231), (247, 402), (101, 405), (102, 60), (452, 54), (454, 121), (1087, 117), (1087, 58)], focus_count=16, functional=False, name="c_reward_random_click")

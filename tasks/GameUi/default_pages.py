@@ -5,7 +5,10 @@ from tasks.Component.GeneralInvite.assets import GeneralInviteAssets
 from tasks.Component.SwitchAccount.assets import SwitchAccountAssets
 from tasks.Exploration.assets import ExplorationAssets
 from tasks.GameUi.action import conditional_action, sequence
-from tasks.GameUi.chess_battle import handle_chess_battle_page
+from tasks.GameUi.chess_battle import (
+    handle_chess_battle_page,
+    handle_chess_result_page,
+)
 from tasks.Pets.assets import PetsAssets
 from typing import Union
 
@@ -359,6 +362,25 @@ page_chess_battle.connect(
     page_chess,
     handle_chess_battle_page,
     key="page_chess_battle->page_chess",
+)
+# 棋局可能在脚本已判定进入超时后才落到名次结算页。将全部既有结算
+# 标志注册为独立全局页面，使任何导航过程都能继续结算并返回大厅。
+page_chess_result = Page(
+    any_of(
+        GameUiAssets.I_CHESS_EXIT_TO_LOBBY,
+        GameUiAssets.I_CHESS_EXIT_TO_LOBBY_2,
+        ChessAssets.I_REWARD_CHESS,
+        ChessAssets.I_SHARE,
+        GameUiAssets.I_CHECK_CHESS_RANK,
+        GameUiAssets.I_CHESS_RANK_GOTO_LOBBY,
+    ),
+    category="global",
+    priority=96,
+)
+page_chess_result.connect(
+    page_chess,
+    handle_chess_result_page,
+    key="page_chess_result->page_chess",
 )
 page_entertainment.connect(
     page_town,

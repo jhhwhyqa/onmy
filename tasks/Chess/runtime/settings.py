@@ -10,6 +10,8 @@ from tasks.Chess.strategy.soul_catalog import SOUL_ENTRIES
 class ChessRuntimeSettings:
     """Tuning values shared by the Chess runtime mixins."""
 
+    RANK_PROTECTION_EXIT_COUNT = 2
+
     HAND_AREA = (179, 540, 957, 158)
     # 完整手牌模板在实战截图中的真匹配约 0.997，已测非目标最高约
     # 0.438；取 0.75 为光效、轻微位移和压缩失真保留余量。
@@ -41,6 +43,9 @@ class ChessRuntimeSettings:
     GAME_END_CONFIRM_FRAMES = 3
     GAME_OVER_WAIT_TIMEOUT = 60.0
     GAME_ENTER_TIMEOUT = 120.0
+    # 匹配到 8/8 后，取消匹配按钮会先消失，随后可能长时间停留在
+    # “匹配成功/加载中 100%”页面。该阶段不再沿用开战按钮的短超时。
+    MATCHED_LOADING_TIMEOUT = 600.0
     UNKNOWN_STATE_TIMEOUT = 25.0
     SHOP_OPEN_TIMEOUT = 8.0
     SHOP_CLOSE_TIMEOUT = 8.0

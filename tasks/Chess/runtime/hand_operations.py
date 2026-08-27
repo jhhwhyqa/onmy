@@ -123,7 +123,7 @@ class ChessHandOperationsMixin:
             self.device,
             p1=source,
             p2=self._rule_center(target_rule),
-            hold_duration=0.5,
+            hold_duration=(0.2, 0.3),
             point_random=(-3, -3, 3, 3),
             swipe_duration=0.5,
             name='CHESS_SELL_UNKNOWN_HAND_CARD',
@@ -310,7 +310,7 @@ class ChessHandOperationsMixin:
             self.device,
             p1=self._set_position(source_position),
             p2=self._set_position(target_position),
-            hold_duration=0.5,
+            hold_duration=(0.2, 0.3),
             point_random=(-2, -2, 2, 2),
             swipe_duration=0.5,
             name=(
@@ -516,7 +516,7 @@ class ChessHandOperationsMixin:
             self.device,
             p1=source,
             p2=target,
-            hold_duration=0.5,
+            hold_duration=(0.2, 0.3),
             point_random=(-3, -3, 3, 3),
             swipe_duration=0.5,
             name=f'CHESS_EQUIP_SOUL_{operation_name}_SET_{set_index}',
@@ -552,7 +552,7 @@ class ChessHandOperationsMixin:
             self.device,
             p1=source,
             p2=target_position,
-            hold_duration=0.5,
+            hold_duration=(0.2, 0.3),
             point_random=(-3, -3, 3, 3),
             swipe_duration=0.5,
             name=f'CHESS_DEPLOY_{name.upper()}_SET_{set_index}',
@@ -1163,6 +1163,7 @@ class ChessHandOperationsMixin:
         if self.equip_hakuzosu_protect_after_deploy(verified_names):
             equipped.append(self.HAKUZOSU_PROTECT_NAME)
         repeated_attempts = {}
+        target_failures = Counter()
         for _ in range(self.SOUL_EQUIP_SAFETY_LIMIT):
             if not self._is_preparation_mode():
                 logger.debug(
@@ -1246,8 +1247,38 @@ class ChessHandOperationsMixin:
                     f'->{hand_counts_after[selected["name"]]}, '
                     f'attempt={attempts}/2'
                 )
+                target_failures[target_name] += 1
+                _, soul_1, soul_2 = self._shikigami_attributes(target_name)
+                if (
+                    target_failures[target_name] >= 2
+                    and (soul_1 is None or soul_2 is None)
+                    and self._is_preparation_mode()
+                ):
+                    # 只撤销已失效的站位记录，式神携带属性随式神保留。
+                    deployed_names = set(
+                        getattr(self, '_board_lineup_names', set())
+                    )
+                    deployed_names.discard(target_name)
+                    self._board_lineup_names = deployed_names
+                    actual_positions = dict(
+                        getattr(self, '_board_actual_positions', {})
+                    )
+                    actual_positions.pop(target_name, None)
+                    self._board_actual_positions = actual_positions
+                    player_positions = set(
+                        getattr(self, '_player_deployed_positions', set())
+                    )
+                    player_positions.discard(set_index)
+                    self._player_deployed_positions = player_positions
+                    verified_names.discard(target_name)
+                    logger.warning(
+                        f'Chess 式神已被转移，标记为未上阵: '
+                        f'name={target_name}, set={set_index}, '
+                        f'御魂装配失败次数={target_failures[target_name]}'
+                    )
                 continue
 
+            target_failures.pop(target_name, None)
             if not self._record_shikigami_soul(
                 target_name,
                 selected['name'],
@@ -2058,7 +2089,7 @@ class ChessHandOperationsMixin:
                     self.device,
                     p1=drag_source,
                     p2=hand_target,
-                    hold_duration=0.6 if attempt > 1 else 0.5,
+                    hold_duration=(0.2, 0.3),
                     point_random=(-2, -2, 2, 2),
                     swipe_duration=0.5,
                     name=(
@@ -2215,7 +2246,7 @@ class ChessHandOperationsMixin:
                     self.device,
                     p1=drag_source,
                     p2=hand_target,
-                    hold_duration=0.6 if attempt > 1 else 0.5,
+                    hold_duration=(0.2, 0.3),
                     point_random=(-3, -3, 3, 3),
                     swipe_duration=0.5 if attempt > 1 else 0.45,
                     name=(
