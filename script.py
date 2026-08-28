@@ -23,7 +23,6 @@ from threading import Thread
 from multiprocessing.queues import Queue
 from module.config.utils import convert_to_underscore
 from module.config.config import Config
-from module.config.instance_guard import InstanceGuard
 from module.config.anti_ban import AntiBanGuard
 from module.device.device import Device
 from module.device.env import IS_WINDOWS
@@ -58,8 +57,6 @@ class Script:
         self.last_task_runtime_outcome: dict[str, Any] | None = None
         # 运行loop的线程
         self.loop_thread: Thread = None
-        # 跨进程排队管理器（仅在 queue_mode=True 时初始化）
-        self.instance_guard: InstanceGuard = None
         self.anti_ban_guard: AntiBanGuard = AntiBanGuard()
 
     @cached_property
