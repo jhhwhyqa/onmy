@@ -16,9 +16,9 @@ if __name__ == '__main__' and 'tasks' not in sys.modules:
 import requests
 import urllib3
 
-from tasks.base_task import BaseTask
 from module.logger import logger
 from module.exception import TaskEnd
+from tasks.AutoCheckinBigGod.manual_claim import ManualClaimMixin
 
 try:
     from oas_checkin_biggod import FRIDA_SERVER_XZ, ADB_PATH
@@ -45,7 +45,7 @@ GL_CLIENTTYPE = "50"
 _NO_WINDOW = subprocess.CREATE_NO_WINDOW if sys.platform == 'win32' else 0
 
 
-class ScriptTask(BaseTask):
+class ScriptTask(ManualClaimMixin):
 
     def run(self):
         self.gl_uid = ""
@@ -65,6 +65,11 @@ class ScriptTask(BaseTask):
         self.session.verify = False
 
         logger.hr('AutoCheckinBigGod', level=1)
+
+        # 手动领取模式：纯UI操作，不依赖Frida
+        if self.config.auto_checkin_big_god.checkin_config.manual_claim:
+            self._run_manual_claim()
+            return
 
         # [1/5] 检查运行环境
         logger.info('[1/5] 检查运行环境...')
