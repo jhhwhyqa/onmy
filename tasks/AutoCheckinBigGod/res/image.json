@@ -1,0 +1,74 @@
+[
+  {
+    "itemName": "login",
+    "imageName": "image_login.png",
+    "roiFront": "360,1069,58,29",
+    "roiBack": "0,768,720,512",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "圈子界面的一键登录/或在福利中心时点击领取奖励时若未登会出现改按钮，点击该按钮登录后需要重新点击领取奖励"
+  },
+  {
+    "itemName": "circle",
+    "imageName": "res_circle.png",
+    "roiFront": "44,1229,55,34",
+    "roiBack": "0,1101,176,179",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "点击进入圈子"
+  },
+  {
+    "itemName": "circle_check",
+    "imageName": "res_circle_check.png",
+    "roiFront": "44,1221,53,51",
+    "roiBack": "0,1067,273,213",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "确认是否处于圈子界面"
+  },
+  {
+    "itemName": "welfare",
+    "imageName": "res_welfare.png",
+    "roiFront": "26,152,45,27",
+    "roiBack": "0,0,249,243",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "圈子界面进入福利中心"
+  },
+  {
+    "itemName": "claim",
+    "imageName": "res_claim.png",
+    "roiFront": "555,297,102,29",
+    "roiBack": "0,0,720,556",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "福利中心一键领取奖励按钮"
+  },
+  {
+    "itemName": "login_again",
+    "imageName": "res_login_again.png",
+    "roiFront": "527,694,53,30",
+    "roiBack": "0,335,720,556",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "重新登录按钮，刚启动app可能会因为在其他设备登录过显示重新登录按钮"
+  },
+  {
+    "itemName": "claim_s",
+    "imageName": "res_claim_s.png",
+    "roiFront": "348,405,53,29",
+    "roiBack": "0,193,720,919",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "出现该按钮则领取完成"
+  },
+  {
+    "itemName": "x",
+    "imageName": "res_x.png",
+    "roiFront": "352,912,19,48",
+    "roiBack": "0,375,720,768",
+    "method": "Template matching",
+    "threshold": 0.75,
+    "description": "取消更新按钮"
+  }
+]
