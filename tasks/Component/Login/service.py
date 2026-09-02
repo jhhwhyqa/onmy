@@ -121,7 +121,7 @@ class LoginService(BaseTask, RestartAssets, GameUiAssets):
                 if self.click(self.C_LOGIN_ANIMATION_CENTER, interval=5):  # 点击屏幕中央触发跳过显示
                     skip_click_mx_cnt -= 1
 
-            if self.ocr_appear_click(self.O_LOGIN_ENTER_GAME, interval=3):
+            if self.ocr_appear_click(self.O_LOGIN_ENTER_GAME, interval=3) or self.ocr_appear_click(self.O_LOGIN_ENTER_GAME_OLD, interval=3):
                 skip_login_animation = False  # 进入登录页面后不再处理登录动画逻辑
                 self.wait_until_appear(self.I_LOGIN_SPECIFIC_SERVE, True, wait_time=5)
                 continue
