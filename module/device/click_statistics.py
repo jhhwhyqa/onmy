@@ -5,8 +5,9 @@ import math
 import re
 import threading
 import time
+import shutil
 from collections import Counter, defaultdict
-from datetime import datetime
+from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -42,6 +43,42 @@ class ClickStatistics:
         # Session 序号
         self._session_counter = 0
 
+    @staticmethod
+    def cleanup_old_statistics(keep_days: int = 7) -> None:
+        """
+        清理超过保留期限的点击统计数据。
+
+        按日期目录清理：
+        - 保留最近 keep_days 个自然日
+        - 删除更早的日期目录
+        - 不处理无法识别为 YYYY-MM-DD 的目录
+        """
+        root = Path("log") / "click_statistics"
+
+        if not root.exists():
+            return
+
+        cutoff = date.today() - timedelta(days=keep_days - 1)
+
+        for config_dir in root.iterdir():
+            if not config_dir.is_dir():
+                continue
+
+            for date_dir in config_dir.iterdir():
+                if not date_dir.is_dir():
+                    continue
+
+                try:
+                    dir_date = date.fromisoformat(date_dir.name)
+                except ValueError:
+                    continue
+
+                if dir_date < cutoff:
+                    try:
+                        shutil.rmtree(date_dir)
+                    except OSError:
+                        # 清理失败不能影响 OAS 正常运行
+                        pass
     @staticmethod
     def _sanitize_filename(name: str) -> str:
         """
