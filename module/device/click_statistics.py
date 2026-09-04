@@ -10,6 +10,7 @@ from collections import Counter, defaultdict
 from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Any
+from module.logger import logger
 
 
 class ClickStatistics:
@@ -79,6 +80,7 @@ class ClickStatistics:
                     except OSError:
                         # 清理失败不能影响 OAS 正常运行
                         pass
+
     @staticmethod
     def _sanitize_filename(name: str) -> str:
         """
@@ -119,9 +121,9 @@ class ClickStatistics:
             )
 
             self._start_time = now
-            self._start_datetime = datetime.fromtimestamp(
-                now
-            ).isoformat(timespec="milliseconds")
+            self._start_datetime = datetime.fromtimestamp(now).isoformat(
+                timespec="milliseconds"
+            )
 
             self._events.clear()
             self._last_perf = None
@@ -150,30 +152,76 @@ class ClickStatistics:
             now = time.time()
             perf_now = time.perf_counter()
 
-            interval = (
-                None
-                if self._last_perf is None
-                else perf_now - self._last_perf
-            )
+            interval = None if self._last_perf is None else perf_now - self._last_perf
 
             self._last_perf = perf_now
 
-            self._events.append({
+            self._events.append(
+                {
+                    "t": round(now - self._start_time, 4),
+                    "timestamp": datetime.fromtimestamp(now).isoformat(
+                        timespec="milliseconds"
+                    ),
+                    "unix": now,
+                    "x": int(x),
+                    "y": int(y),
+                    "control_name": str(control_name),
+                    "method": method or "",
+                    "interval": (round(interval, 4) if interval is not None else None),
+                }
+            )
+
+    def record_swipe(
+        self,
+        start_x: int,
+        start_y: int,
+        end_x: int,
+        end_y: int,
+        duration: float,
+        elapsed: float | None = None,
+        control_name: str = "SWIPE",
+        method: str | None = None,
+    ) -> None:
+        """
+        记录一次已经实际执行成功的滑动。
+
+        如果当前没有 Session，则忽略。
+        duration 为传给底层 swipe 的持续时间。
+        elapsed 为实际执行 swipe 所经过的时间。
+        """
+
+        with self._lock:
+            if not self._session_active or self._start_time is None:
+                return
+
+            now = time.time()
+            perf_now = time.perf_counter()
+
+            interval = None if self._last_perf is None else perf_now - self._last_perf
+
+            self._last_perf = perf_now
+
+            event = {
+                "type": "swipe",
                 "t": round(now - self._start_time, 4),
-                "timestamp": datetime.fromtimestamp(
-                    now
-                ).isoformat(timespec="milliseconds"),
+                "timestamp": datetime.fromtimestamp(now).isoformat(
+                    timespec="milliseconds"
+                ),
                 "unix": now,
-                "x": int(x),
-                "y": int(y),
+                "start_x": int(start_x),
+                "start_y": int(start_y),
+                "end_x": int(end_x),
+                "end_y": int(end_y),
+                "duration": round(float(duration), 4),
                 "control_name": str(control_name),
                 "method": method or "",
-                "interval": (
-                    round(interval, 4)
-                    if interval is not None
-                    else None
-                ),
-            })
+                "interval": (round(interval, 4) if interval is not None else None),
+            }
+
+            if elapsed is not None:
+                event["elapsed"] = round(float(elapsed), 4)
+
+            self._events.append(event)
 
     def clear(self) -> None:
         """
@@ -218,18 +266,11 @@ class ClickStatistics:
             values: list[int],
             mean: float,
         ) -> float:
-            return math.sqrt(
-                sum((v - mean) ** 2 for v in values)
-                / len(values)
-            )
+            return math.sqrt(sum((v - mean) ** 2 for v in values) / len(values))
 
         counter = Counter(points)
 
-        repeated = sum(
-            count - 1
-            for count in counter.values()
-            if count > 1
-        )
+        repeated = sum(count - 1 for count in counter.values() if count > 1)
 
         max_streak = 1
         streak = 1
@@ -265,17 +306,27 @@ class ClickStatistics:
     def summary(self) -> dict[str, Any]:
         """
         生成当前 Session 的统计摘要。
+
+        - 点击事件参与 targets 和 total_clicks 统计
+        - swipe 事件不参与点击位置统计
+        - interval 继续统计所有事件之间的间隔
         """
 
         with self._lock:
             events = [dict(x) for x in self._events]
+
+        # 只保留点击事件用于点击位置统计。
+        # 兼容旧数据：没有 type 字段的事件默认视为 click。
+        click_events = [
+            event for event in events if event.get("type", "click") != "swipe"
+        ]
 
         groups: dict[
             str,
             list[tuple[int, int]],
         ] = defaultdict(list)
 
-        for event in events:
+        for event in click_events:
             groups[event["control_name"]].append(
                 (
                     event["x"],
@@ -283,59 +334,38 @@ class ClickStatistics:
                 )
             )
 
+        # 所有事件都参与 interval 统计，
+        # 包括 click -> swipe、swipe -> click、click -> click 等。
         intervals = [
-            event["interval"]
-            for event in events
-            if event["interval"] is not None
+            event["interval"] for event in events if event["interval"] is not None
         ]
 
-        interval_mean = (
-            sum(intervals) / len(intervals)
-            if intervals
-            else None
-        )
+        interval_mean = sum(intervals) / len(intervals) if intervals else None
 
         interval_std = None
 
         if intervals and interval_mean is not None:
             interval_std = math.sqrt(
-                sum(
-                    (value - interval_mean) ** 2
-                    for value in intervals
-                )
+                sum((value - interval_mean) ** 2 for value in intervals)
                 / len(intervals)
             )
 
         return {
-            "total_clicks": len(events),
+            "total_clicks": len(click_events),
+            "total_swipes": sum(
+                1 for event in events if event.get("type", "click") == "swipe"
+            ),
             "targets": {
-                name: self._stats(points)
-                for name, points in sorted(
-                    groups.items()
-                )
+                name: self._stats(points) for name, points in sorted(groups.items())
             },
             "interval": {
                 "count": len(intervals),
                 "mean": (
-                    round(interval_mean, 4)
-                    if interval_mean is not None
-                    else None
+                    round(interval_mean, 4) if interval_mean is not None else None
                 ),
-                "std": (
-                    round(interval_std, 4)
-                    if interval_std is not None
-                    else None
-                ),
-                "min": (
-                    round(min(intervals), 4)
-                    if intervals
-                    else None
-                ),
-                "max": (
-                    round(max(intervals), 4)
-                    if intervals
-                    else None
-                ),
+                "std": (round(interval_std, 4) if interval_std is not None else None),
+                "min": (round(min(intervals), 4) if intervals else None),
+                "max": (round(max(intervals), 4) if intervals else None),
             },
         }
 
@@ -374,33 +404,20 @@ class ClickStatistics:
         )
 
         final_status = (
-            status
-            if status is not None
-            else (
-                "success"
-                if success
-                else "failed"
-            )
+            status if status is not None else ("success" if success else "failed")
         )
 
-        events = [
-            dict(event)
-            for event in self._events
-        ]
+        events = [dict(event) for event in self._events]
 
         summary = self.summary()
 
         # 日期目录
-        date_dir = datetime.fromtimestamp(
-            start_time
-        ).strftime("%Y-%m-%d")
+        date_dir = datetime.fromtimestamp(start_time).strftime("%Y-%m-%d")
 
         output_dir = (
             Path("log")
             / "click_statistics"
-            / self._sanitize_filename(
-                self._config_name or "oas"
-            )
+            / self._sanitize_filename(self._config_name or "oas")
             / date_dir
         )
 
@@ -423,9 +440,7 @@ class ClickStatistics:
             "config_name": self._config_name,
             "session_id": self._session_id,
             "start_time": self._start_datetime,
-            "end_time": datetime.fromtimestamp(
-                now
-            ).isoformat(timespec="milliseconds"),
+            "end_time": datetime.fromtimestamp(now).isoformat(timespec="milliseconds"),
             "duration": round(
                 duration,
                 4,
@@ -438,9 +453,7 @@ class ClickStatistics:
 
         # 先写临时文件，再替换正式文件，
         # 避免写文件过程中程序退出留下半截 JSON。
-        temp_path = path.with_suffix(
-            path.suffix + ".tmp"
-        )
+        temp_path = path.with_suffix(path.suffix + ".tmp")
 
         try:
             temp_path.write_text(
@@ -491,9 +504,7 @@ class ClickStatistics:
             exist_ok=True,
         )
 
-        counts: Counter[
-            tuple[int, int]
-        ] = Counter()
+        counts: Counter[tuple[int, int]] = Counter()
 
         for event in self.events():
             x = max(
@@ -531,50 +542,43 @@ class ClickStatistics:
             gy,
         ), count in sorted(counts.items()):
 
-            opacity = (
-                0.08
-                + 0.82
-                * count
-                / max_count
-            )
+            opacity = 0.08 + 0.82 * count / max_count
 
             cells.append(
-                f'<rect '
+                f"<rect "
                 f'x="{gx * cell_size}" '
                 f'y="{gy * cell_size}" '
                 f'width="{cell_size}" '
                 f'height="{cell_size}" '
                 f'fill="red" '
                 f'fill-opacity="{opacity:.3f}">'
-                f'<title>'
-                f'clicks={count}'
-                f'</title>'
-                f'</rect>'
+                f"<title>"
+                f"clicks={count}"
+                f"</title>"
+                f"</rect>"
             )
 
         svg = (
             '<?xml version="1.0" encoding="UTF-8"?>\n'
-            '<svg '
+            "<svg "
             'xmlns="http://www.w3.org/2000/svg" '
             f'width="{width}" '
             f'height="{height}" '
             f'viewBox="0 0 {width} {height}">\n'
-            '<rect '
+            "<rect "
             'width="100%" '
             'height="100%" '
             'fill="#202020"/>\n'
-            '<g>'
-            + "".join(cells)
-            + '</g>\n'
-            f'<text '
+            "<g>" + "".join(cells) + "</g>\n"
+            f"<text "
             f'x="12" '
             f'y="24" '
             f'fill="white" '
             f'font-size="16">'
-            f'Click density: '
-            f'{len(self.events())} clicks'
-            f'</text>\n'
-            '</svg>\n'
+            f"Click density: "
+            f"{len(self.events())} clicks"
+            f"</text>\n"
+            "</svg>\n"
         )
 
         path.write_text(
