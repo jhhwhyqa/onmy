@@ -46,11 +46,11 @@
   },
   {
     "itemName": "login_enter_game_old",
-    "roiFront": "588,547,106,58",
-    "roiBack": "602,557,78,43",
+    "roiFront": "588,600,110,48",
+    "roiBack": "588,600,110,48",
     "mode": "Full",
     "method": "Default",
-    "keyword": "进入游戏旧版",
+    "keyword": "游戏",
     "description": "旧版进入游戏按钮"
   }
 ]

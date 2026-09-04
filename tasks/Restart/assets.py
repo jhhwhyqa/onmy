@@ -119,6 +119,6 @@ class RestartAssets:
 	# 登录指定角色，默认第一个 
 	O_LOGIN_SPECIFIC_SERVE = RuleOcr(roi=(110,120,350,600), area=(110,120,350,600), mode="Full", method="Default", keyword="", name="login_specific_serve")
 	# 旧版进入游戏按钮 
-	O_LOGIN_ENTER_GAME_OLD = RuleOcr(roi=(588,547,106,58), area=(602,557,78,43), mode="Full", method="Default", keyword="进入游戏旧版", name="login_enter_game_old")
+	O_LOGIN_ENTER_GAME_OLD = RuleOcr(roi=(588,600,110,48), area=(588,600,110,48), mode="Full", method="Default", keyword="游戏", name="login_enter_game_old")
 
 
