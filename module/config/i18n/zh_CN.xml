@@ -503,6 +503,10 @@ mode_3策略是刷到五个契灵后开始结契，选择高级、中级盘来�
 	<message><source>Guild Assets Enable</source><translation>顺路收取寮资金</translation></message>
 	<message><source>Box Ap Enable</source><translation>顺路收取体力盒子</translation></message>
 	<message><source>Box Exp Enable</source><translation>顺路收取经验盒子</translation></message>
+	<message><source>Lazy Mode</source><translation>怠惰模式</translation></message>
+	<message><source>lazy_mode_help</source><translation>开启后每次任务按权重随机进入怠惰模式；命中时不比较奖励数值，优先选择当前可见的五星及以上目标卡，否则选择首个符合策略的四星卡。</translation></message>
+	<message><source>Lazy Mode Weight</source><translation>怠惰模式权重</translation></message>
+	<message><source>lazy_mode_weight_help</source><translation>取值范围0-1，默认1；0表示永不触发，1表示每次触发。</translation></message>
 	<message><source>utilize_rule_help</source><translation>挑选结界卡的规则，使用默认default即可，具体规则看文档[任务列表]，不可以选auto,已经弃置了。</translation></message>
 	<message><source>auto_switch_sort_help</source><translation>会自动寻找最优的坑位</translation></message>
 	<message><source>shikigami_class_help</source><translation>选择的式神类别（寄养默认选择N卡，且不建议选别的）</translation></message>

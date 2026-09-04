@@ -12,6 +12,7 @@ from module.device.method.adb import Adb
 from module.device.method.scrcpy import Scrcpy
 from module.device.method.windows import Window
 from module.logger import logger
+from module.device.click_statistics import ClickStatistics
 
 
 class Control(Minitouch, Adb, Scrcpy, Window):
@@ -27,6 +28,11 @@ class Control(Minitouch, Adb, Scrcpy, Window):
         invalidate = getattr(self, 'invalidate_image_batch_cache', None)
         if callable(invalidate):
             invalidate()
+
+    @cached_property
+    def click_statistics(self):
+        # Passive observer; it never changes the original click path.
+        return ClickStatistics()
 
     @cached_property
     def click_methods(self):
@@ -75,6 +81,18 @@ class Control(Minitouch, Adb, Scrcpy, Window):
         start = time.perf_counter()
         method(x, y)
         elapsed = time.perf_counter() - start
+        # Record only after the underlying click succeeds.
+        # Statistics errors must never interrupt the original automation.
+        try:
+            self.click_statistics.record(
+                x,
+                y,
+                control_name=control_name,
+                method=self.config.script.device.control_method,
+            )
+        except Exception:
+            logger.exception('Click statistics record failed')
+
         logger.info(f'{self._format_action_duration(elapsed)}Click {point2str(x, y)} @ {control_name}')
 
 

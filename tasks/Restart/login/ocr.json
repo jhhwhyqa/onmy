@@ -34,5 +34,14 @@
     "method": "Default",
     "keyword": "",
     "description": "登录指定角色，默认第一个"
+  },
+  {
+    "itemName": "login_enter_game_old",
+    "roiFront": "588,600,110,48",
+    "roiBack": "588,600,110,48",
+    "mode": "Full",
+    "method": "Default",
+    "keyword": "游戏",
+    "description": "旧版进入游戏按钮"
   }
 ]

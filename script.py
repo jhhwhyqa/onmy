@@ -471,7 +471,32 @@ class Script:
             logger.hr(task, level=0)
             self.config.model.running_task = task
             _task_start = datetime.now()
-            success = self.run(inflection.camelize(task))
+            # 开始记录本次任务的完整点击轨迹
+            try:
+                self.device.click_statistics.start_session(
+                    task_name=task,
+                    config_name=self.config_name,
+                )
+            except Exception:
+                # 统计模块出现问题不能影响原任务
+                logger.exception(
+                    'Click statistics session start failed'
+                )
+            success = False
+            try:
+                success = self.run(
+                    inflection.camelize(task)
+                )
+            finally:
+                try:
+                    self.device.click_statistics.end_session(
+                        success=success,
+                    )
+                except Exception:
+                    # 统计模块永远不能影响 OAS 本身
+                    logger.exception(
+                        'Click statistics session end failed'
+                    )
             self.config.model.running_task = ''
             logger.info(f'Scheduler: End task `{task}`')
             self.is_first_task = False
