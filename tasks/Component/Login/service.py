@@ -22,8 +22,8 @@ class LoginService(BaseTask, RestartAssets, GameUiAssets):
         最终是在庭院界面
         :return:
         """
-        logger.hr('App login')
-        self.device.stuck_record_add('LOGIN_CHECK')
+        logger.hr("App login")
+        self.device.stuck_record_add("LOGIN_CHECK")
 
         confirm_timer = Timer(1.5, count=2).start()
         orientation_timer = Timer(10)
@@ -38,43 +38,49 @@ class LoginService(BaseTask, RestartAssets, GameUiAssets):
 
             self.screenshot()
             if self.appear_then_click(self.I_CANCEL_BATTLE, interval=0.8):
-                logger.info('Cancel continue battle')
+                logger.info("Cancel continue battle")
                 continue
-            if self.appear(self.I_CHECK_MAIN, interval=0.2) and not self.appear(self.I_MAIN_GOTO_SHIKIGAMI_RECORDS):
-                logger.info('The main had already appeared, but shikigami records had not yet appeared')
+            if self.appear(self.I_CHECK_MAIN, interval=0.2) and not self.appear(
+                self.I_MAIN_GOTO_SHIKIGAMI_RECORDS
+            ):
+                logger.info(
+                    "The main had already appeared, but shikigami records had not yet appeared"
+                )
                 skip_login_animation = False
                 if self.click(self.C_LOGIN_SCROLL_CLOSE_AREA, interval=2):
                     continue
             if self.appear(self.I_MAIN_GOTO_SHIKIGAMI_RECORDS, interval=0.2):
                 if confirm_timer.reached():
-                    logger.info('Login to main confirm (shikigami records button appears)')
+                    logger.info(
+                        "Login to main confirm (shikigami records button appears)"
+                    )
                     break
             else:
                 confirm_timer.reset()
             if self.appear(self.I_MAIN_GOTO_SHIKIGAMI_RECORDS, interval=0.5):
-                logger.info('Login success: shikigami records button appears')
+                logger.info("Login success: shikigami records button appears")
                 login_success = True
                 skip_login_animation = False
             if self.appear(self.I_HARVEST_ZIDU, interval=1):
                 self.I_HARVEST_ZIDU.roi_front[0] -= 200
                 self.I_HARVEST_ZIDU.roi_front[1] -= 200
                 if self.click(self.I_HARVEST_ZIDU, interval=2):
-                    logger.info('Close zidu')
+                    logger.info("Close zidu")
                 continue
             if self.appear_then_click(self.I_UI_CONFIRM_SAMLL, interval=2.5):
-                logger.info('Soul overflow confirm')
+                logger.info("Soul overflow confirm")
                 continue
             if self.appear_then_click(self.I_LOGIN_LOAD_DOWN, interval=1):
-                logger.info('Download inbetweening')
+                logger.info("Download inbetweening")
                 continue
             if self.appear_then_click(self.I_WATCH_VIDEO_CANCEL, interval=0.6):
-                logger.info('Close video')
+                logger.info("Close video")
                 continue
             if self.appear_then_click(self.I_LOGIN_RED_CLOSE, interval=0.6):
-                logger.info('Close red close')
+                logger.info("Close red close")
                 continue
             if self.appear_then_click(self.I_LOGIN_YELLOW_CLOSE, interval=0.6):
-                logger.info('Close yellow close')
+                logger.info("Close yellow close")
                 continue
             if self.appear_then_click(self.I_LOGIN_LOGIN_GOTO_BIND_PHONE):
                 while 1:
@@ -84,44 +90,54 @@ class LoginService(BaseTask, RestartAssets, GameUiAssets):
                         break
                 continue
             from tasks.Component.GeneralInvite.assets import GeneralInviteAssets as gia
+
             if self.appear_then_click(gia.I_I_REJECT, interval=0.8):
                 logger.info("reject invites")
                 continue
             if self.appear_then_click(self.I_LOGIN_LOGIN_ONMYOJI_GENIE):
                 logger.info("click onmyoji genie")
                 continue
-            if self.appear(self.I_LOGIN_SPECIFIC_SERVE, interval=0.6) \
-                    and self.ocr_appear_click(self.O_LOGIN_SPECIFIC_SERVE, interval=0.6):
+            if self.appear(
+                self.I_LOGIN_SPECIFIC_SERVE, interval=0.6
+            ) and self.ocr_appear_click(self.O_LOGIN_SPECIFIC_SERVE, interval=0.6):
                 while True:
                     self.screenshot()
                     if self.appear(self.I_LOGIN_SPECIFIC_SERVE):
-                        self.click(self.C_LOGIN_ENSURE_LOGIN_CHARACTER_IN_SAME_SVR, interval=2)
+                        self.click(
+                            self.C_LOGIN_ENSURE_LOGIN_CHARACTER_IN_SAME_SVR, interval=2
+                        )
                         continue
                     break
-                logger.info('login specific user')
+                logger.info("login specific user")
                 continue
 
             if self.appear(self.I_CREATE_ACCOUNT):
-                logger.warning('Appear create account')
-                raise GameStuckError('Appear create account')
+                logger.warning("Appear create account")
+                raise GameStuckError("Appear create account")
             if self.appear(self.I_CHARACTARS, interval=1):
-                logger.info('误入区服设置')
+                logger.info("误入区服设置")
                 self.device.click(x=106, y=535)
                 continue
-            if self.appear(self.I_EARLY_SERVER) and self.appear_then_click(self.I_EARLY_SERVER_CANCEL):
-                logger.info('Cancel switch from early server to normal server')
+            if self.appear(self.I_EARLY_SERVER) and self.appear_then_click(
+                self.I_EARLY_SERVER_CANCEL
+            ):
+                logger.info("Cancel switch from early server to normal server")
                 continue
 
             # 进入登录页面后或点击超过一定次数不再处理登录动画逻辑
             if self.appear(self.I_LOGIN_8, interval=0.6) or skip_click_mx_cnt <= 0:
                 skip_login_animation = False
             if skip_login_animation:
-                if self.ocr_appear_click(self.O_LOGIN_ANIMATION_SKIP, interval=2.5):  # 点击跳过登录动画
+                if self.ocr_appear_click(
+                    self.O_LOGIN_ANIMATION_SKIP, interval=2.5
+                ):  # 点击跳过登录动画
                     continue
-                if self.click(self.C_LOGIN_ANIMATION_CENTER, interval=5):  # 点击屏幕中央触发跳过显示
+                if self.click(
+                    self.C_LOGIN_ANIMATION_CENTER, interval=5
+                ):  # 点击屏幕中央触发跳过显示
                     skip_click_mx_cnt -= 1
 
-            if self.ocr_appear_click(self.O_LOGIN_ENTER_GAME, interval=3) or self.ocr_appear_click(self.O_LOGIN_ENTER_GAME_OLD, interval=3):
+            if self.ocr_appear_click(self.O_LOGIN_ENTER_GAME, interval=3):
                 skip_login_animation = False  # 进入登录页面后不再处理登录动画逻辑
                 self.wait_until_appear(self.I_LOGIN_SPECIFIC_SERVE, True, wait_time=5)
                 continue
@@ -139,8 +155,10 @@ class LoginService(BaseTask, RestartAssets, GameUiAssets):
             self.device.app_stop()
             self.device.app_start()
 
-        logger.critical('Login failed')
-        logger.critical('Onmyoji server may be under maintenance, or you may lost network connection')
+        logger.critical("Login failed")
+        logger.critical(
+            "Onmyoji server may be under maintenance, or you may lost network connection"
+        )
         raise RequestHumanTakeover
 
     def set_specific_usr(self, character: str):
