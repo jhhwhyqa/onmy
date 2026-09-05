@@ -2,7 +2,7 @@
   {
     "itemName": "main_goto_act",
     "imageName": "as_main_goto_act.png",
-    "roiFront": "1188,296,35,28",
+    "roiFront": "1184,211,46,57",
     "roiBack": "1164,134,83,393",
     "method": "Template matching",
     "threshold": 0.7,
@@ -20,8 +20,8 @@
   {
     "itemName": "to_battle_main",
     "imageName": "as_to_battle_main.png",
-    "roiFront": "597,413,39,139",
-    "roiBack": "554,286,155,370",
+    "roiFront": "320,176,87,105",
+    "roiBack": "282,76,155,370",
     "method": "Template matching",
     "threshold": 0.8,
     "description": "进入主要的战斗界面"
@@ -124,5 +124,14 @@
     "method": "Template matching",
     "threshold": 0.8,
     "description": "活动主界面进入体力爬塔标志"
+  },
+  {
+    "itemName": "map_goto_battle",
+    "imageName": "as_map_goto_battle.png",
+    "roiFront": "71,93,99,36",
+    "roiBack": "71,93,99,36",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "活动中转界面进入战斗界面"
   }
 ]
