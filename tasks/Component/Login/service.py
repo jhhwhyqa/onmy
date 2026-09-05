@@ -6,6 +6,7 @@ from module.exception import RequestHumanTakeover, GameTooManyClickError, GameSt
 from module.logger import logger
 from tasks.GameUi.assets import GameUiAssets
 from tasks.Restart.assets import RestartAssets
+from tasks.Restart.config import RestartConfig
 from tasks.base_task import BaseTask
 
 
@@ -145,6 +146,16 @@ class LoginService(BaseTask, RestartAssets, GameUiAssets):
         return login_success
 
     def app_handle_login(self) -> bool:
+        # 从 Restart 配置中读取等待秒数（默认10，若未定义则回退）
+        try:
+            wait_seconds = RestartConfig.emulator_startup_wait
+        except AttributeError:
+            wait_seconds = 10
+            logger.warning(
+                "Restart.startup_wait_seconds not configured, using default 10s"
+            )
+        logger.info(f"Waiting {wait_seconds}s for game UI to stabilize...")
+        self.device.sleep(wait_seconds)  # 固定等待
         self.device.stuck_record_clear()
         self.device.click_record_clear()
         try:

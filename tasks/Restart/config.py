@@ -10,8 +10,12 @@ from tasks.Component.config_base import ConfigBase, DateTime, MultiLine
 
 
 class TasksReset(BaseModel):
-    reset_task_datetime_enable: bool = Field(default=False, description='reset_task_datetime_enable_help')
-    reset_task_datetime: DateTime = Field(default="2023-01-01 00:00:00", description='rest_task_datetime_help')
+    reset_task_datetime_enable: bool = Field(
+        default=False, description="reset_task_datetime_enable_help"
+    )
+    reset_task_datetime: DateTime = Field(
+        default="2023-01-01 00:00:00", description="rest_task_datetime_help"
+    )
 
 
 class LoginCharacterConfig(BaseModel):
@@ -20,11 +24,17 @@ class LoginCharacterConfig(BaseModel):
 
 
 class RestartConfig(ConfigBase):
-    enable_daily: bool = Field(default=True, description='是否重启之后启动每日琐事任务')
+    enable_daily: bool = Field(default=True, description="是否重启之后启动每日琐事任务")
+    emulator_startup_wait: int = Field(
+        default=10,
+        description="模拟器启动等待时间,单位秒,默认10秒。针对login fail报错情况,可适当增加等待时间,避免游戏未稳定就开始操作导致报错",
+    )
 
 
 class Restart(ConfigBase):
     scheduler: RestartScheduler = Field(default_factory=RestartScheduler)
     restart_config: RestartConfig = Field(default_factory=RestartConfig)
     tasks_config_reset: TasksReset = Field(default_factory=TasksReset)
-    login_character_config: LoginCharacterConfig = Field(default_factory=LoginCharacterConfig)
+    login_character_config: LoginCharacterConfig = Field(
+        default_factory=LoginCharacterConfig
+    )
