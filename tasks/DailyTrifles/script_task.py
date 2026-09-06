@@ -483,6 +483,7 @@ class ScriptTask(GameUi, Summon, DailyTriflesAssets):
             self.screenshot()
             if self.appear_then_click(self.I_GIFT_SIGN, interval=2.5):
                 sleep(1)  # 等个动画
+                self.screenshot()
                 if self.appear(self.I_GIFT_SIGN_GOT):
                     self.click(
                         random_click(ltrb=(True, False, False, False)), interval=1.5
