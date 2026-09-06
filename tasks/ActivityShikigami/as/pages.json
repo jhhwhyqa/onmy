@@ -2,7 +2,7 @@
   {
     "itemName": "main_goto_act",
     "imageName": "as_main_goto_act.png",
-    "roiFront": "1184,211,46,57",
+    "roiFront": "1184,211,46,32",
     "roiBack": "1164,134,83,393",
     "method": "Template matching",
     "threshold": 0.7,
