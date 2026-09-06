@@ -43,5 +43,14 @@
     "method": "Template matching",
     "threshold": 0.8,
     "description": "购买时货币类型为勾玉"
+  },
+  {
+    "itemName": "gift_sign_got",
+    "imageName": "store_gift_sign_got.png",
+    "roiFront": "284,296,47,57",
+    "roiBack": "202,176,877,354",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "领取成功"
   }
 ]

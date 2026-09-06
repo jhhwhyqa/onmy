@@ -143,6 +143,8 @@ class DailyTriflesAssets:
 	I_SPECIAL_SUSHI = RuleImage(roi_front=(180,130,800,460), roi_back=(180,130,800,460), threshold=0.8, method="Template matching", file="./tasks/DailyTrifles/store/store_sushi.png")
 	# 购买时货币类型为勾玉 
 	I_STORE_COST_TYPE_JADE = RuleImage(roi_front=(570,362,81,247), roi_back=(570,362,81,247), threshold=0.8, method="Template matching", file="./tasks/DailyTrifles/store/store_cost_type_jade.png")
+	# 领取成功 
+	I_GIFT_SIGN_GOT = RuleImage(roi_front=(284,296,47,57), roi_back=(202,176,877,354), threshold=0.8, method="Template matching", file="./tasks/DailyTrifles/store/store_gift_sign_got.png")
 
 
 	# Ocr Rule Assets
