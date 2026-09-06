@@ -51,6 +51,7 @@ class ShikigamiType(str, Enum):
     COSTUME_SHIKIGAMI_9 = "costume_shikigami_9"  # 眠鹿之森
     COSTUME_SHIKIGAMI_10 = "costume_shikigami_10"  # 今宵胧明
     COSTUME_SHIKIGAMI_11 = "costume_shikigami_11"  # 花札幕台
+    COSTUME_SHIKIGAMI_12 = "costume_shikigami_12"  # 拾光之窗
 
 
 # 签到主题
