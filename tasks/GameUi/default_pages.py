@@ -42,10 +42,10 @@ def random_click(
     Returns:
         单个 `RuleClick`，或一个由多个 `RuleClick` 组成的列表。
     """
-    # 添加0.35秒左右0.1标准差的正态分布的随机延迟，多次重复副本防封
-    random_sleep = random.gauss(0.35, 0.1)
+    # 添加0.3秒左右0.1标准差的正态分布的随机延迟，多次重复副本防封
+    random_sleep = random.gauss(0.3, 0.1)
     time.sleep(random_sleep)
-    logger.info(f"reward random sleep time: {random_sleep}s")
+    logger.info(f"random click sleep time: {random_sleep:.2f}s")
     click_area_list = [
         GeneralBattleAssets.C_RANDOM_LEFT,
         GeneralBattleAssets.C_RANDOM_TOP,
