@@ -25,10 +25,6 @@ class LoginCharacterConfig(BaseModel):
 
 class RestartConfig(ConfigBase):
     enable_daily: bool = Field(default=True, description="是否重启之后启动每日琐事任务")
-    emulator_startup_wait: int = Field(
-        default=10,
-        description="模拟器启动等待时间,单位秒,默认10秒。针对login fail报错情况,可适当增加等待时间,避免游戏未稳定就开始操作导致报错",
-    )
 
 
 class Restart(ConfigBase):

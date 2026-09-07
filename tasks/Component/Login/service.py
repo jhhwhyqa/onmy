@@ -1,13 +1,18 @@
 # This Python file uses the following encoding: utf-8
 # @author runhey
 # github https://github.com/runhey
+import numpy as np
 from module.base.timer import Timer
 from module.exception import RequestHumanTakeover, GameTooManyClickError, GameStuckError
 from module.logger import logger
 from tasks.GameUi.assets import GameUiAssets
 from tasks.Restart.assets import RestartAssets
-from tasks.Restart.config import RestartConfig
 from tasks.base_task import BaseTask
+
+
+# 检测截图是否纯黑
+def image_black(img) -> bool:
+    return np.all(img < 10)
 
 
 class LoginService(BaseTask, RestartAssets, GameUiAssets):
@@ -146,25 +151,27 @@ class LoginService(BaseTask, RestartAssets, GameUiAssets):
         return login_success
 
     def app_handle_login(self) -> bool:
-        # 从 Restart 配置中读取等待秒数（默认10，若未定义则回退）
-        try:
-            wait_seconds = RestartConfig.emulator_startup_wait
-        except AttributeError:
-            wait_seconds = 10
-            logger.warning(
-                "Restart.startup_wait_seconds not configured, using default 10s"
-            )
-        logger.info(f"Waiting {wait_seconds}s for game UI to stabilize...")
-        self.device.sleep(wait_seconds)  # 固定等待
         self.device.stuck_record_clear()
         self.device.click_record_clear()
         try:
             self._app_handle_login()
             return True
         except (GameTooManyClickError, GameStuckError) as e:
+            image_black_flag = image_black(self.device.image)
             logger.warning(e)
             self.device.app_stop()
             self.device.app_start()
+        # 截图纯黑再尝试1次登录
+        if image_black_flag:
+            try:
+                logger.warning("Screenshot is pure black, try login again")
+                self._app_handle_login()
+                return True
+            except (GameTooManyClickError, GameStuckError) as e:
+                logger.warning(e)
+                logger.warning("second login failed, restart app")
+                self.device.app_stop()
+                self.device.app_start()
 
         logger.critical("Login failed")
         logger.critical(
