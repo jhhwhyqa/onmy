@@ -2,7 +2,7 @@
   {
     "itemName": "lock",
     "imageName": "as_lock.png",
-    "roiFront": "911,645,21,23",
+    "roiFront": "872,652,23,24",
     "roiBack": "685,612,330,86",
     "method": "Template matching",
     "threshold": 0.7,
@@ -11,7 +11,7 @@
   {
     "itemName": "unlock",
     "imageName": "as_unlock.png",
-    "roiFront": "884,648,28,25",
+    "roiFront": "870,655,28,25",
     "roiBack": "686,610,313,92",
     "method": "Template matching",
     "threshold": 0.7,
@@ -38,7 +38,7 @@
   {
     "itemName": "climb_mode_switch",
     "imageName": "as_climb_mode_switch.png",
-    "roiFront": "1238,545,28,25",
+    "roiFront": "1227,542,37,33",
     "roiBack": "1200,525,78,68",
     "method": "Template matching",
     "threshold": 0.8,
@@ -56,7 +56,7 @@
   {
     "itemName": "ap_unlock",
     "imageName": "as_ap_unlock.png",
-    "roiFront": "788,656,22,25",
+    "roiFront": "799,653,22,25",
     "roiBack": "686,610,313,92",
     "method": "Template matching",
     "threshold": 0.8,
@@ -65,7 +65,7 @@
   {
     "itemName": "ap_lock",
     "imageName": "as_ap_lock.png",
-    "roiFront": "788,656,22,25",
+    "roiFront": "798,656,27,26",
     "roiBack": "686,610,313,92",
     "method": "Template matching",
     "threshold": 0.8,
