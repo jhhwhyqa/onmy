@@ -147,7 +147,8 @@ class BaseAct(StateMachine, GameUi, GeneralBattle, SwitchSoul, ActivityShikigami
                 battle_key=f"act_{self.climb_type}",
             ),
             pages.page_reward: lambda: self.click(
-                pages.random_click(ltrb=(False, False, True, False)), interval=1.5
+                pages.random_click(ltrb=(False, False, True, False), delay=0.3),
+                interval=1.5,
             ),
         }
 
