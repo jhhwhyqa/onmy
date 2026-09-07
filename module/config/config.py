@@ -253,7 +253,8 @@ class Config(ConfigState, ConfigManual, ConfigWatcher, ConfigMenu):
             running = {"name": self.task.command, "next_run": str(self.task.next_run)}
 
         pending = []
-        for p in self.pending_task[1:]:
+        pending_tasks = self.pending_task[1:] if running else self.pending_task
+        for p in pending_tasks:
             item = {"name": p.command, "next_run": str(p.next_run)}
             pending.append(item)
 
