@@ -19,7 +19,7 @@ class DailyTriflesAssets:
 
 	# Image Rule Assets
 	# 进入庭院事务标志 
-	I_ENTER_COURTYARD_AFFAIRS = RuleImage(roi_front=(990,372,25,30), roi_back=(696,349,343,231), threshold=0.8, method="Template matching", file="./tasks/DailyTrifles/dt/dt_enter_courtyard_affairs.png")
+	I_ENTER_COURTYARD_AFFAIRS = RuleImage(roi_front=(990,372,25,30), roi_back=(481,349,558,220), threshold=0.8, method="Template matching", file="./tasks/DailyTrifles/dt/dt_enter_courtyard_affairs.png")
 	# 庭院事务页面标志 
 	I_CHECK_COURTYARD_AFFAIRS = RuleImage(roi_front=(254,40,196,57), roi_back=(134,0,415,180), threshold=0.8, method="Template matching", file="./tasks/DailyTrifles/dt/dt_check_courtyard_affairs.png")
 	# 一键完成标志 
@@ -143,6 +143,8 @@ class DailyTriflesAssets:
 	I_SPECIAL_SUSHI = RuleImage(roi_front=(180,130,800,460), roi_back=(180,130,800,460), threshold=0.8, method="Template matching", file="./tasks/DailyTrifles/store/store_sushi.png")
 	# 购买时货币类型为勾玉 
 	I_STORE_COST_TYPE_JADE = RuleImage(roi_front=(570,362,81,247), roi_back=(570,362,81,247), threshold=0.8, method="Template matching", file="./tasks/DailyTrifles/store/store_cost_type_jade.png")
+	# 领取成功 
+	I_GIFT_SIGN_GOT = RuleImage(roi_front=(284,296,47,57), roi_back=(202,176,877,354), threshold=0.8, method="Template matching", file="./tasks/DailyTrifles/store/store_gift_sign_got.png")
 
 
 	# Ocr Rule Assets

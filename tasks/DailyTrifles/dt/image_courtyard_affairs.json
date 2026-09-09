@@ -3,7 +3,7 @@
     "itemName": "enter_courtyard_affairs",
     "imageName": "dt_enter_courtyard_affairs.png",
     "roiFront": "990,372,25,30",
-    "roiBack": "696,349,343,231",
+    "roiBack": "481,349,558,220",
     "method": "Template matching",
     "threshold": 0.8,
     "description": "进入庭院事务标志"

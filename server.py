@@ -30,6 +30,7 @@ from module.logger import logger
 from module.image.rpc import ensure_image_server_ready, shutdown_image_server
 from module.server.setting import State
 from module.ocr.rpc import ensure_ocr_server_ready, shutdown_ocr_server
+from module.device.click_statistics import ClickStatistics
 
 
 def fun(ev: threading.Event):
@@ -84,6 +85,11 @@ def fun(ev: threading.Event):
     ensure_image_server_ready()
     ensure_ocr_server_ready()
 
+    try:
+        ClickStatistics.cleanup_old_statistics()
+    except Exception:
+        logger.exception("Failed to cleanup click statistics")
+        
     try:
         uvicorn.run("module.server.app:fastapi_app",
                     host=host,
