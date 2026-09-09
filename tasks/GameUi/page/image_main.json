@@ -164,8 +164,8 @@
   {
     "itemName": "check_mall",
     "imageName": "page_check_mall.png",
-    "roiFront": "147,527,82,82",
-    "roiBack": "147,527,82,82",
+    "roiFront": "163,527,66,64",
+    "roiBack": "163,527,66,64",
     "method": "Template matching",
     "threshold": 0.8,
     "description": "商店页面标志"
