@@ -280,7 +280,9 @@ class ScriptTask(GameUi, GeneralInvite, GeneralRoom, GeneralBattle, SwitchSoul, 
                     # 进入战斗流程
                     self.device.stuck_record_add('BATTLE_STATUS_S')
                 else:
-                    break
+                    # 房间被销毁/开战超时：不要就此退出队员流程，回退到等待状态承接队长下一次邀请。
+                    # 顶部的 wait_timer / limit_time 会兜底约束等待时长，避免无限等待。
+                    continue
             # 队长秒开的时候，检测是否进入到战斗中
             elif self.is_in_battle(False):
                 self.run_general_battle(self.config.bondling_fairyland.battle_config)
@@ -289,10 +291,16 @@ class ScriptTask(GameUi, GeneralInvite, GeneralRoom, GeneralBattle, SwitchSoul, 
                 self.device.stuck_record_add('BATTLE_STATUS_S')
                 continue
 
+        cleanup_timer = Timer(10).start()
         while 1:
             # 有一种情况是本来要退出的，但是队长邀请了进入的战斗的加载界面
             if self.appear(self.I_CHECK_MAIN) or self.appear(self.I_CHECK_EXPLORATION) or self.appear(
                     self.I_BALL_AREA) or self.appear(self.I_BALL_HELP):
+                break
+            # 兜底：若既不识别到安全页，房间里也没有可退出/要退出的战斗(exit_* 无动作直接 True)，
+            # 会长时间只截屏不点击，60s 后触发 GameStuckError。此处用超时强制退出空转。
+            if cleanup_timer.reached():
+                logger.warning('Room cleanup timeout, go main')
                 break
             # 如果可能在房间就退出
             if self.exit_room():
@@ -645,12 +653,33 @@ class ScriptTask(GameUi, GeneralInvite, GeneralRoom, GeneralBattle, SwitchSoul, 
         self.timer_wait.start()
         logger.info(f'Wait battle {wait_second} seconds')
         success = True
+
+        def _kicked_out() -> bool:
+            # 契灵之境的 I_BALL_AREA/I_BALL_HELP 会在战斗结算过渡瞬间闪现，
+            # 仅凭单帧会把"仍在房间"误判成"房间已销毁"。先确认已不在房间内，
+            # 再要求连续两帧都看到"回到主界面/契灵地面"，才判定房间销毁。
+            return not self.is_in_room(False) and (
+                self.appear(self.I_CHECK_MAIN) or self.appear(self.I_CHECK_EXPLORATION)
+                or self.appear(self.I_BALL_AREA) or self.appear(self.I_BALL_HELP)
+            )
+
+        def _room_destroyed() -> bool:
+            if not _kicked_out():
+                return False
+            self.screenshot()  # 取第二帧确认，排除过渡瞬间的单帧误判
+            return _kicked_out()
+
         while 1:
             self.screenshot()
 
+            # 队长开战：已经进入战斗场景时优先判断，避免被"契灵地面"过渡误判成房间销毁
+            if self.appear(self.I_EXIT):
+                success = True
+                logger.info("契灵：已经在战斗场景中")
+                break
+
             # 如果自己在探索界面或者是庭院，那就是房间已经被销毁了
-            if self.appear(self.I_CHECK_MAIN) or self.appear(self.I_CHECK_EXPLORATION) or self.appear(
-                    self.I_BALL_AREA) or self.appear(self.I_BALL_HELP):
+            if _room_destroyed():
                 logger.warning('Room destroyed')
                 success = False
                 break
@@ -658,11 +687,6 @@ class ScriptTask(GameUi, GeneralInvite, GeneralRoom, GeneralBattle, SwitchSoul, 
             if self.timer_wait.reached():
                 logger.warning('Wait battle time out')
                 success = False
-                break
-
-            if self.appear(self.I_EXIT):
-                success = True
-                logger.info("契灵：已经在战斗场景中")
                 break
 
         # 调出循环只有这些可能性：
