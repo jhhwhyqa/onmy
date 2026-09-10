@@ -478,22 +478,14 @@ class ScriptTask(GameUi, Summon, DailyTriflesAssets):
         if not self.appear(self.I_GIFT_SIGN):
             logger.warning("There is no gift sign")
             return
-        click_count = 0
-        while 1:
-            self.screenshot()
-            if self.appear_then_click(self.I_GIFT_SIGN, interval=2.5):
-                sleep(1)  # 等个动画
-                self.screenshot()
-                if self.appear(self.I_GIFT_SIGN_GOT):
-                    self.click(
-                        random_click(ltrb=(True, False, False, False)), interval=1.5
-                    )
-                    logger.info("Get reward of gift sign")
-                    return
-            click_count += 1
-            if click_count >= 3:
-                logger.info("Get reward timeout")
-                break
+
+        if self.ui_get_reward(self.I_GIFT_SIGN, click_interval=2.5):
+            logger.info('Get reward of gift sign')
+
+        self.screenshot()
+        if self.appear(self.I_GIFT_SIGN_GOT):
+            self.click(random_click(ltrb=(True, False, False, False)), interval=1.5)
+            return
 
     def run_buy_sushi(self):
         logger.hr('store sushi', 2)
