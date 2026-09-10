@@ -174,7 +174,7 @@
     "itemName": "duel_honor",
     "imageName": "duel_duel_honor.png",
     "roiFront": "211,636,20,20",
-    "roiBack": "200,601,130,100",
+    "roiBack": "180,601,217,98",
     "method": "Template matching",
     "threshold": 0.8,
     "description": "斗技荣誉图标"
@@ -187,5 +187,14 @@
     "method": "Template matching",
     "threshold": 0.8,
     "description": "胜利分享"
+  },
+  {
+    "itemName": "white_dog",
+    "imageName": "duel_white_dog.png",
+    "roiFront": "388,327,70,62",
+    "roiBack": "308,254,215,249",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "小白弹窗"
   }
 ]
