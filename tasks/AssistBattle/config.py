@@ -24,21 +24,27 @@ class AssistBattleConfig(BaseModel):
     )
     evozone_enable: bool = Field(
         default=False,
-        description='默认5层打满每日15次',
+        description='默认雷麒麟5层打满每日15次',
     )
     realmraid_enable: bool = Field(default=True, description='默认开启，默认锁定阵容')
     realmraid_easy_enable: bool = Field(
         default=True,
-        description='默认开启，低勋优先失败刷新，关闭后自动读取个人突破的配置',
+        description='默认开启，低勋优先失败刷新，不卡57，关闭后自动读取个人突破的配置',
     )
     switch_soul_enable: bool = Field(
-        default=False, description='直接套用个人突破内配置，请确保其正确配置'
+        default=False,
+        description='读取个人突破内配置，请确保正确配置，不用开启个人突破任务',
+    )
+    email_enable: bool = Field(default=True, description='领取类似每日花合战的基础奖励')
+    courtyard_affairs_enable: bool = Field(
+        default=True, description='领取类似逢魔之时的基础奖励'
     )
     result_push_enable: bool = Field(
         default=False, description='请自行去脚本设置中配置并启用'
     )
     kekkaiutilize_enable: bool = Field(
-        default=False, description='顺便蹭个结界卡，默认蹭卡规则default(暂未实装)'
+        default=False,
+        description='读取结界蹭卡模块配置，请确保结界能正常进入，不用开启结界蹭卡任务',
     )
 
 

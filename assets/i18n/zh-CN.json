@@ -269,5 +269,7 @@
   "result_push_enable": "启用完成推送",
   "kekkaiutilize_enable": "启用结界寄养",
   "account_list": "账号列表",
-  "account_list_description": "脚本会自动识别每个账号的剩余协战次数，理论上只需要手动上阵一次协战式神后续就可以自动执行任务,协战式神建议使用高速火灵输出。3个账号开启觉醒加结界突破可以打满，不开结界突破则需要四个账号"
+  "account_list_description": "脚本会自动识别每个账号的剩余协战次数，理论上只需要手动上阵一次协战式神后续就可以自动执行任务,协战式神建议使用高速火灵输出。3个账号开启觉醒加结界突破可以打满，不开结界突破则需要四个账号",
+  "email_enable": "邮件领取",
+  "courtyard_affairs_enable": "庭院琐事"
 }

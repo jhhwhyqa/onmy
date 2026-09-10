@@ -10,13 +10,10 @@ from tasks.Component.SwitchAccount.switch_account import SwitchAccount
 from tasks.EvoZone.config import Layer, KirinType
 from tasks.EvoZone.script_task import ScriptTask as EvoZoneScriptTask
 from tasks.RealmRaid.script_task import ScriptTask as RealmRaidScriptTask
-from tasks.GameUi.page import (
-    page_main,
-    page_awake_zones,
-    page_realm_raid,
-    page_assist_battle,
-    page_friends,
-)
+from tasks.DailyTrifles.script_task import ScriptTask as DailyTriflesScriptTask
+from tasks.KekkaiUtilize.script_task import ScriptTask as KekkaiUtilizeScriptTask
+from tasks.KekkaiUtilize.page import page_guild_realm
+from tasks.GameUi.page import page_main, page_assist_battle
 from tasks.AssistBattle.assets import AssistBattleAssets
 from tasks.AssistBattle.config import AssistBattleConfig
 
@@ -24,6 +21,8 @@ from tasks.AssistBattle.config import AssistBattleConfig
 class ScriptTask(
     EvoZoneScriptTask,
     RealmRaidScriptTask,
+    DailyTriflesScriptTask,
+    KekkaiUtilizeScriptTask,
     AssistBattleAssets,
 ):
 
@@ -92,7 +91,6 @@ class ScriptTask(
                 f"觉醒副本 {result['evozone_final']}/15，"
                 f"结界突破 {result['realmraid_final']}/3"
             )
-            logger.info(message)
             push_content.append(message)
         # 推送协战完成结果
         if self.conf.assist_battle_config.result_push_enable:
@@ -107,14 +105,30 @@ class ScriptTask(
         raise TaskEnd('AssistBattle')
 
     def run_current_account(self):
+        # 结界寄养
+        if self.conf.assist_battle_config.kekkaiutilize_enable:
+            # 进入寮结界
+            self.goto_page(page_guild_realm)
+            self.check_utilize_add()
+            self.goto_page(page_main)
+        # 庭院事务
+        if self.conf.assist_battle_config.courtyard_affairs_enable:
+            self.run_courtyard_affairs()
+            self.goto_page(page_main)
+        # 邮件领取
+        if self.conf.assist_battle_config.email_enable:
+            self.run_pickup_email()
+            self.goto_page(page_main)
+
         # 执行任务前先获取本账号协战剩余次数
         start_evozone, start_realmraid = self.get_assist_battle_count()
         total_evozone = 15
         total_realmraid = 3
-
+        # 执行觉醒副本任务
         if self.conf.assist_battle_config.evozone_enable and start_evozone > 0:
             self.run_evozone(start_evozone)
             self.goto_page(page_main)
+        # 执行结界突破任务
         if self.conf.assist_battle_config.realmraid_enable and start_realmraid > 0:
             self.run_realmraid(start_realmraid)
             self.goto_page(page_main)
