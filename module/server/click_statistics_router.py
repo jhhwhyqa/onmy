@@ -4,12 +4,12 @@ import json
 from datetime import date
 from pathlib import Path
 from typing import Any
+from threading import RLock
 
 from fastapi import APIRouter, HTTPException, Path as FastAPIPath, Query
 from pydantic import BaseModel, Field
 
 from module.server.api_logger import ApiLoggingRoute
-
 
 # ----------------------------------------------------------------------
 # 路径
@@ -25,11 +25,7 @@ from module.server.api_logger import ApiLoggingRoute
 # 所以这里得到项目根目录。
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
-CLICK_STATISTICS_ROOT = (
-    PROJECT_ROOT
-    / "log"
-    / "click_statistics"
-)
+CLICK_STATISTICS_ROOT = PROJECT_ROOT / "log" / "click_statistics"
 
 
 # ----------------------------------------------------------------------
@@ -47,6 +43,7 @@ click_statistics_app = APIRouter(
 # Response Models
 # ----------------------------------------------------------------------
 
+
 class ClickStatisticsConfigListResponse(BaseModel):
     configs: list[str] = Field(default_factory=list)
 
@@ -62,6 +59,11 @@ class ClickStatisticsDateListResponse(BaseModel):
     dates: list[str] = Field(default_factory=list)
 
 
+class ClickStatisticsIndexResponse(BaseModel):
+    config: str
+    dates: dict[str, list[str]] = Field(default_factory=dict)
+
+
 class ClickStatisticsSessionSummary(BaseModel):
     session_id: str
     task: str
@@ -75,6 +77,7 @@ class ClickStatisticsSessionSummary(BaseModel):
     status: str = ""
 
     total_clicks: int = 0
+    total_swipes: int = 0
 
 
 class ClickStatisticsSessionListResponse(BaseModel):
@@ -82,9 +85,7 @@ class ClickStatisticsSessionListResponse(BaseModel):
     task: str
     date: str
 
-    sessions: list[ClickStatisticsSessionSummary] = Field(
-        default_factory=list
-    )
+    sessions: list[ClickStatisticsSessionSummary] = Field(default_factory=list)
 
 
 class ClickStatisticsDetailResponse(BaseModel):
@@ -102,18 +103,15 @@ class ClickStatisticsDetailResponse(BaseModel):
     success: bool = False
     status: str = ""
 
-    summary: dict[str, Any] = Field(
-        default_factory=dict
-    )
+    summary: dict[str, Any] = Field(default_factory=dict)
 
-    events: list[dict[str, Any]] = Field(
-        default_factory=list
-    )
+    events: list[dict[str, Any]] = Field(default_factory=list)
 
 
 # ----------------------------------------------------------------------
 # 工具函数
 # ----------------------------------------------------------------------
+
 
 def _validate_path_name(
     name: str,
@@ -156,9 +154,7 @@ def _validate_date(
     date_text: str,
 ) -> str:
     try:
-        parsed = date.fromisoformat(
-            date_text
-        )
+        parsed = date.fromisoformat(date_text)
     except ValueError as exc:
         raise HTTPException(
             status_code=422,
@@ -172,11 +168,7 @@ def _read_json(
     path: Path,
 ) -> dict[str, Any]:
     try:
-        data = json.loads(
-            path.read_text(
-                encoding="utf-8"
-            )
-        )
+        data = json.loads(path.read_text(encoding="utf-8"))
     except FileNotFoundError as exc:
         raise HTTPException(
             status_code=404,
@@ -212,28 +204,158 @@ def _config_path(
         "config name",
     )
 
-    return (
-        CLICK_STATISTICS_ROOT
-        / config_name
-    )
+    return CLICK_STATISTICS_ROOT / config_name
 
 
 def _date_path(
     config_name: str,
     date_text: str,
 ) -> Path:
-    config_path = _config_path(
-        config_name
+    config_path = _config_path(config_name)
+
+    date_text = _validate_date(date_text)
+
+    return config_path / date_text
+
+
+# ----------------------------------------------------------------------
+# 实例索引缓存
+# ----------------------------------------------------------------------
+
+_config_index_cache: dict[
+    str,
+    tuple[
+        tuple[tuple[str, int, int], ...],
+        dict[str, list[str]],
+    ],
+] = {}
+
+_config_index_lock = RLock()
+
+
+def _get_config_index_fingerprint(
+    config_name: str,
+) -> tuple[tuple[str, int, int], ...]:
+    """
+    获取实例目录的轻量指纹。
+
+    返回：
+        (
+            (
+                日期目录名,
+                日期目录 mtime_ns,
+                json 文件数量,
+            ),
+            ...
+        )
+
+    用于判断索引是否需要重新扫描。
+    """
+    result: list[tuple[str, int, int]] = []
+
+    for date_dir in _iter_date_dirs(config_name):
+        try:
+            mtime_ns = date_dir.stat().st_mtime_ns
+        except OSError:
+            continue
+
+        json_count = sum(1 for path in date_dir.glob("*.json") if path.is_file())
+
+        result.append(
+            (
+                date_dir.name,
+                mtime_ns,
+                json_count,
+            )
+        )
+
+    return tuple(result)
+
+
+def _build_config_index(
+    config_name: str,
+) -> dict[str, list[str]]:
+    """
+    扫描一个实例下的所有统计 JSON，
+    构建：
+
+        {
+            "2026-09-03": [
+                "BondlingFairyland",
+                "Exploration",
+            ],
+            ...
+        }
+
+    每个 JSON 只读取一次。
+    """
+    date_tasks: dict[str, set[str]] = {}
+
+    for date_dir in _iter_date_dirs(config_name):
+        try:
+            date.fromisoformat(date_dir.name)
+        except ValueError:
+            continue
+
+        tasks = date_tasks.setdefault(
+            date_dir.name,
+            set(),
+        )
+
+        for path in date_dir.glob("*.json"):
+            if not path.is_file():
+                continue
+
+            try:
+                data = _read_json(path)
+            except HTTPException:
+                # 单个损坏文件不影响整个索引。
+                continue
+
+            task_name = str(data.get("task", "")).strip()
+
+            if task_name:
+                tasks.add(task_name)
+
+    return {
+        date_text: sorted(tasks)
+        for date_text, tasks in sorted(
+            date_tasks.items(),
+            reverse=True,
+        )
+        if tasks
+    }
+
+
+def _get_config_index(
+    config_name: str,
+) -> dict[str, list[str]]:
+    """
+    获取实例索引。
+
+    如果实例目录没有变化，则直接使用内存缓存。
+    """
+    config_name = _validate_path_name(
+        config_name,
+        "config name",
     )
 
-    date_text = _validate_date(
-        date_text
-    )
+    fingerprint = _get_config_index_fingerprint(config_name)
 
-    return (
-        config_path
-        / date_text
-    )
+    with _config_index_lock:
+        cached = _config_index_cache.get(config_name)
+
+        if cached is not None and cached[0] == fingerprint:
+            return cached[1]
+
+        index = _build_config_index(config_name)
+
+        _config_index_cache[config_name] = (
+            fingerprint,
+            index,
+        )
+
+        return index
 
 
 def _iter_config_dirs() -> list[Path]:
@@ -254,11 +376,7 @@ def _iter_config_dirs() -> list[Path]:
         return []
 
     return sorted(
-        (
-            path
-            for path in CLICK_STATISTICS_ROOT.iterdir()
-            if path.is_dir()
-        ),
+        (path for path in CLICK_STATISTICS_ROOT.iterdir() if path.is_dir()),
         key=lambda path: path.name,
     )
 
@@ -266,19 +384,13 @@ def _iter_config_dirs() -> list[Path]:
 def _iter_date_dirs(
     config_name: str,
 ) -> list[Path]:
-    config_path = _config_path(
-        config_name
-    )
+    config_path = _config_path(config_name)
 
     if not config_path.exists():
         return []
 
     return sorted(
-        (
-            path
-            for path in config_path.iterdir()
-            if path.is_dir()
-        ),
+        (path for path in config_path.iterdir() if path.is_dir()),
         key=lambda path: path.name,
         reverse=True,
     )
@@ -318,9 +430,7 @@ def _find_task_files(
             )
         ]
     else:
-        date_dirs = _iter_date_dirs(
-            config_name
-        )
+        date_dirs = _iter_date_dirs(config_name)
 
     results: list[Path] = []
 
@@ -356,18 +466,42 @@ def _find_task_files(
 # /click-statistics/configs
 # ----------------------------------------------------------------------
 
+
 @click_statistics_app.get(
     "/configs",
     response_model=ClickStatisticsConfigListResponse,
 )
 async def list_click_statistics_configs():
-    configs = [
-        path.name
-        for path in _iter_config_dirs()
-    ]
+    configs = [path.name for path in _iter_config_dirs()]
+
+    return {"configs": configs}
+
+
+# ----------------------------------------------------------------------
+# 获取某个实例的任务 / 日期索引
+#
+# GET
+# /click-statistics/{config_name}/index
+# ----------------------------------------------------------------------
+
+
+@click_statistics_app.get(
+    "/{config_name}/index",
+    response_model=ClickStatisticsIndexResponse,
+)
+async def get_click_statistics_index(
+    config_name: str = FastAPIPath(description="OAS 配置 / 实例名称"),
+):
+    config_name = _validate_path_name(
+        config_name,
+        "config name",
+    )
+
+    dates = _get_config_index(config_name)
 
     return {
-        "configs": configs
+        "config": config_name,
+        "dates": dates,
     }
 
 
@@ -378,14 +512,13 @@ async def list_click_statistics_configs():
 # /click-statistics/{config_name}/tasks
 # ----------------------------------------------------------------------
 
+
 @click_statistics_app.get(
     "/{config_name}/tasks",
     response_model=ClickStatisticsTaskListResponse,
 )
 async def list_click_statistics_tasks(
-    config_name: str = FastAPIPath(
-        description="OAS 配置 / 实例名称"
-    ),
+    config_name: str = FastAPIPath(description="OAS 配置 / 实例名称"),
 ):
     config_name = _validate_path_name(
         config_name,
@@ -394,9 +527,7 @@ async def list_click_statistics_tasks(
 
     tasks: set[str] = set()
 
-    for date_dir in _iter_date_dirs(
-        config_name
-    ):
+    for date_dir in _iter_date_dirs(config_name):
         for path in date_dir.glob("*.json"):
             if not path.is_file():
                 continue
@@ -429,17 +560,14 @@ async def list_click_statistics_tasks(
 # /click-statistics/{config_name}/{task_name}/dates
 # ----------------------------------------------------------------------
 
+
 @click_statistics_app.get(
     "/{config_name}/{task_name}/dates",
     response_model=ClickStatisticsDateListResponse,
 )
 async def list_click_statistics_dates(
-    config_name: str = FastAPIPath(
-        description="OAS 配置 / 实例名称"
-    ),
-    task_name: str = FastAPIPath(
-        description="任务名称"
-    ),
+    config_name: str = FastAPIPath(description="OAS 配置 / 实例名称"),
+    task_name: str = FastAPIPath(description="任务名称"),
 ):
     config_name = _validate_path_name(
         config_name,
@@ -453,13 +581,9 @@ async def list_click_statistics_dates(
 
     dates: list[str] = []
 
-    for date_dir in _iter_date_dirs(
-        config_name
-    ):
+    for date_dir in _iter_date_dirs(config_name):
         try:
-            date.fromisoformat(
-                date_dir.name
-            )
+            date.fromisoformat(date_dir.name)
         except ValueError:
             continue
 
@@ -470,9 +594,7 @@ async def list_click_statistics_dates(
         )
 
         if files:
-            dates.append(
-                date_dir.name
-            )
+            dates.append(date_dir.name)
 
     dates = sorted(
         set(dates),
@@ -493,17 +615,14 @@ async def list_click_statistics_dates(
 # /click-statistics/{config_name}/{task_name}?date=2026-09-03
 # ----------------------------------------------------------------------
 
+
 @click_statistics_app.get(
     "/{config_name}/{task_name}",
     response_model=ClickStatisticsSessionListResponse,
 )
 async def list_click_statistics_sessions(
-    config_name: str = FastAPIPath(
-        description="OAS 配置 / 实例名称"
-    ),
-    task_name: str = FastAPIPath(
-        description="任务名称"
-    ),
+    config_name: str = FastAPIPath(description="OAS 配置 / 实例名称"),
+    task_name: str = FastAPIPath(description="任务名称"),
     date_text: str = Query(
         ...,
         alias="date",
@@ -520,9 +639,7 @@ async def list_click_statistics_sessions(
         "task name",
     )
 
-    date_text = _validate_date(
-        date_text
-    )
+    date_text = _validate_date(date_text)
 
     files = _find_task_files(
         config_name,
@@ -530,9 +647,7 @@ async def list_click_statistics_sessions(
         date_text,
     )
 
-    sessions: list[
-        ClickStatisticsSessionSummary
-    ] = []
+    sessions: list[ClickStatisticsSessionSummary] = []
 
     for path in files:
         try:
@@ -569,6 +684,17 @@ async def list_click_statistics_sessions(
             )
         )
 
+        total_swipes = int(
+            summary.get(
+                "total_swipes",
+                sum(
+                    1
+                    for event in events
+                    if isinstance(event, dict) and event.get("type", "click") == "swipe"
+                ),
+            )
+        )
+
         sessions.append(
             ClickStatisticsSessionSummary(
                 session_id=str(
@@ -583,12 +709,8 @@ async def list_click_statistics_sessions(
                         task_name,
                     )
                 ),
-                start_time=data.get(
-                    "start_time"
-                ),
-                end_time=data.get(
-                    "end_time"
-                ),
+                start_time=data.get("start_time"),
+                end_time=data.get("end_time"),
                 duration=float(
                     data.get(
                         "duration",
@@ -608,13 +730,12 @@ async def list_click_statistics_sessions(
                     )
                 ),
                 total_clicks=total_clicks,
+                total_swipes=total_swipes,
             )
         )
 
     sessions.sort(
-        key=lambda item: (
-            item.start_time or ""
-        ),
+        key=lambda item: (item.start_time or ""),
         reverse=True,
     )
 
@@ -633,23 +754,16 @@ async def list_click_statistics_sessions(
 # /click-statistics/{config_name}/{task_name}/{date}/{session_id}
 # ----------------------------------------------------------------------
 
+
 @click_statistics_app.get(
     "/{config_name}/{task_name}/{date_text}/{session_id}",
     response_model=ClickStatisticsDetailResponse,
 )
 async def get_click_statistics_detail(
-    config_name: str = FastAPIPath(
-        description="OAS 配置 / 实例名称"
-    ),
-    task_name: str = FastAPIPath(
-        description="任务名称"
-    ),
-    date_text: str = FastAPIPath(
-        description="YYYY-MM-DD"
-    ),
-    session_id: str = FastAPIPath(
-        description="Session ID"
-    ),
+    config_name: str = FastAPIPath(description="OAS 配置 / 实例名称"),
+    task_name: str = FastAPIPath(description="任务名称"),
+    date_text: str = FastAPIPath(description="YYYY-MM-DD"),
+    session_id: str = FastAPIPath(description="Session ID"),
 ):
     config_name = _validate_path_name(
         config_name,
@@ -666,9 +780,7 @@ async def get_click_statistics_detail(
         "session id",
     )
 
-    date_text = _validate_date(
-        date_text
-    )
+    date_text = _validate_date(date_text)
 
     date_dir = _date_path(
         config_name,
@@ -690,9 +802,7 @@ async def get_click_statistics_detail(
     # 000001_004110_167_*.json
     candidates = []
 
-    for path in date_dir.glob(
-        f"{session_id}_*.json"
-    ):
+    for path in date_dir.glob(f"{session_id}_*.json"):
         if not path.is_file():
             continue
 
@@ -708,7 +818,8 @@ async def get_click_statistics_detail(
                     "session_id",
                     "",
                 )
-            ) == session_id
+            )
+            == session_id
         ):
             candidates.append(path)
 
@@ -770,12 +881,8 @@ async def get_click_statistics_detail(
                 session_id,
             )
         ),
-        "start_time": data.get(
-            "start_time"
-        ),
-        "end_time": data.get(
-            "end_time"
-        ),
+        "start_time": data.get("start_time"),
+        "end_time": data.get("end_time"),
         "duration": float(
             data.get(
                 "duration",
