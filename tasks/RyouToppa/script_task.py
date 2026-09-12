@@ -10,7 +10,12 @@ from tasks.RyouToppa.assets import RyouToppaAssets
 from tasks.Component.GeneralBattle.general_battle import GeneralBattle
 from tasks.Component.config_base import ConfigBase, Time
 from tasks.GameUi.game_ui import GameUi
-from tasks.GameUi.page import page_realm_raid, page_main, page_kekkai_toppa, page_shikigami_records
+from tasks.GameUi.page import (
+    page_realm_raid,
+    page_main,
+    page_kekkai_toppa,
+    page_shikigami_records,
+)
 from tasks.RealmRaid.assets import RealmRaidAssets
 
 from module.logger import logger
@@ -20,48 +25,95 @@ from module.base.utils import point2str
 from module.base.timer import Timer
 from module.exception import GamePageUnknownError
 
-
 area_map = (
     {
-        "fail_sign": (RyouToppaAssets.I_AREA_1_IS_FAILURE_NEW, RyouToppaAssets.I_AREA_1_IS_FAILURE),
+        "fail_sign": (
+            RyouToppaAssets.I_AREA_1_IS_FAILURE_NEW,
+            RyouToppaAssets.I_AREA_1_IS_FAILURE,
+        ),
         "rule_click": RyouToppaAssets.C_AREA_1,
-        "finished_sign": (RyouToppaAssets.I_AREA_1_FINISHED, RyouToppaAssets.I_AREA_1_FINISHED_NEW)
+        "finished_sign": (
+            RyouToppaAssets.I_AREA_1_FINISHED,
+            RyouToppaAssets.I_AREA_1_FINISHED_NEW,
+        ),
     },
     {
-        "fail_sign": (RyouToppaAssets.I_AREA_2_IS_FAILURE_NEW, RyouToppaAssets.I_AREA_2_IS_FAILURE),
+        "fail_sign": (
+            RyouToppaAssets.I_AREA_2_IS_FAILURE_NEW,
+            RyouToppaAssets.I_AREA_2_IS_FAILURE,
+        ),
         "rule_click": RyouToppaAssets.C_AREA_2,
-        "finished_sign": (RyouToppaAssets.I_AREA_2_FINISHED, RyouToppaAssets.I_AREA_2_FINISHED_NEW)
+        "finished_sign": (
+            RyouToppaAssets.I_AREA_2_FINISHED,
+            RyouToppaAssets.I_AREA_2_FINISHED_NEW,
+        ),
     },
     {
-        "fail_sign": (RyouToppaAssets.I_AREA_3_IS_FAILURE_NEW, RyouToppaAssets.I_AREA_3_IS_FAILURE),
+        "fail_sign": (
+            RyouToppaAssets.I_AREA_3_IS_FAILURE_NEW,
+            RyouToppaAssets.I_AREA_3_IS_FAILURE,
+        ),
         "rule_click": RyouToppaAssets.C_AREA_3,
-        "finished_sign": (RyouToppaAssets.I_AREA_3_FINISHED, RyouToppaAssets.I_AREA_3_FINISHED_NEW)
+        "finished_sign": (
+            RyouToppaAssets.I_AREA_3_FINISHED,
+            RyouToppaAssets.I_AREA_3_FINISHED_NEW,
+        ),
     },
     {
-        "fail_sign": (RyouToppaAssets.I_AREA_4_IS_FAILURE_NEW, RyouToppaAssets.I_AREA_4_IS_FAILURE),
+        "fail_sign": (
+            RyouToppaAssets.I_AREA_4_IS_FAILURE_NEW,
+            RyouToppaAssets.I_AREA_4_IS_FAILURE,
+        ),
         "rule_click": RyouToppaAssets.C_AREA_4,
-        "finished_sign": (RyouToppaAssets.I_AREA_4_FINISHED, RyouToppaAssets.I_AREA_4_FINISHED_NEW)
+        "finished_sign": (
+            RyouToppaAssets.I_AREA_4_FINISHED,
+            RyouToppaAssets.I_AREA_4_FINISHED_NEW,
+        ),
     },
     {
-        "fail_sign": (RyouToppaAssets.I_AREA_5_IS_FAILURE_NEW, RyouToppaAssets.I_AREA_5_IS_FAILURE),
+        "fail_sign": (
+            RyouToppaAssets.I_AREA_5_IS_FAILURE_NEW,
+            RyouToppaAssets.I_AREA_5_IS_FAILURE,
+        ),
         "rule_click": RyouToppaAssets.C_AREA_5,
-        "finished_sign": (RyouToppaAssets.I_AREA_5_FINISHED, RyouToppaAssets.I_AREA_5_FINISHED_NEW)
+        "finished_sign": (
+            RyouToppaAssets.I_AREA_5_FINISHED,
+            RyouToppaAssets.I_AREA_5_FINISHED_NEW,
+        ),
     },
     {
-        "fail_sign": (RyouToppaAssets.I_AREA_6_IS_FAILURE_NEW, RyouToppaAssets.I_AREA_6_IS_FAILURE),
+        "fail_sign": (
+            RyouToppaAssets.I_AREA_6_IS_FAILURE_NEW,
+            RyouToppaAssets.I_AREA_6_IS_FAILURE,
+        ),
         "rule_click": RyouToppaAssets.C_AREA_6,
-        "finished_sign": (RyouToppaAssets.I_AREA_6_FINISHED, RyouToppaAssets.I_AREA_6_FINISHED_NEW)
+        "finished_sign": (
+            RyouToppaAssets.I_AREA_6_FINISHED,
+            RyouToppaAssets.I_AREA_6_FINISHED_NEW,
+        ),
     },
     {
-        "fail_sign": (RyouToppaAssets.I_AREA_7_IS_FAILURE_NEW, RyouToppaAssets.I_AREA_7_IS_FAILURE),
+        "fail_sign": (
+            RyouToppaAssets.I_AREA_7_IS_FAILURE_NEW,
+            RyouToppaAssets.I_AREA_7_IS_FAILURE,
+        ),
         "rule_click": RyouToppaAssets.C_AREA_7,
-        "finished_sign": (RyouToppaAssets.I_AREA_7_FINISHED, RyouToppaAssets.I_AREA_7_FINISHED_NEW)
+        "finished_sign": (
+            RyouToppaAssets.I_AREA_7_FINISHED,
+            RyouToppaAssets.I_AREA_7_FINISHED_NEW,
+        ),
     },
     {
-        "fail_sign": (RyouToppaAssets.I_AREA_8_IS_FAILURE_NEW, RyouToppaAssets.I_AREA_8_IS_FAILURE),
+        "fail_sign": (
+            RyouToppaAssets.I_AREA_8_IS_FAILURE_NEW,
+            RyouToppaAssets.I_AREA_8_IS_FAILURE,
+        ),
         "rule_click": RyouToppaAssets.C_AREA_8,
-        "finished_sign": (RyouToppaAssets.I_AREA_8_FINISHED, RyouToppaAssets.I_AREA_8_FINISHED_NEW)
-    }
+        "finished_sign": (
+            RyouToppaAssets.I_AREA_8_FINISHED,
+            RyouToppaAssets.I_AREA_8_FINISHED_NEW,
+        ),
+    },
 )
 
 
@@ -83,9 +135,19 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RyouToppaAssets):
         """
         ryou_config = self.config.ryou_toppa
         time_limit: Time = ryou_config.raid_config.limit_time
-        time_delta = timedelta(hours=time_limit.hour, minutes=time_limit.minute, seconds=time_limit.second)
-        self.medal_grid = ImageGrid([RealmRaidAssets.I_MEDAL_5, RealmRaidAssets.I_MEDAL_4, RealmRaidAssets.I_MEDAL_3,
-                                     RealmRaidAssets.I_MEDAL_2, RealmRaidAssets.I_MEDAL_1, RealmRaidAssets.I_MEDAL_0])
+        time_delta = timedelta(
+            hours=time_limit.hour, minutes=time_limit.minute, seconds=time_limit.second
+        )
+        self.medal_grid = ImageGrid(
+            [
+                RealmRaidAssets.I_MEDAL_5,
+                RealmRaidAssets.I_MEDAL_4,
+                RealmRaidAssets.I_MEDAL_3,
+                RealmRaidAssets.I_MEDAL_2,
+                RealmRaidAssets.I_MEDAL_1,
+                RealmRaidAssets.I_MEDAL_0,
+            ]
+        )
 
         if ryou_config.switch_soul_config.enable:
             self.goto_page(page_shikigami_records)
@@ -93,7 +155,10 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RyouToppaAssets):
 
         if ryou_config.switch_soul_config.enable_switch_by_name:
             self.goto_page(page_shikigami_records)
-            self.run_switch_soul_by_name(ryou_config.switch_soul_config.group_name, ryou_config.switch_soul_config.team_name)
+            self.run_switch_soul_by_name(
+                ryou_config.switch_soul_config.group_name,
+                ryou_config.switch_soul_config.team_name,
+            )
 
         self.goto_page(page_kekkai_toppa)
         ryou_toppa_start_flag = True
@@ -122,7 +187,9 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RyouToppaAssets):
                 ryou_toppa_start_flag = False
                 break
             # 出现寮奖励， 说明寮突已开
-            elif self.appear(self.I_RYOU_REWARD, threshold=0.8) or self.appear(self.I_RYOU_REWARD_90, threshold=0.8):
+            elif self.appear(self.I_RYOU_REWARD, threshold=0.8) or self.appear(
+                self.I_RYOU_REWARD_90, threshold=0.8
+            ):
                 ryou_toppa_start_flag = True
                 break
 
@@ -136,7 +203,9 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RyouToppaAssets):
                 self.start_ryou_toppa()
             else:
                 logger.info("The ryou toppa is not open and you are a ryou member.")
-                self.set_next_run(task='RyouToppa', finish=True, server=True, success=False)
+                self.set_next_run(
+                    task='RyouToppa', finish=True, server=True, success=False
+                )
                 raise TaskEnd
 
         # 100% 攻破, 第二天再执行
@@ -174,7 +243,9 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RyouToppaAssets):
             if not res:
                 area_index += 1
                 if area_index >= len(area_map):
-                    logger.warning('All areas are not available, it will flush the area cache')
+                    logger.warning(
+                        'All areas are not available, it will flush the area cache'
+                    )
                     area_index = 0
                     self.flush_area_cache()
                 continue
@@ -190,11 +261,21 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RyouToppaAssets):
         # 安排下次寮突破，便于复用
         now = datetime.now()
         # 如果时间在00:00-5:00之间则设定时间为当天的自定义时间
-        if now.time() < dt_time(5, 0):  # 不确定 time 的使用范围，重命名 datetime 中的 time
-            self.custom_next_run(task='RyouToppa', custom_time=self.config.ryou_toppa.raid_config.next_ryoutoppa_time, time_delta=0)
+        if now.time() < dt_time(
+            5, 0
+        ):  # 不确定 time 的使用范围，重命名 datetime 中的 time
+            self.custom_next_run(
+                task='RyouToppa',
+                custom_time=self.config.ryou_toppa.raid_config.next_ryoutoppa_time,
+                time_delta=0,
+            )
         # 如果时间在05:00-23:59之间则设定时间为明天的自定义时间
         else:
-            self.custom_next_run(task='RyouToppa', custom_time=self.config.ryou_toppa.raid_config.next_ryoutoppa_time, time_delta=1)
+            self.custom_next_run(
+                task='RyouToppa',
+                custom_time=self.config.ryou_toppa.raid_config.next_ryoutoppa_time,
+                time_delta=1,
+            )
 
     def start_ryou_toppa(self):
         """
@@ -211,7 +292,9 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RyouToppaAssets):
         # 选择第一个寮
         while 1:
             self.screenshot()
-            if self.appear_then_click(self.I_GUILD_ORDERS_REWARDS, action=self.C_SELECT_FIRST_RYOU, interval=1):
+            if self.appear_then_click(
+                self.I_GUILD_ORDERS_REWARDS, action=self.C_SELECT_FIRST_RYOU, interval=1
+            ):
                 break
         logger.info(f'Click {self.C_SELECT_FIRST_RYOU.name}')
 
@@ -273,7 +356,9 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RyouToppaAssets):
             safe_pos_y = random.randint(320, 540)
             p1 = (safe_pos_x, safe_pos_y)
             p2 = (safe_pos_x, safe_pos_y - 101)
-            logger.info('Swipe %s -> %s, %s ' % (point2str(*p1), point2str(*p2), duration))
+            logger.info(
+                'Swipe %s -> %s, %s ' % (point2str(*p1), point2str(*p2), duration)
+            )
             self.device.swipe_adb(p1, p2, duration=duration)
             time.sleep(2)
 
@@ -296,11 +381,15 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RyouToppaAssets):
             self.screenshot()
             if self.is_in_battle(False):
                 logger.info("Start attach area [%s]" % str(index + 1))
-                return self.run_general_battle(config=self.config.ryou_toppa.general_battle_config)
+                return self.run_general_battle(
+                    config=self.config.ryou_toppa.general_battle_config
+                )
             if click_failure_count >= 5:
                 logger.warning("Click failure, check your click position")
                 return False
-            if self.appear_then_click(RealmRaidAssets.I_FIRE, interval=2, threshold=0.8):
+            if self.appear_then_click(
+                RealmRaidAssets.I_REALM_FIRE, interval=2, threshold=0.8
+            ):
                 click_failure_count += 1
                 continue
             if self.click(rcl, interval=5):
