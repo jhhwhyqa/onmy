@@ -1,6 +1,3 @@
-# 实现：
-# 是否开启协战完成推送
-# 使用方案 觉醒15次+结界突破3次
 from typing import Any, Dict
 
 from pydantic import (
