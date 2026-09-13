@@ -1,0 +1,9 @@
+[
+  {
+    "itemName": "swipe_down",
+    "roiFront": "208,378,21,21",
+    "roiBack": "200,100,21,21",
+    "mode": "default",
+    "description": "活动界面向下滑动"
+  }
+]

@@ -1,0 +1,128 @@
+[
+  {
+    "itemName": "check_act_exploration",
+    "imageName": "ae_check_act_exploration.png",
+    "roiFront": "1171,624,55,51",
+    "roiBack": "1171,624,55,51",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "活动探索界面检查标志"
+  },
+  {
+    "itemName": "main_event",
+    "imageName": "ae_main_event.png",
+    "roiFront": "28,115,48,20",
+    "roiBack": "28,115,48,20",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "主线"
+  },
+  {
+    "itemName": "fight_event",
+    "imageName": "ae_fight_event.png",
+    "roiFront": "537,95,214,22",
+    "roiBack": "433,63,366,90",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "战斗事件"
+  },
+  {
+    "itemName": "get_assist",
+    "imageName": "ae_get_assist.png",
+    "roiFront": "877,126,42,35",
+    "roiBack": "877,126,42,35",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "获得新助战式神"
+  },
+  {
+    "itemName": "box_event",
+    "imageName": "ae_box_event.png",
+    "roiFront": "537,95,214,22",
+    "roiBack": "537,95,214,22",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "宝箱事件"
+  },
+  {
+    "itemName": "encounter_battle",
+    "imageName": "ae_encounter_battle.png",
+    "roiFront": "27,293,64,24",
+    "roiBack": "23,94,83,360",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "遭遇战"
+  },
+  {
+    "itemName": "branch_event",
+    "imageName": "ae_branch_event.png",
+    "roiFront": "27,203,49,20",
+    "roiBack": "23,94,83,360",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "支线"
+  },
+  {
+    "itemName": "act_red_close",
+    "imageName": "ae_act_red_close.png",
+    "roiFront": "1202,137,41,42",
+    "roiBack": "1202,137,41,42",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "活动弹窗关闭按钮"
+  },
+  {
+    "itemName": "act_confirm_skip",
+    "imageName": "ae_act_confirm_skip.png",
+    "roiFront": "720,445,112,34",
+    "roiBack": "666,425,215,71",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "确认跳过"
+  },
+  {
+    "itemName": "act_locked",
+    "imageName": "ae_act_locked.png",
+    "roiFront": "256,111,21,23",
+    "roiBack": "245,97,39,84",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "活动剧情锁定"
+  },
+  {
+    "itemName": "act_goto_act_exploration",
+    "imageName": "ae_act_goto_act_exploration.png",
+    "roiFront": "1038,330,73,119",
+    "roiBack": "1038,330,73,119",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "活动页面跳转活动探索剧情页面"
+  },
+  {
+    "itemName": "act_skip",
+    "imageName": "ae_act_skip.png",
+    "roiFront": "1157,36,53,25",
+    "roiBack": "1135,15,102,71",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "跳过剧情"
+  },
+  {
+    "itemName": "encounter_battle_event",
+    "imageName": "ae_encounter_battle_event.png",
+    "roiFront": "809,82,107,32",
+    "roiBack": "809,82,107,32",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "遭遇战战斗界面识别"
+  },
+  {
+    "itemName": "back_to_main",
+    "imageName": "ae_back_to_main.png",
+    "roiFront": "77,20,43,37",
+    "roiBack": "0,1,256,79",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "返回庭院"
+  }
+]

@@ -59,6 +59,7 @@ from tasks.GuildActivityMonitor.config import GuildActivityMonitor
 # 这一部分是活动的配置-----------------------------------------------------------------------------------------------------
 from tasks.ActivityShikigami.config import ActivityShikigami
 from tasks.MartialTournament.config import MartialTournament
+from tasks.ActivityExploration.config import ActivityExploration
 from tasks.MetaDemon.config import MetaDemon
 from tasks.FrogBoss.config import FrogBoss
 from tasks.FloatParade.config import FloatParade
@@ -130,6 +131,9 @@ class ConfigModel(ConfigBase):
     # 这些是活动的
     activity_shikigami: ActivityShikigami = Field(default_factory=ActivityShikigami)
     martial_tournament: MartialTournament = Field(default_factory=MartialTournament)
+    activity_exploration: ActivityExploration = Field(
+        default_factory=ActivityExploration
+    )
     meta_demon: MetaDemon = Field(default_factory=MetaDemon)
     frog_boss: FrogBoss = Field(default_factory=FrogBoss)
     float_parade: FloatParade = Field(default_factory=FloatParade)

@@ -1,0 +1,20 @@
+[
+  {
+    "itemName": "act_challenge",
+    "roiFront": "1048,540,97,53",
+    "roiBack": "1000,492,204,136",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "挑战",
+    "description": "点击挑战"
+  },
+  {
+    "itemName": "act_open",
+    "roiFront": "1052,554,97,54",
+    "roiBack": "1000,492,204,136",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "开启",
+    "description": "点击开启"
+  }
+]
