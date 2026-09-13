@@ -4,6 +4,7 @@ import tempfile
 import threading
 import lzma
 import os
+import shlex
 import sys
 import time
 import json
@@ -248,7 +249,7 @@ class ScriptTask(ManualClaimMixin):
         if root_mode == 'adb':
             return self._adb_shell([command], timeout=timeout)
         if root_mode == 'su':
-            return self._adb_shell(['su', '-c', command], timeout=timeout)
+            return self._adb_shell([f'su -c {shlex.quote(command)}'], timeout=timeout)
         raise RuntimeError('模拟器未提供Root权限')
 
     def _get_app_pid(self):
