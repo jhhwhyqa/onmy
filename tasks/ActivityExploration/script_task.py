@@ -77,8 +77,15 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, ActivityExplorationAssets):
             if loop_count >= 3:
                 logger.hr("no event can do, exit")
                 break
+            # 判断是否可继续执行
+            if self.appear(self.I_ACT_LOCKED):
+                self.swipe(self.S_SWIPE_DOWN, interval=1)
+                sleep(1)
+                continue
             # 主线任务
-            if self.appear_then_click(self.I_MAIN_EVENT, interval=1.5):
+            if self.appear_then_click(
+                self.I_MAIN_EVENT, interval=1.5
+            ) and not self.appear(self.I_ACT_LOCKED):
                 continue
             # 检查可执行任务
             if (
@@ -91,10 +98,7 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, ActivityExplorationAssets):
             ):
                 logger.info("no event can do, try again")
                 loop_count += 1
-            # 判断是否可继续执行
-            if self.appear(self.I_ACT_LOCKED):
-                self.swipe(self.S_SWIPE_DOWN, interval=1)
-                continue
+
         self.screenshot()
         self.goto_page(page_main)
         self.set_next_run(task='ActivityExploration', success=True, finish=True)
