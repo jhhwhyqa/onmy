@@ -1,11 +1,16 @@
 from tasks.ActivityExploration.assets import ActivityExplorationAssets
 from tasks.GameUi.page import Page, page_main
+from tasks.GameUi.action import conditional_action
 from tasks.ActivityShikigami.page import page_act
 
 # 爬塔活动剧情界面
 page_act_exploration = Page(ActivityExplorationAssets.I_CHECK_ACT_EXPLORATION)
 page_act_exploration.add_enter_failure_hooks(
-    ActivityExplorationAssets.I_ACT_SKIP, ActivityExplorationAssets.I_ACT_CONFIRM_SKIP
+    ActivityExplorationAssets.I_ACT_SKIP,
+    conditional_action(
+        condition=ActivityExplorationAssets.I_ACT_SKIP,
+        action=ActivityExplorationAssets.I_ACT_CONFIRM_SKIP,
+    ),
 )
 page_act.connect(
     page_act_exploration,

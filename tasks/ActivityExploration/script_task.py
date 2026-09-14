@@ -56,11 +56,10 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, ActivityExplorationAssets):
             if self.appear(self.I_FIGHT_EVENT):
                 # 遭遇战战斗
                 if self.appear(self.I_ENCOUNTER_BATTLE_EVENT):
-                    self.ocr_appear_click(self.O_ACT_CHALLENGE, interval=1.5)
-                    self.run_general_battle(config=self.conf.general_battle_config)
+                    if self.ocr_appear_click(self.O_ACT_CHALLENGE, interval=1.5):
+                        self.run_general_battle(config=self.conf.general_battle_config)
                 # 普通战斗
-                else:
-                    self.ocr_appear_click(self.O_ACT_CHALLENGE, interval=1.5)
+                elif self.ocr_appear_click(self.O_ACT_CHALLENGE, interval=1.5):
                     self.run_general_battle()
                 continue
             # 获取新助战式神
@@ -75,18 +74,15 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, ActivityExplorationAssets):
             # 优先执行支线任务
             if self.appear_then_click(self.I_BRANCH_EVENT, interval=1.5):
                 continue
-            # 判断是否可继续执行
-            if self.appear(self.I_ACT_LOCKED):
-                self.swipe(self.S_SWIPE_DOWN, interval=1)
-                continue
             if loop_count >= 3:
                 logger.hr("no event can do, exit")
                 break
             # 主线任务
             if self.appear_then_click(self.I_MAIN_EVENT, interval=1.5):
                 continue
+            # 检查可执行任务
             if (
-                not self.appear(self.I_MAIN_EVENT)
+                (self.appear(self.I_ACT_LOCKED) or not self.appear(self.I_MAIN_EVENT))
                 and not self.appear(self.I_BRANCH_EVENT)
                 and not (
                     self.conf.activity_exploration_config.encounter_battle_enable
@@ -95,6 +91,10 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, ActivityExplorationAssets):
             ):
                 logger.info("no event can do, try again")
                 loop_count += 1
+            # 判断是否可继续执行
+            if self.appear(self.I_ACT_LOCKED):
+                self.swipe(self.S_SWIPE_DOWN, interval=1)
+                continue
         self.screenshot()
         self.goto_page(page_main)
         self.set_next_run(task='ActivityExploration', success=True, finish=True)

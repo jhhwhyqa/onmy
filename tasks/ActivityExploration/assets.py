@@ -12,11 +12,11 @@ class ActivityExplorationAssets:
 
 	# Image Rule Assets
 	# 活动探索界面检查标志 
-	I_CHECK_ACT_EXPLORATION = RuleImage(roi_front=(1171,624,55,51), roi_back=(1171,624,55,51), threshold=0.8, method="Template matching", file="./tasks/ActivityExploration/ae/ae_check_act_exploration.png")
+	I_CHECK_ACT_EXPLORATION = RuleImage(roi_front=(544,16,185,27), roi_back=(526,0,223,54), threshold=0.8, method="Template matching", file="./tasks/ActivityExploration/ae/ae_check_act_exploration.png")
 	# 主线 
 	I_MAIN_EVENT = RuleImage(roi_front=(28,115,48,20), roi_back=(28,115,48,20), threshold=0.8, method="Template matching", file="./tasks/ActivityExploration/ae/ae_main_event.png")
 	# 战斗事件 
-	I_FIGHT_EVENT = RuleImage(roi_front=(537,95,214,22), roi_back=(433,63,366,90), threshold=0.8, method="Template matching", file="./tasks/ActivityExploration/ae/ae_fight_event.png")
+	I_FIGHT_EVENT = RuleImage(roi_front=(1069,26,33,28), roi_back=(1003,0,277,81), threshold=0.8, method="Template matching", file="./tasks/ActivityExploration/ae/ae_fight_event.png")
 	# 获得新助战式神 
 	I_GET_ASSIST = RuleImage(roi_front=(877,126,42,35), roi_back=(877,126,42,35), threshold=0.8, method="Template matching", file="./tasks/ActivityExploration/ae/ae_get_assist.png")
 	# 宝箱事件 

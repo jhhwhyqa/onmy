@@ -2,8 +2,8 @@
   {
     "itemName": "check_act_exploration",
     "imageName": "ae_check_act_exploration.png",
-    "roiFront": "1171,624,55,51",
-    "roiBack": "1171,624,55,51",
+    "roiFront": "544,16,185,27",
+    "roiBack": "526,0,223,54",
     "method": "Template matching",
     "threshold": 0.8,
     "description": "活动探索界面检查标志"
@@ -20,8 +20,8 @@
   {
     "itemName": "fight_event",
     "imageName": "ae_fight_event.png",
-    "roiFront": "537,95,214,22",
-    "roiBack": "433,63,366,90",
+    "roiFront": "1069,26,33,28",
+    "roiBack": "1003,0,277,81",
     "method": "Template matching",
     "threshold": 0.8,
     "description": "战斗事件"
