@@ -124,5 +124,14 @@
     "method": "Template matching",
     "threshold": 0.8,
     "description": "返回庭院"
+  },
+  {
+    "itemName": "hard_fight_close",
+    "imageName": "ae_hard_fight_close.png",
+    "roiFront": "1096,114,41,41",
+    "roiBack": "1096,114,41,41",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": ""
   }
 ]

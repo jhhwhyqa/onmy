@@ -39,6 +39,8 @@ class ActivityExplorationAssets:
 	I_ENCOUNTER_BATTLE_EVENT = RuleImage(roi_front=(809,82,107,32), roi_back=(809,82,107,32), threshold=0.8, method="Template matching", file="./tasks/ActivityExploration/ae/ae_encounter_battle_event.png")
 	# 返回庭院 
 	I_BACK_TO_MAIN = RuleImage(roi_front=(77,20,43,37), roi_back=(0,1,256,79), threshold=0.8, method="Template matching", file="./tasks/ActivityExploration/ae/ae_back_to_main.png")
+	#  
+	I_HARD_FIGHT_CLOSE = RuleImage(roi_front=(1096,114,41,41), roi_back=(1096,114,41,41), threshold=0.8, method="Template matching", file="./tasks/ActivityExploration/ae/ae_hard_fight_close.png")
 
 
 	# Ocr Rule Assets

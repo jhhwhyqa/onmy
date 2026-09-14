@@ -54,6 +54,13 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, ActivityExplorationAssets):
                 continue
             # 进入战斗
             if self.appear(self.I_FIGHT_EVENT):
+                # 关闭错误的战斗页面
+                if (
+                    not self.conf.activity_exploration_config.encounter_battle_enable
+                    and self.appear(self.I_ENCOUNTER_BATTLE_EVENT)
+                ):
+                    self.appear_then_click(self.I_HARD_FIGHT_CLOSE, interval=1.5)
+                    continue
                 # 遭遇战战斗
                 if self.appear(self.I_ENCOUNTER_BATTLE_EVENT):
                     if self.ocr_appear_click(self.O_ACT_CHALLENGE, interval=1.5):
