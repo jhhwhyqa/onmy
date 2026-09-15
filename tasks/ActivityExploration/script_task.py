@@ -34,6 +34,7 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, ActivityExplorationAssets):
             self.goto_page(page_act_exploration)
 
         loop_count = 0
+        swipe_count = 0
         while 1:
             # 等待上一次点击或滑动结果
             sleep(1)
@@ -77,22 +78,26 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, ActivityExplorationAssets):
                 self.conf.activity_exploration_config.encounter_battle_enable
                 and self.appear_then_click(self.I_ENCOUNTER_BATTLE, interval=1.5)
             ):
+                swipe_count = 0
                 continue
             # 优先执行支线任务
             if self.appear_then_click(self.I_BRANCH_EVENT, interval=1.5):
+                swipe_count = 0
                 continue
-            if loop_count >= 3:
+            if loop_count >= 3 or swipe_count >= 3:
                 logger.hr("no event can do, exit")
                 break
             # 判断是否可继续执行
-            if self.appear(self.I_ACT_LOCKED):
+            if self.appear(self.I_ACT_LOCKED) or not self.appear(self.I_MAIN_EVENT):
                 self.swipe(self.S_SWIPE_DOWN, interval=1)
                 sleep(1)
+                swipe_count += 1
                 continue
             # 主线任务
             if self.appear_then_click(
                 self.I_MAIN_EVENT, interval=1.5
             ) and not self.appear(self.I_ACT_LOCKED):
+                swipe_count = 0
                 continue
             # 检查可执行任务
             if (
