@@ -84,12 +84,12 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, ActivityExplorationAssets):
             if self.appear_then_click(self.I_BRANCH_EVENT, interval=1.5):
                 swipe_count = 0
                 continue
-            if loop_count >= 3 or swipe_count >= 3:
+            if loop_count >= 3 or swipe_count >= 5:
                 logger.hr("no event can do, exit")
                 break
             # 判断是否可继续执行
             if self.appear(self.I_ACT_LOCKED) or not self.appear(self.I_MAIN_EVENT):
-                self.swipe(self.S_SWIPE_DOWN, interval=1)
+                self.swipe(self.S_SWIPE_DOWN, interval=1.5)
                 sleep(1)
                 swipe_count += 1
                 continue

@@ -52,6 +52,6 @@ class ActivityExplorationAssets:
 
 	# Swipe Rule Assets
 	# 活动界面向下滑动 
-	S_SWIPE_DOWN = RuleSwipe(roi_front=(208,378,21,21), roi_back=(200,100,21,21), mode="default", name="swipe_down")
+	S_SWIPE_DOWN = RuleSwipe(roi_front=(208,167,21,21), roi_back=(208,104,21,21), mode="vector", name="swipe_down")
 
 
