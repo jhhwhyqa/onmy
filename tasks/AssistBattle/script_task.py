@@ -86,9 +86,9 @@ class ScriptTask(
         push_content.append(f"本次执行任务：")
         for result in results:
             message = (
-                f"{result['account']}-{result['character']}-{result['svr']}: "
-                f"觉醒副本 {result['evozone_done']}/15，"
-                f"结界突破 {result['realmraid_done']}/3，"
+                f"{result['account'][:4] + ('…' if len(result['account']) > 4 else '')}-{result['character']}-{result['svr']}:"
+                f"觉醒 {result['evozone_done']}/15，"
+                f"个突 {result['realmraid_done']}/3，"
                 f"勾协 {result['jade_flag']}"
             )
             logger.info(message)
@@ -96,9 +96,9 @@ class ScriptTask(
         push_content.append(f"今日协战任务：")
         for result in results:
             message = (
-                f"{result['account']}-{result['character']}-{result['svr']}: "
-                f"觉醒副本 {result['evozone_final']}/15，"
-                f"结界突破 {result['realmraid_final']}/3"
+                f"{result['account'][:4] + ('…' if len(result['account']) > 4 else '')}-{result['character']}-{result['svr']}:"
+                f"觉醒 {result['evozone_final']}/15，"
+                f"个突 {result['realmraid_final']}/3"
             )
             push_content.append(message)
         # 推送协战完成结果
