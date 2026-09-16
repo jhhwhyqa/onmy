@@ -7,7 +7,7 @@ from tasks.Component.config_base import ConfigBase
 
 
 class ActivityExplorationConfig(BaseModel):
-    encounter_battle_enable: bool = Field(default=True)
+    encounter_battle_enable: bool = Field(default=False)
 
 
 class ActivityExploration(ConfigBase):

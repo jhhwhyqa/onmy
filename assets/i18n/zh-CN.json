@@ -274,5 +274,7 @@
   "courtyard_affairs_enable": "庭院琐事",
   "ActivityExploration": "活动探索",
   "encounter_battle_enable": "启用遭遇战",
-  "activity_exploration_config": "活动探索配置"
+  "activity_exploration_config": "活动探索配置",
+  "store_sign_enable": "启用商店签到",
+  "find_jade_enable": "启用寻找勾协"
 }

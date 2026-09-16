@@ -1,6 +1,7 @@
-from datetime import timedelta
+from datetime import datetime, timedelta
 from time import sleep
 
+from module.base.timer import Timer
 from module.logger import logger
 from module.exception import TaskEnd
 from tasks.Component.SwitchAccount.switch_account import SwitchAccount
@@ -11,6 +12,8 @@ from tasks.DailyTrifles.script_task import ScriptTask as DailyTriflesScriptTask
 from tasks.KekkaiUtilize.script_task import ScriptTask as KekkaiUtilizeScriptTask
 from tasks.KekkaiUtilize.page import page_guild_realm
 from tasks.GameUi.page import page_main, page_assist_battle
+from tasks.WantedQuests.assets import WantedQuestsAssets
+from tasks.WantedQuests.config import CooperationType
 from tasks.AssistBattle.assets import AssistBattleAssets
 from tasks.AssistBattle.config import AssistBattleConfig
 
@@ -31,17 +34,19 @@ class ScriptTask(
         results = []
         if not accounts:
             logger.info('No AssistBattle account configured; run on current account')
-            evozone_done, realmraid_done, evozone_final, realmraid_final = (
+            evozone_done, realmraid_done, evozone_final, realmraid_final, jade_flag = (
                 self.run_current_account()
             )
             results.append(
                 {
+                    'account': account.account,
                     'character': account.character,
                     'svr': account.svr,
                     'evozone_done': evozone_done,
                     'realmraid_done': realmraid_done,
                     'evozone_final': evozone_final,
                     'realmraid_final': realmraid_final,
+                    'jade_flag': jade_flag,
                 }
             )
         else:
@@ -56,17 +61,23 @@ class ScriptTask(
                         account.svr,
                     )
                     continue
-                evozone_done, realmraid_done, evozone_final, realmraid_final = (
-                    self.run_current_account()
-                )
+                (
+                    evozone_done,
+                    realmraid_done,
+                    evozone_final,
+                    realmraid_final,
+                    jade_flag,
+                ) = self.run_current_account()
                 results.append(
                     {
+                        'account': account.account,
                         'character': account.character,
                         'svr': account.svr,
                         'evozone_done': evozone_done,
                         'realmraid_done': realmraid_done,
                         'evozone_final': evozone_final,
                         'realmraid_final': realmraid_final,
+                        'jade_flag': jade_flag,
                     }
                 )
         # 输出协战结果
@@ -75,16 +86,17 @@ class ScriptTask(
         push_content.append(f"本次执行任务：")
         for result in results:
             message = (
-                f"{result['character']}-{result['svr']}: "
+                f"{result['account']}-{result['character']}-{result['svr']}: "
                 f"觉醒副本 {result['evozone_done']}/15，"
-                f"结界突破 {result['realmraid_done']}/3"
+                f"结界突破 {result['realmraid_done']}/3，"
+                f"勾协 {result['jade_flag']}"
             )
             logger.info(message)
             push_content.append(message)
         push_content.append(f"今日协战任务：")
         for result in results:
             message = (
-                f"{result['character']}-{result['svr']}: "
+                f"{result['account']}-{result['character']}-{result['svr']}: "
                 f"觉醒副本 {result['evozone_final']}/15，"
                 f"结界突破 {result['realmraid_final']}/3"
             )
@@ -102,51 +114,135 @@ class ScriptTask(
         raise TaskEnd('AssistBattle')
 
     def run_current_account(self):
+        # 执行任务前先获取本账号协战剩余次数以检查是否执行过前置任务，觉醒协战已做完将不再执行日常任务
+        total_evozone, total_realmraid = 15, 3
+        evozone_done, realmraid_done = 0, 0
+        evozone_final, realmraid_final = 0, 0
+        jade_flag = False
+        # 不执行协战任务时，可以用来小号挂日常
+        start_evozone = 1
+
+        if (
+            self.conf.assist_battle_config.evozone_enable
+            or self.conf.assist_battle_config.realmraid_enable
+        ):
+            start_evozone, start_realmraid = self.get_assist_battle_count()
+
         # 结界寄养
-        if self.conf.assist_battle_config.kekkaiutilize_enable:
+        if self.conf.assist_battle_config.kekkaiutilize_enable and start_evozone > 0:
             # 进入寮结界
             self.goto_page(page_guild_realm)
             self.check_utilize_add()
             self.goto_page(page_main)
+
         # 庭院事务
-        if self.conf.assist_battle_config.courtyard_affairs_enable:
+        if (
+            self.conf.assist_battle_config.courtyard_affairs_enable
+            and start_evozone > 0
+        ):
             self.run_courtyard_affairs()
             self.goto_page(page_main)
+
         # 邮件领取
-        if self.conf.assist_battle_config.email_enable:
+        if self.conf.assist_battle_config.email_enable and start_evozone > 0:
             self.run_pickup_email()
             self.goto_page(page_main)
 
-        # 执行任务前先获取本账号协战剩余次数
-        start_evozone, start_realmraid = self.get_assist_battle_count()
-        total_evozone = 15
-        total_realmraid = 3
+        # 商店签到
+        if self.conf.assist_battle_config.store_sign_enable and start_evozone > 0:
+            # 重置done状态
+            self.config.daily_trifles.done_record.store_sign_dt = datetime(2023, 1, 1)
+            self.run_store_sign()
+            self.goto_page(page_main)
+
+        # 寻找勾协
+        if self.conf.assist_battle_config.find_jade_enable:
+            jade_flag = self.find_jade()
+            self.ui_click_until_disappear(self.I_UI_BACK_RED, interval=1)
+            self.goto_page(page_main)
+
         # 执行觉醒副本任务
         if self.conf.assist_battle_config.evozone_enable and start_evozone > 0:
             self.run_evozone(start_evozone)
             self.goto_page(page_main)
+
         # 执行结界突破任务
         if self.conf.assist_battle_config.realmraid_enable and start_realmraid > 0:
             self.run_realmraid(start_realmraid)
             self.goto_page(page_main)
 
-        end_evozone, end_realmraid = self.get_assist_battle_count()
-        evozone_done = start_evozone - end_evozone
-        realmraid_done = start_realmraid - end_realmraid
+        # 统计本次执行完成的协战任务
+        if (
+            self.conf.assist_battle_config.evozone_enable
+            or self.conf.assist_battle_config.realmraid_enable
+        ):
+            end_evozone, end_realmraid = self.get_assist_battle_count()
+            evozone_done = start_evozone - end_evozone
+            realmraid_done = start_realmraid - end_realmraid
+            # 今天已经完成的任务
+            evozone_final = total_evozone - end_evozone
+            realmraid_final = total_realmraid - end_realmraid
+            if self.conf.assist_battle_config.evozone_enable:
+                logger.info(
+                    "本次协战完成：觉醒 %s 次，结界突破 %s 次",
+                    evozone_done,
+                    realmraid_done,
+                )
+            if self.conf.assist_battle_config.realmraid_enable:
+                logger.info(
+                    "最终协战完成：觉醒 %s 次，结界突破 %s 次",
+                    evozone_final,
+                    realmraid_final,
+                )
 
-        evozone_final = total_evozone - end_evozone
-        realmraid_final = total_realmraid - end_realmraid
-        logger.info(
-            "本次协战完成：觉醒 %s 次，结界突破 %s 次",
-            evozone_done,
-            realmraid_done,
-        )
-        logger.info(
-            "最终协战完成：觉醒 %s 次，结界突破 %s 次",
-            evozone_final,
-            realmraid_final,
-        )
-        return evozone_done, realmraid_done, evozone_final, realmraid_final
+        return evozone_done, realmraid_done, evozone_final, realmraid_final, jade_flag
+
+    def find_jade(self):
+        """寻找勾协并标记"""
+        if self.get_current_page() != page_main:
+            self.goto_page(page_main)
+        # 打开悬赏封印 界面
+        done_timer = Timer(5)
+        while 1:
+            self.screenshot()
+            if self.appear(WantedQuestsAssets.I_TRACE_ENABLE) or self.appear(
+                WantedQuestsAssets.I_TRACE_DISABLE
+            ):
+                break
+            if self.appear_then_click(WantedQuestsAssets.I_WQ_SEAL, interval=1):
+                continue
+            if self.appear_then_click(WantedQuestsAssets.I_WQ_DONE, interval=1):
+                continue
+            # 未适配特殊庭院，小号嘛，应该没这个情况
+            # if self.special_main and self.click(WantedQuestsAssets.C_SPECIAL_MAIN, interval=3):
+            #     logger.info('Click special main left to find wanted quests')
+            #     continue
+            if self.appear(self.I_UI_BACK_RED):
+                if not done_timer.started():
+                    done_timer.start()
+            if done_timer.started() and done_timer.reached():
+                self.ui_click_until_disappear(self.I_UI_BACK_RED)
+                return False
+
+        if not (
+            self.appear(WantedQuestsAssets.I_WQ_INVITE_1)
+            or self.appear(WantedQuestsAssets.I_WQ_INVITE_2)
+            or self.appear(WantedQuestsAssets.I_WQ_INVITE_3)
+        ):
+            logger.info("there is no cooperation quest")
+            return False
+        # 存在勾协即返回true
+        self.screenshot()
+        if self.appear(WantedQuestsAssets.I_WQ_INVITE_1):
+            if self.appear(WantedQuestsAssets.I_WQ_COOPERATION_TYPE_JADE_1):
+                return True
+        if self.appear(WantedQuestsAssets.I_WQ_INVITE_2):
+            if self.appear(WantedQuestsAssets.I_WQ_COOPERATION_TYPE_JADE_2):
+                return True
+        if self.appear(WantedQuestsAssets.I_WQ_INVITE_3):
+            if self.appear(WantedQuestsAssets.I_WQ_COOPERATION_TYPE_JADE_3):
+                return True
+        return False
 
     def get_assist_battle_count(self):
         """获取当前账号剩余的协战次数。"""

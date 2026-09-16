@@ -34,7 +34,12 @@ class AssistBattleConfig(BaseModel):
     )
     email_enable: bool = Field(default=True, description='领取类似每日花合战的基础奖励')
     courtyard_affairs_enable: bool = Field(
-        default=True, description='领取类似逢魔之时的基础奖励'
+        default=True, description='领取类似逢魔之时和永久勾玉卡的基础奖励'
+    )
+    store_sign_enable: bool = Field(default=True, description='商店签到领黑蛋')
+    find_jade_enable: bool = Field(
+        default=False,
+        description='标记有勾协的账号并一起推送,没有做邀请功能,关闭次功能默认推送结果为False',
     )
     result_push_enable: bool = Field(
         default=False, description='请自行去脚本设置中配置并启用'
