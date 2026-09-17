@@ -85,26 +85,27 @@ class ScriptTask(
         push_content = []
         push_content.append(f"本次执行任务：")
         for result in results:
-            message = (
-                f"{result['account'][:4] + ('…' if len(result['account']) > 4 else '')}-{result['character']}-{result['svr']}:"
-                f"觉醒 {result['evozone_done']}/15，"
-                f"个突 {result['realmraid_done']}/3，"
-                f"勾协 {result['jade_flag']}"
-            )
+            message = f"{result['account'][:4] + ('…' if len(result['account']) > 4 else '')}-{result['character']}-{result['svr']}:"
+            if self.conf.assist_battle_config.evozone_enable:
+                message += f"觉醒{result['evozone_done']}次,"
+            if self.conf.assist_battle_config.realmraid_enable:
+                message += f"个突{result['realmraid_done']}次,"
+            if self.conf.assist_battle_config.find_jade_enable:
+                message += f"{'有' if result['jade_flag'] else '无'}勾"
             logger.info(message)
             push_content.append(message)
         push_content.append(f"今日协战任务：")
         for result in results:
-            message = (
-                f"{result['account'][:4] + ('…' if len(result['account']) > 4 else '')}-{result['character']}-{result['svr']}:"
-                f"觉醒 {result['evozone_final']}/15，"
-                f"个突 {result['realmraid_final']}/3"
-            )
+            message = f"{result['account'][:4] + ('…' if len(result['account']) > 4 else '')}-{result['character']}-{result['svr']}:"
+            if self.conf.assist_battle_config.evozone_enable:
+                message += f"觉醒 {result['evozone_final']}次,"
+            if self.conf.assist_battle_config.realmraid_enable:
+                message += f"个突 {result['realmraid_final']}次"
             push_content.append(message)
         # 推送协战完成结果
         if self.conf.assist_battle_config.result_push_enable:
             self.config.notifier.push(
-                title='一键协战完成',
+                title='多号任务完成',
                 content='<{}><br>{}'.format(
                     self.config.config_name,
                     '<br>'.join(push_content),
