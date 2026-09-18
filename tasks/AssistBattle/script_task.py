@@ -86,23 +86,28 @@ class ScriptTask(
         push_content.append(f"本次执行任务：")
         for result in results:
             # 账号取前4位，服务器取后4位，角色名取后2位
-            message = f"{result['account'][:4] + ('**' if len(result['account']) > 4 else '')}-{result['svr'][-4:]}-{'**' + result['character'][-2:]}:"
+            message = f"{result['account'][:4] + ('**' if len(result['account']) > 4 else '')}-{result['svr'][-4:]}-{'**' + result['character'][-2:]}"
             if self.conf.assist_battle_config.evozone_enable:
-                message += f"觉醒{result['evozone_done']}次"
+                message += f"-觉醒{result['evozone_done']}次"
             if self.conf.assist_battle_config.realmraid_enable:
                 message += f"-个突{result['realmraid_done']}次"
             if self.conf.assist_battle_config.find_jade_enable:
                 message += f"-{'有' if result['jade_flag'] else '无'}勾"
             logger.info(message)
             push_content.append(message)
-        push_content.append(f"今日协战任务：")
-        for result in results:
-            message = f"{result['account'][:4] + ('…' if len(result['account']) > 4 else '')}-{result['svr'][-4:]}-{'…' + result['character'][-2:]}:"
-            if self.conf.assist_battle_config.evozone_enable:
-                message += f"觉醒{result['evozone_final']}次"
-            if self.conf.assist_battle_config.realmraid_enable:
-                message += f"-个突{result['realmraid_final']}次"
-            push_content.append(message)
+        # 未开启协战则不推送总进度
+        if (
+            self.conf.assist_battle_config.evozone_enable
+            or self.conf.assist_battle_config.realmraid_enable
+        ):
+            push_content.append(f"今日协战任务：")
+            for result in results:
+                message = f"{result['account'][:4] + ('…' if len(result['account']) > 4 else '')}-{result['svr'][-4:]}-{'…' + result['character'][-2:]}"
+                if self.conf.assist_battle_config.evozone_enable:
+                    message += f"-觉醒{result['evozone_final']}次"
+                if self.conf.assist_battle_config.realmraid_enable:
+                    message += f"-个突{result['realmraid_final']}次"
+                push_content.append(message)
         # 推送协战完成结果
         if self.conf.assist_battle_config.result_push_enable:
             self.config.notifier.push(
