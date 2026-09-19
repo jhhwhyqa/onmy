@@ -2,7 +2,7 @@
   {
     "itemName": "d_done",
     "roiFront": "946,129,170,516",
-    "roiBack": "200,129,916,517",
+    "roiBack": "946,129,170,516",
     "mode": "Full",
     "method": "Default",
     "keyword": "完成",

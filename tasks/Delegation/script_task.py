@@ -33,7 +33,6 @@ class ScriptTask(GameUi, DelegationAssets):
         if con.strange_trace:
             self.delegate_one('痕迹')
 
-
         self.set_next_run(task='Delegation', success=True, finish=True)
         raise TaskEnd
 
@@ -43,6 +42,7 @@ class ScriptTask(GameUi, DelegationAssets):
         :param name:
         :return:
         """
+
         def ui_click(click, stop):
             while 1:
                 self.screenshot()
@@ -50,6 +50,7 @@ class ScriptTask(GameUi, DelegationAssets):
                     break
                 if self.click(click, interval=1.5):
                     continue
+
         logger.hr('Delegation one', 2)
         self.O_D_NAME.keyword = name
         self.screenshot()
@@ -116,12 +117,12 @@ class ScriptTask(GameUi, DelegationAssets):
                 check_timer.reset()
                 continue
 
-
             if not self.appear(self.I_REWARDS_MIN):
                 continue
             if check_timer.reached():
                 break
-            if self.ocr_appear_click(self.O_D_DONE, interval=1):
+            if self.ocr_appear(self.O_D_DONE, interval=1):
+                self.click(self.C_D_DONE, interval=1)
                 check_timer.reset()
                 continue
 
@@ -130,13 +131,10 @@ if __name__ == '__main__':
     from module.config.config import Config
     from module.device.device import Device
     from memory_profiler import profile
+
     c = Config('oas1')
     d = Device(c)
     t = ScriptTask(c, d)
 
     # t.delegate_one('弥助的画')
     t.run()
-
-
-
-
