@@ -205,6 +205,7 @@
 	<message><source>AutoCheckinBigGod</source><translation>大神签到</translation></message>
 	<message><source>AssistBattle</source><translation>一键协战</translation></message>
 	<message><source>ActivityExploration</source><translation>活动探索</translation></message>
+	<message><source>LevelRush</source><translation>一键起号</translation></message>
 </context>
 <context>
     <name>TaskList</name>
@@ -255,6 +256,7 @@
 	<message><source>AutoCheckinBigGod</source><translation>大神签到</translation></message>
 	<message><source>AssistBattle</source><translation>一键协战</translation></message>
 	<message><source>ActivityExploration</source><translation>活动探索</translation></message>
+	<message><source>LevelRush</source><translation>一键起号</translation></message>
 </context>
 <context>
     <name>Args</name>

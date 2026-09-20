@@ -54,6 +54,7 @@ class ConfigMenu:
             "FindJade",
             "MemoryScrolls",
             "AssistBattle",
+            "LevelRush",
         ]
         # 阴阳寮
         self.menu["Guild"] = [

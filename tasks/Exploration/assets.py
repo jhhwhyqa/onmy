@@ -115,6 +115,8 @@ class ExplorationAssets:
 	I_E_REWARD_BOX_SMALL = RuleImage(roi_front=(234,626,43,32), roi_back=(0,597,327,100), threshold=0.8, method="Template matching", file="./tasks/Exploration/res/res_e_reward_box_small.png")
 	# 右侧候补标志 
 	I_E_ROTATE_EXIST_RIGHT = RuleImage(roi_front=(829,580,33,35), roi_back=(700,574,450,46), threshold=0.8, method="Template matching", file="./tasks/Exploration/res/res_e_ratate_exsit.png")
+	# 出战消耗寿司标志，适配起号 
+	I_E_FIGHT_COST = RuleImage(roi_front=(1080,598,31,25), roi_back=(1080,598,31,25), threshold=0.8, method="Template matching", file="./tasks/Exploration/res/res_e_fight_cost.png")
 
 
 	# Long Click Rule Assets

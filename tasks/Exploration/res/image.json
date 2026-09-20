@@ -259,5 +259,14 @@
     "method": "Template matching",
     "threshold": 0.8,
     "description": "右侧候补标志"
+  },
+  {
+    "itemName": "e_fight_cost",
+    "imageName": "res_e_fight_cost.png",
+    "roiFront": "1080,598,31,25",
+    "roiBack": "1080,598,31,25",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "出战消耗寿司标志，适配起号"
   }
 ]
