@@ -42,6 +42,7 @@ class ScriptTask(
                     'account': account.account,
                     'character': account.character,
                     'svr': account.svr,
+                    'apple_or_android': account.apple_or_android,
                     'evozone_done': evozone_done,
                     'realmraid_done': realmraid_done,
                     'evozone_final': evozone_final,
@@ -73,6 +74,7 @@ class ScriptTask(
                         'account': account.account,
                         'character': account.character,
                         'svr': account.svr,
+                        'apple_or_android': account.apple_or_android,
                         'evozone_done': evozone_done,
                         'realmraid_done': realmraid_done,
                         'evozone_final': evozone_final,
@@ -86,7 +88,7 @@ class ScriptTask(
         push_content.append(f"本次执行任务：")
         for result in results:
             # 账号取前4位，服务器取后4位，角色名取后2位
-            message = f"{result['account'][:4] + ('**' if len(result['account']) > 4 else '')}-{result['svr'][-4:]}-{'**' + result['character'][-2:]}"
+            message = f"{result['account'][:4] + ('**' if len(result['account']) > 4 else '')}-{'安卓' if result['apple_or_android'] else '苹果'}-{result['svr'][-4:]}-{'**' + result['character'][-2:]}"
             if self.conf.assist_battle_config.evozone_enable:
                 message += f"-觉醒{result['evozone_done']}次"
             if self.conf.assist_battle_config.realmraid_enable:
@@ -102,7 +104,7 @@ class ScriptTask(
         ):
             push_content.append(f"今日协战任务：")
             for result in results:
-                message = f"{result['account'][:4] + ('…' if len(result['account']) > 4 else '')}-{result['svr'][-4:]}-{'…' + result['character'][-2:]}"
+                message = f"{result['account'][:4] + ('…' if len(result['account']) > 4 else '')}-{'安卓' if result['apple_or_android'] else '苹果'}-{result['svr'][-4:]}-{'…' + result['character'][-2:]}"
                 if self.conf.assist_battle_config.evozone_enable:
                     message += f"-觉醒{result['evozone_final']}次"
                 if self.conf.assist_battle_config.realmraid_enable:
