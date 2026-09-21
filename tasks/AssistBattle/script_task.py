@@ -5,13 +5,16 @@ from module.base.timer import Timer
 from module.logger import logger
 from module.exception import TaskEnd
 from tasks.Component.SwitchAccount.switch_account import SwitchAccount
+from tasks.Component.SwitchAccount.switch_account_config import AccountInfo
 from tasks.EvoZone.config import Layer, KirinType
 from tasks.EvoZone.script_task import ScriptTask as EvoZoneScriptTask
 from tasks.RealmRaid.script_task import ScriptTask as RealmRaidScriptTask
 from tasks.DailyTrifles.script_task import ScriptTask as DailyTriflesScriptTask
 from tasks.KekkaiUtilize.script_task import ScriptTask as KekkaiUtilizeScriptTask
 from tasks.KekkaiUtilize.page import page_guild_realm
-from tasks.GameUi.page import page_main, page_assist_battle
+from tasks.GameUi.page import page_main, page_assist_battle, page_mall
+from tasks.RichMan.config import Consignment as ConsignmentConfig
+from tasks.RichMan.mall.consignment import Consignment
 from tasks.WantedQuests.assets import WantedQuestsAssets
 from tasks.WantedQuests.config import CooperationType
 from tasks.AssistBattle.assets import AssistBattleAssets
@@ -23,6 +26,7 @@ class ScriptTask(
     RealmRaidScriptTask,
     DailyTriflesScriptTask,
     KekkaiUtilizeScriptTask,
+    Consignment,
     AssistBattleAssets,
 ):
 
@@ -67,7 +71,7 @@ class ScriptTask(
                     evozone_final,
                     realmraid_final,
                     jade_flag,
-                ) = self.run_current_account()
+                ) = self.run_current_account(account)
                 results.append(
                     {
                         'account': account.account,
@@ -134,7 +138,7 @@ class ScriptTask(
             f"{ellipsis + result['character'][-2:]}"
         )
 
-    def run_current_account(self):
+    def run_current_account(self, account: AccountInfo = None):
         # 执行任务前先获取本账号协战剩余次数以检查是否执行过前置任务，觉醒协战已做完将不再执行日常任务
         total_evozone, total_realmraid = 15, 3
         evozone_done, realmraid_done = 0, 0
@@ -142,6 +146,10 @@ class ScriptTask(
         jade_flag = False
         # 不执行协战任务时，可以用来小号挂日常
         start_evozone = 1
+
+        # 每周寄售券（以周一为界，每个账号各自每周一次）
+        if self.conf.assist_battle_config.consignment_enable:
+            self.run_consignment(account)
 
         if (
             self.conf.assist_battle_config.evozone_enable
@@ -217,6 +225,42 @@ class ScriptTask(
                 )
 
         return evozone_done, realmraid_done, evozone_final, realmraid_final, jade_flag
+
+    @staticmethod
+    def week_start(now: datetime = None) -> datetime:
+        """返回 now 所在那一周的周一 00:00:00。"""
+        now = now or datetime.now()
+        return (now - timedelta(days=now.weekday())).replace(
+            hour=0, minute=0, second=0, microsecond=0
+        )
+
+    def run_consignment(self, account: AccountInfo = None):
+        """每周（以周一为界）前往寄售屋购买寄售券。
+
+        复用每周任务·大富翁里的寄售屋实现；以账号为单位各自记账，
+        本周已经买过的账号直接跳过，所以每个账号各自每周一次。
+        是否执行只由协战配置里的 consignment_enable 开关决定，
+        与大富翁任务本身是否启用、配置如何无关。
+        """
+        if account is None:
+            logger.info('Consignment: no AssistBattle account configured, skip')
+            return
+        if account.consignment_date >= self.week_start().strftime('%Y-%m-%d'):
+            logger.info(
+                'Consignment: already bought this week at %s, skip',
+                account.consignment_date,
+            )
+            return
+
+        logger.hr('Run Consignment', 3)
+        # 寄售屋是商城内的子页面，必须先回到商城
+        self.goto_page(page_mall)
+        self.execute_consignment(ConsignmentConfig(enable=True, buy_sale_ticket=True))
+        self.back_mall()
+        # 无论本次买没买到，都记为本周已尝试，避免同一周内反复进商城
+        account.consignment_date = datetime.now().strftime('%Y-%m-%d')
+        logger.info('Consignment: recorded %s for this week', account.consignment_date)
+        self.goto_page(page_main)
 
     def find_jade(self):
         """寻找勾协并标记"""

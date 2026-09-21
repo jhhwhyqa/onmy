@@ -247,5 +247,7 @@
   "email_enable": "邮件领取",
   "courtyard_affairs_enable": "庭院琐事",
   "store_sign_enable": "启用商店签到",
-  "find_jade_enable": "启用寻找勾协"
+  "find_jade_enable": "启用寻找勾协",
+  "consignment_enable": "启用寄售屋购买",
+  "consignment_date_help": "该账号上次购买寄售券的日期，脚本自动记录，不需要手动修改"
 }

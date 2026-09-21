@@ -1,6 +1,6 @@
 from pydantic import Field, BaseModel
 
-from tasks.Component.config_base import DateTime
+from tasks.Component.config_base import DateTime, dynamic_hide
 
 
 class AccountInfo(BaseModel):
@@ -20,6 +20,11 @@ class AccountInfo(BaseModel):
     apple_or_android: bool = Field(default=True, description="apple_or_android_help")
     # 上一次执行成功的时间 ,防止出错时重复登录浪费时间
     last_complete_time: DateTime = Field(default=DateTime.fromisoformat("2023-01-01 00:00:00"), description="last_complete_time_help")
+    # 一键协战：该账号上次购买寄售券的日期(YYYY-MM-DD)，用于「每周一次、以周一为界」判断
+    consignment_date: str = Field(default='2023-01-01', description="consignment_date_help")
+
+    # 运行状态记录，不需要给用户改
+    hide_fields = dynamic_hide('consignment_date')
 
     def is_account_alias(self, ocr_account):
         tmp_account = AccountInfo.preprocessAccount(self.account)

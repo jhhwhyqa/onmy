@@ -36,6 +36,10 @@ class AssistBattleConfig(BaseModel):
     courtyard_affairs_enable: bool = Field(
         default=True, description='领取类似逢魔之时和永久勾玉卡的基础奖励'
     )
+    consignment_enable: bool = Field(
+        default=False,
+        description='每周（以周一为界）前往寄售屋购买寄售券，每个账号每周一次',
+    )
     store_sign_enable: bool = Field(default=True, description='商店签到领黑蛋')
     find_jade_enable: bool = Field(
         default=False,
@@ -97,13 +101,16 @@ class AssistBattle(ConfigBase):
 
     # 隐藏用不到的last_complete_time字段
     @model_serializer()
-    def serializer_model(self) -> Dict[str, Any]:
+    def serializer_model(self, info) -> Dict[str, Any]:
+        # 把 context 透传给子模型，否则子模型上 hide_fields 声明的字段
+        # 在导出 GUI schema（context={'hide': True}）时藏不住。
+        context = info.context if info is not None else None
         data = {}
 
         for key, value in self.__dict__.items():
             if isinstance(value, list):
                 for index, item in enumerate(value):
-                    item_data = item.model_dump()
+                    item_data = item.model_dump(context=context)
 
                     if isinstance(item, AccountInfo):
                         item_data["last_complete_time"] = 0xABCDEF
@@ -111,7 +118,9 @@ class AssistBattle(ConfigBase):
                     data[f'{key}_{index + 1}'] = item_data
             else:
                 data[key] = (
-                    value.model_dump() if isinstance(value, BaseModel) else value
+                    value.model_dump(context=context)
+                    if isinstance(value, BaseModel)
+                    else value
                 )
 
         return data
