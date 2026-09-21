@@ -22,11 +22,12 @@ class Full(BaseCor):
     def after_process(self, result):
         return result
 
-    def ocr_full(self, image, keyword: str=None) -> tuple:
+    def ocr_full(self, image, keyword: str=None, log: bool = True) -> tuple:
         """
         检测整个图片的文本,并对结果进行过滤。返回的是匹配到的keyword的左边。如果没有匹配到返回(0, 0, 0, 0)
         :param image:
         :param keyword:
+        :param log: 是否输出识别结果日志
         :return:
         """
         if keyword is None:
@@ -37,7 +38,8 @@ class Full(BaseCor):
             return 0, 0, 0, 0
 
         index_list = self.filter(boxed_results, keyword)
-        logger.info(f"OCR [{self.name}] detected in {index_list}")
+        if log:
+            logger.info(f"OCR [{self.name}] detected in {index_list}")
         # 如果一个都没有匹配到
         if not index_list:
             return 0, 0, 0, 0
@@ -56,7 +58,8 @@ class Full(BaseCor):
             box = boxed_results[index_list[0]].box
             self.area = box[0, 0]+self.roi[0], box[0, 1]+self.roi[1], box[1, 0] - box[0, 0], box[2, 1] - box[0, 1]
 
-        logger.info(f"OCR [{self.name}] detected in {self.area}")
+        if log:
+            logger.info(f"OCR [{self.name}] detected in {self.area}")
         return self.area
 
 class Single(BaseCor):
@@ -66,21 +69,23 @@ class Single(BaseCor):
     def after_process(self, result):
         return result
 
-    def ocr_single(self, image) -> str:
+    def ocr_single(self, image, log: bool = True) -> str:
         """
         检测某个固定位置的roi的文本。可以是横方向也可以是竖方向
         :param image:
+        :param log: 是否输出识别结果日志
         :return: 返回到识别的文字, 如果没有返回空字符串
         """
         if self.roi:
-            result = self.ocr_single_line(image)
+            result = self.ocr_single_line(image, log=log)
             if result != "":
                 return result
 
             # 如果没有识别到，这个时候考虑到可能是竖方向的文本, 使用detect_and_ocr来进行识别
-            result = self.detect_and_ocr(image)
+            result = self.detect_and_ocr(image, logDisplay=log)
             if not result:
-                logger.info(f"[{self.name}]: No text detected in ROI")
+                if log:
+                    logger.info(f"[{self.name}]: No text detected in ROI")
                 return ""
             if result[0].ocr_text != "" and result[0].score > self.score:
                 return result[0].ocr_text
@@ -114,13 +119,14 @@ class Digit(Single):
 
         return result
 
-    def ocr_digit(self, image) -> int:
+    def ocr_digit(self, image, log: bool = True) -> int:
         """
         返回数字
         :param image:
+        :param log: 是否输出识别结果日志
         :return:
         """
-        result = self.ocr_single(image)
+        result = self.ocr_single(image, log=log)
 
         if result and str(result).isdigit():
             return int(result)
@@ -160,13 +166,14 @@ class DigitCounter(Single):
             return 0, 0, 0
 
 
-    def ocr_digit_counter(self, image) -> tuple[int, int, int]:
+    def ocr_digit_counter(self, image, log: bool = True) -> tuple[int, int, int]:
         """
         获取计数的结果
         :param image:
+        :param log: 是否输出识别结果日志
         :return: 例如 14/15，返回 (14, 1, 15) 。如果没有识别到，返回 (0, 0, 0)
         """
-        result = self.ocr_single(image)
+        result = self.ocr_single(image, log=log)
         if result == "":
             return 0, 0, 0
         return self.ocr_str_digit_counter(result)
@@ -196,13 +203,14 @@ class Duration(Single):
             logger.warning(f'Invalid duration: {string}')
             return timedelta(hours=0, minutes=0, seconds=0)
 
-    def ocr_duration(self, image) -> timedelta:
+    def ocr_duration(self, image, log: bool = True) -> timedelta:
         """
 
         :param image:
+        :param log: 是否输出识别结果日志
         :return:
         """
-        result = self.ocr_single(image)
+        result = self.ocr_single(image, log=log)
 
         if result == "":
             return timedelta(hours=0, minutes=0, seconds=0)
@@ -238,13 +246,14 @@ class Quantity(BaseCor):
             result = 0
         return result
 
-    def ocr_quantity(self, image) -> int:
+    def ocr_quantity(self, image, log: bool = True) -> int:
         """
         返回数量
         :param image:
+        :param log: 是否输出识别结果日志
         :return:
         """
-        boxed_results = self.detect_and_ocr(image)
+        boxed_results = self.detect_and_ocr(image, logDisplay=log)
         if not boxed_results:
             logger.warning(f'[{self.name}]: No text detected')
             return 0

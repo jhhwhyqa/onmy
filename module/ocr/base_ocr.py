@@ -180,11 +180,12 @@ class BaseCor:
                     text=f'[{result}]')
         return result
 
-    def ocr_single_line(self, image):
+    def ocr_single_line(self, image, log: bool = True):
         """
         只支持横方向的单行ocr，不支持竖方向的单行ocr
         注意：这里使用了预处理和后处理
         :param image:
+        :param log: 是否输出识别结果日志, 循环里高频调用时传 False
         :return:
         """
         # pre process
@@ -206,8 +207,9 @@ class BaseCor:
         # after proces
         result = self.after_process(result)
         # logger.info("ocr result score: %s" % score)
-        logger.attr(name='%s %ss' % (self.name, float2str(time.time() - start_time)),
-                    text=f'[{result}]')
+        if log:
+            logger.attr(name='%s %ss' % (self.name, float2str(time.time() - start_time)),
+                        text=f'[{result}]')
         return result
 
     def detect_and_ocr(self, image, logDisplay: bool = True, **kwargs) -> list[BoxedResult]:

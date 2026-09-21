@@ -237,7 +237,10 @@ page_shirin.connect(
     page_guild, GlobalGameAssets.I_UI_BACK_YELLOW, key="page_shirin->page_guild"
 )
 
-page_team = Page(GameUiAssets.I_CHECK_TEAM, category="global")
+page_team = Page(
+    any_of(GameUiAssets.I_CHECK_TEAM, GameUiAssets.I_CHECK_TEAM_TITLE),
+    category="global",
+)
 page_team.add_enter_failure_hooks(
     conditional_action(
         condition=GameUiAssets.I_CHECK_MAIN,

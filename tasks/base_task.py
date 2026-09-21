@@ -491,11 +491,12 @@ class BaseTask(GlobalGameAssets, CostumeBase):
             return True
         return False
 
-    def ocr_appear(self, target: RuleOcr, interval: float = None) -> bool:
+    def ocr_appear(self, target: RuleOcr, interval: float = None, log: bool = True) -> bool:
         """
         ocr识别目标
         :param interval:
         :param target:
+        :param log: 是否输出识别结果日志, 循环里高频调用时可以传 False
         :return: 如果target有keyword或者是keyword存在，返回是True，否则返回False
                  但是没有指定keyword，返回的是匹配到的值，具体取决于target的mode
         """
@@ -514,7 +515,7 @@ class BaseTask(GlobalGameAssets, CostumeBase):
             if not self.interval_timer[target.name].reached():
                 return None
 
-        result = target.ocr(self.device.image)
+        result = target.ocr(self.device.image, log=log)
         appear = False
 
         if not target.keyword or target.keyword == '':
@@ -540,16 +541,18 @@ class BaseTask(GlobalGameAssets, CostumeBase):
                          target: RuleOcr,
                          action: Union[RuleClick, RuleLongClick] = None,
                          interval: float = None,
-                         duration: float = None) -> bool:
+                         duration: float = None,
+                         log: bool = True) -> bool:
         """
         ocr识别目标，如果目标存在，则触发动作
         :param target:
         :param action:
         :param interval:
         :param duration:
+        :param log: 是否输出识别结果日志, 循环里高频调用时可以传 False
         :return:
         """
-        appear = self.ocr_appear(target, interval)
+        appear = self.ocr_appear(target, interval, log=log)
 
         if not appear:
             return False

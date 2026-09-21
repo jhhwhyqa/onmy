@@ -18,12 +18,8 @@ class LevelRushAssets:
 
 
 	# Image Rule Assets
-	# 创建角色 
-	I_CREATE_PLAYER = RuleImage(roi_front=(554,635,173,51), roi_back=(554,635,173,51), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_create_player.png")
-	# 随机角色名 
-	I_ROLL_NAME = RuleImage(roi_front=(488,553,30,41), roi_back=(488,553,30,41), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_roll_name.png")
 	# 点对话弹窗 
-	I_DOT_DIALOG_POPUP = RuleImage(roi_front=(1253,300,16,16), roi_back=(0,117,1280,393), threshold=0.7, method="Template matching", file="./tasks/LevelRush/lr/lr_dot_dialog_popup.png")
+	I_DOT_DIALOG_POPUP = RuleImage(roi_front=(1253,300,16,16), roi_back=(0,102,1280,408), threshold=0.7, method="Template matching", file="./tasks/LevelRush/lr/lr_dot_dialog_popup.png")
 	# 跳过对话 
 	I_SKIP_TALK = RuleImage(roi_front=(841,558,57,27), roi_back=(841,558,57,27), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_skip_talk.png")
 	# 指引折扇 
@@ -35,7 +31,7 @@ class LevelRushAssets:
 	# 点击眼睛切换世界 
 	I_OPEN_EYE = RuleImage(roi_front=(610,107,64,21), roi_back=(0,72,1280,402), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_open_eye.png")
 	# 问号弹窗 
-	I_QUESTION_POPUP = RuleImage(roi_front=(1022,271,25,44), roi_back=(0,72,1280,402), threshold=0.7, method="Template matching", file="./tasks/LevelRush/lr/lr_question_popup.png")
+	I_QUESTION_POPUP = RuleImage(roi_front=(1269,231,11,36), roi_back=(0,72,1280,402), threshold=0.75, method="Template matching", file="./tasks/LevelRush/lr/lr_question_popup.png")
 	# 跳过动画 
 	I_MOVIE_SKIP = RuleImage(roi_front=(1192,42,41,34), roi_back=(1192,42,41,34), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_movie_skip.png")
 	# 确认跳过 
@@ -59,13 +55,13 @@ class LevelRushAssets:
 	# 红色关闭按钮 
 	I_RED_CLOSE = RuleImage(roi_front=(1149,77,40,38), roi_back=(942,0,338,281), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_red_close.png")
 	# 推荐协战式神 
-	I_GH_BIRD_RECOMMEND = RuleImage(roi_front=(272,372,34,21), roi_back=(272,372,34,21), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_gh_bird_recommend.png")
+	I_GH_BIRD_RECOMMEND = RuleImage(roi_front=(284,410,84,87), roi_back=(202,287,237,377), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_gh_bird_recommend.png")
 	# 第一个借式神坑位 
 	I_FIRST_BORROW = RuleImage(roi_front=(331,189,74,71), roi_back=(331,189,74,71), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_first_borrow.png")
 	# 第一个坑位借到了姑获鸟 
 	I_FIRST_BORROW_GET = RuleImage(roi_front=(331,189,74,71), roi_back=(331,189,74,71), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_first_borrow_get.png")
 	# 黄色返回按钮 
-	I_YELLOW_BACK_BUTTON = RuleImage(roi_front=(16,16,52,47), roi_back=(331,189,74,71), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_yellow_back_button.png")
+	I_YELLOW_BACK_BUTTON = RuleImage(roi_front=(16,16,52,47), roi_back=(5,5,74,71), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_yellow_back_button.png")
 	# 7级 
 	I_LEVEK_7 = RuleImage(roi_front=(10,19,20,23), roi_back=(10,19,20,23), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_levek_7.png")
 	# 锁剧情 
@@ -73,7 +69,7 @@ class LevelRushAssets:
 	# 一键领取新手活动奖励 
 	I_RECEIVE_ALL = RuleImage(roi_front=(1193,566,47,40), roi_back=(1193,566,47,40), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_receive_all.png")
 	# 存在奖励标志 
-	I_TASK_REWARD_EXIST = RuleImage(roi_front=(1240,144,18,16), roi_back=(1234,139,34,140), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_task_reward_exist.png")
+	I_TASK_REWARD_EXIST = RuleImage(roi_front=(1240,144,18,16), roi_back=(130,78,1148,192), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_task_reward_exist.png")
 	# 玩法介绍窗口 
 	I_INTRODUCE_WINDOW = RuleImage(roi_front=(634,121,174,22), roi_back=(634,121,174,22), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_introduce_window.png")
 	# 剧情抽卡界面 
@@ -100,10 +96,6 @@ class LevelRushAssets:
 	I_ASSIST_UP_SUCCESS = RuleImage(roi_front=(303,510,34,31), roi_back=(303,510,34,31), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_assist_up_success.png")
 	# 交替页面检查 
 	I_SWITCH_CHECK = RuleImage(roi_front=(21,534,31,63), roi_back=(21,534,31,63), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_switch_check.png")
-	# 缘初之路 
-	I_START_ROAD = RuleImage(roi_front=(42,160,113,39), roi_back=(0,69,208,447), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_start_road.png")
-	# 缘初之路页面内 
-	I_IN_START_ROAD = RuleImage(roi_front=(42,160,113,39), roi_back=(0,69,208,447), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_in_start_road.png")
 	# 前往绑定 
 	I_PHONE_BIND = RuleImage(roi_front=(976,460,70,75), roi_back=(976,460,70,75), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_phone_bind.png")
 	# 取消绑定 
@@ -116,23 +108,65 @@ class LevelRushAssets:
 	I_TO_HARD = RuleImage(roi_front=(28,313,108,44), roi_back=(28,313,108,44), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_to_hard.png")
 	# 最高章节 
 	I_HIGHEST_CHAPTER = RuleImage(roi_front=(1067,457,25,27), roi_back=(1067,457,25,27), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_highest_chapter.png")
+	# 跳过流程 
+	I_SKIP_TO_30 = RuleImage(roi_front=(1181,621,53,53), roi_back=(1181,621,53,53), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_skip_to_30.png")
+	# 跳过 
+	I_LR_LEVEL_SKIP = RuleImage(roi_front=(704,456,173,67), roi_back=(704,456,173,67), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_lr_level_skip.png")
+	# 同意未勾选状态 
+	I_CHECK_AGREE = RuleImage(roi_front=(419,405,33,30), roi_back=(419,405,33,30), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_check_agree.png")
+	# 同意勾选状态 
+	I_CHECK_AGREE_DONE = RuleImage(roi_front=(419,405,33,30), roi_back=(419,405,33,30), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_check_agree_done.png")
+	# 新手教学点击犬神 
+	I_DOGGOD_CLICK = RuleImage(roi_front=(771,210,29,32), roi_back=(734,129,116,156), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_doggod_click.png")
+	# 返回庭院 
+	I_TOWN_BACK_MAIN = RuleImage(roi_front=(1039,233,32,63), roi_back=(989,199,129,273), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_town_back_main.png")
+	# 第一天奖励 
+	I_SIGN_REWARD_DAY1 = RuleImage(roi_front=(253,309,108,73), roi_back=(253,309,108,73), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_sign_reward_day1.png")
+	# 未锁定阵容 
+	I_TEAM_UNLOCK = RuleImage(roi_front=(1009,661,17,22), roi_back=(848,588,430,132), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_team_unlock.png")
+	# 已锁定阵容 
+	I_TEAM_LOCKED = RuleImage(roi_front=(1009,661,17,22), roi_back=(848,588,430,132), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_team_locked.png")
+	# 花合战前往成就页面 
+	I_DAILY_GOTO_ACHIEVEMENT = RuleImage(roi_front=(1086,651,44,34), roi_back=(1086,651,44,34), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_daily_goto_achievement.png")
+	# 存在奖励 
+	I_ACHIEVEMENT_REWARD_EXIST = RuleImage(roi_front=(255,169,31,31), roi_back=(250,79,41,563), threshold=0.9, method="Template matching", file="./tasks/LevelRush/lr/lr_achievement_reward_exist.png")
+	# 检查成就页面 
+	I_CHECK_ACHIEVEMENT = RuleImage(roi_front=(1185,621,62,47), roi_back=(1185,621,62,47), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_check_achievement.png")
+	# 点击关闭成就子菜单 
+	I_ACHIEVEMENT_MENU_CLOSE = RuleImage(roi_front=(251,153,31,31), roi_back=(250,79,41,563), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_achievement_menu_close.png")
+	# 点击达摩领取成就奖励 
+	I_GET_ACHIEVEMENT_REWARD = RuleImage(roi_front=(1079,173,33,38), roi_back=(1050,125,90,469), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_get_achievement_reward.png")
+	# 杂货铺新手商店标志 
+	I_SIDE_CHECK_ROOKIE_MALL = RuleImage(roi_front=(913,13,31,32), roi_back=(913,13,31,32), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_side_check_rookie_mall.png")
+	# 前往新手商店 
+	I_MALL_GOTO_ROOKIE_MALL = RuleImage(roi_front=(877,651,45,32), roi_back=(877,651,45,32), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_mall_goto_rookie_mall.png")
+	# 超值体力礼盒 
+	I_ROOKIE_SUSHI_GIFT = RuleImage(roi_front=(182,245,130,69), roi_back=(182,245,130,69), threshold=0.9, method="Template matching", file="./tasks/LevelRush/lr/lr_rookie_sushi_gift.png")
+	# 超值体力礼盒购买 
+	I_BUY_SUSHI_GIFT = RuleImage(roi_front=(596,498,96,49), roi_back=(596,498,96,49), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_buy_sushi_gift.png")
+	# 经验妖怪创建按钮 
+	I_EXP_YOUKAI_CREATE = RuleImage(roi_front=(604,495,70,39), roi_back=(604,495,70,39), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_exp_youkai_create.png")
+	# 第一次经验妖怪教程结束 
+	I_EXP_FIRST_FINISH = RuleImage(roi_front=(1182,636,79,51), roi_back=(1182,636,79,51), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_exp_first_finish.png")
+	# 点击购买一次体力 
+	I_GO_BUY_SUSHI = RuleImage(roi_front=(984,22,18,20), roi_back=(847,0,210,66), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_go_buy_sushi.png")
+	# 买体力 
+	I_BUY_SUSHI_60 = RuleImage(roi_front=(339,538,35,43), roi_back=(301,527,193,58), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_buy_sushi_60.png")
 
 
 	# Ocr Rule Assets
-	# 生成随机角色名称 
-	O_NAME_CHECK = RuleOcr(roi=(539,550,112,43), area=(539,550,112,43), mode="Single", method="Default", keyword="点击输入", name="name_check")
 	# 点击任意位置继续 
 	O_CLICK_ANYWHERE_CONTINUE = RuleOcr(roi=(544,459,186,36), area=(365,438,530,87), mode="Single", method="Default", keyword="点击任意位置继续", name="click_anywhere_continue")
 	# 点击空白处关闭 
 	O_CLICK_BLANK_CLOSE = RuleOcr(roi=(552,658,186,36), area=(374,620,530,87), mode="Single", method="Default", keyword="点击空白处关闭", name="click_blank_close")
 	# 当前等级 
-	O_CURRENT_LEVEL = RuleOcr(roi=(0,14,34,33), area=(0,14,34,33), mode="Digit", method="Default", keyword="", name="current_level")
+	O_CURRENT_LEVEL = RuleOcr(roi=(0,19,47,25), area=(0,5,52,87), mode="Digit", method="Default", keyword="", name="current_level")
 	# 点击屏幕继续 
 	O_BATTLE_FINISH = RuleOcr(roi=(555,670,174,42), area=(555,670,174,42), mode="Single", method="Default", keyword="点击屏幕继续", name="battle_finish")
 	#  
 	O_CURRENT_CHAPTER = RuleOcr(roi=(1057,452,121,40), area=(1057,450,215,103), mode="Single", method="Default", keyword="", name="current_chapter")
 	# 当前体力较低的情况 
-	O_CURRENT_SUSHI_LOW = RuleOcr(roi=(881,0,181,53), area=(881,0,181,53), mode="Single", method="Default", keyword="/", name="current_sushi_low")
+	O_CURRENT_SUSHI_LOW = RuleOcr(roi=(881,0,181,53), area=(881,0,181,53), mode="Single", method="Default", keyword="", name="current_sushi_low")
 
 
 	# Swipe Rule Assets

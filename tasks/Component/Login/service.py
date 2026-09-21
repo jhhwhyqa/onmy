@@ -46,6 +46,15 @@ class LoginService(BaseTask, RestartAssets, GameUiAssets):
             if self.appear_then_click(self.I_CANCEL_BATTLE, interval=0.8):
                 logger.info("Cancel continue battle")
                 continue
+            if self.appear_then_click(self.I_CLOSE_PERSONAL_RECOMMEND, interval=0.8):
+                logger.info("Close personal recommend")
+                continue
+            if self.appear_then_click(self.I_GOTO_BIND, interval=0.8):
+                logger.info("Go to bind phone number")
+                continue
+            if self.appear_then_click(self.I_CANCEL_BIND, interval=0.8):
+                logger.info("Cancel bind phone number")
+                continue
             if self.appear(self.I_CHECK_MAIN, interval=0.2) and not self.appear(
                 self.I_MAIN_GOTO_SHIKIGAMI_RECORDS
             ):

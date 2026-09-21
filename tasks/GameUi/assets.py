@@ -140,7 +140,7 @@ class GameUiAssets:
 	# 好友页面标志 
 	I_CHECK_FRIENDS = RuleImage(roi_front=(74,628,58,66), roi_back=(74,628,58,66), threshold=0.8, method="Template matching", file="./tasks/GameUi/page/page_check_friends.png")
 	# 花合战页面标志 
-	I_CHECK_DAILY = RuleImage(roi_front=(28,515,58,62), roi_back=(1,487,154,145), threshold=0.8, method="Template matching", file="./tasks/GameUi/page/page_check_daily.png")
+	I_CHECK_DAILY = RuleImage(roi_front=(28,515,59,47), roi_back=(1,487,154,145), threshold=0.8, method="Template matching", file="./tasks/GameUi/page/page_check_daily.png")
 	# 商店页面标志 
 	I_CHECK_MALL = RuleImage(roi_front=(231,455,131,78), roi_back=(201,432,185,121), threshold=0.8, method="Template matching", file="./tasks/GameUi/page/page_check_mall.png")
 	# 商店推荐页面标志 
@@ -163,6 +163,8 @@ class GameUiAssets:
 	I_GUILD_TO_SHRIN = RuleImage(roi_front=(877,629,49,53), roi_back=(840,602,302,113), threshold=0.8, method="Template matching", file="./tasks/GameUi/page/page_guild_to_shrin.png")
 	# 协战页面标志 
 	I_CHECK_ASSIT_BATTLE = RuleImage(roi_front=(116,650,49,48), roi_back=(116,650,49,48), threshold=0.8, method="Template matching", file="./tasks/GameUi/page/page_check_assit_battle.png")
+	# 组队界面标志备用 
+	I_CHECK_TEAM_TITLE = RuleImage(roi_front=(97,27,67,35), roi_back=(81,0,140,82), threshold=0.8, method="Template matching", file="./tasks/GameUi/page/page_check_team_title.png")
 
 
 	# Image Rule Assets

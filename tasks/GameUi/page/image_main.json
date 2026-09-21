@@ -155,7 +155,7 @@
   {
     "itemName": "check_daily",
     "imageName": "page_check_daily.png",
-    "roiFront": "28,515,58,62",
+    "roiFront": "28,515,59,47",
     "roiBack": "1,487,154,145",
     "method": "Template matching",
     "threshold": 0.8,
@@ -259,5 +259,14 @@
     "method": "Template matching",
     "threshold": 0.8,
     "description": "协战页面标志"
+  },
+  {
+    "itemName": "check_team_title",
+    "imageName": "page_check_team_title.png",
+    "roiFront": "97,27,67,35",
+    "roiBack": "81,0,140,82",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "组队界面标志备用"
   }
 ]

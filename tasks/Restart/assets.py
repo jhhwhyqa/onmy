@@ -105,6 +105,12 @@ class RestartAssets:
 	I_EARLY_SERVER_CANCEL = RuleImage(roi_front=(435,404,172,56), roi_back=(435,404,172,56), threshold=0.8, method="Template matching", file="./tasks/Restart/login/login_early_server_cancel.png")
 	# 取消继续战斗 
 	I_CANCEL_BATTLE = RuleImage(roi_front=(471,395,129,55), roi_back=(367,227,545,296), threshold=0.8, method="Template matching", file="./tasks/Restart/login/login_cancel_battle.png")
+	# 关闭个性化推荐 
+	I_CLOSE_PERSONAL_RECOMMEND = RuleImage(roi_front=(359,575,225,69), roi_back=(359,575,225,69), threshold=0.8, method="Template matching", file="./tasks/Restart/login/login_close_personal_recommend.png")
+	# 前往绑定按钮 
+	I_GOTO_BIND = RuleImage(roi_front=(976,461,68,70), roi_back=(976,461,68,70), threshold=0.8, method="Template matching", file="./tasks/Restart/login/login_goto_bind.png")
+	# 取消绑定 
+	I_CANCEL_BIND = RuleImage(roi_front=(462,470,129,67), roi_back=(462,470,129,67), threshold=0.8, method="Template matching", file="./tasks/Restart/login/login_cancel_bind.png")
 
 
 	# Ocr Rule Assets

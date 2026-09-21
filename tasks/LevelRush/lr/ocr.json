@@ -1,14 +1,5 @@
 [
   {
-    "itemName": "name_check",
-    "roiFront": "539,550,112,43",
-    "roiBack": "539,550,112,43",
-    "mode": "Single",
-    "method": "Default",
-    "keyword": "点击输入",
-    "description": "生成随机角色名称"
-  },
-  {
     "itemName": "click_anywhere_continue",
     "roiFront": "544,459,186,36",
     "roiBack": "365,438,530,87",
@@ -28,8 +19,8 @@
   },
   {
     "itemName": "current_level",
-    "roiFront": "0,14,34,33",
-    "roiBack": "0,14,34,33",
+    "roiFront": "0,19,47,25",
+    "roiBack": "0,5,52,87",
     "mode": "Digit",
     "method": "Default",
     "keyword": "",
@@ -59,7 +50,7 @@
     "roiBack": "881,0,181,53",
     "mode": "Single",
     "method": "Default",
-    "keyword": "/",
+    "keyword": "",
     "description": "当前体力较低的情况"
   }
 ]

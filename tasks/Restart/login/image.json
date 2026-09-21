@@ -160,5 +160,32 @@
     "method": "Template matching",
     "threshold": 0.8,
     "description": "取消继续战斗"
+  },
+  {
+    "itemName": "close_personal_recommend",
+    "imageName": "login_close_personal_recommend.png",
+    "roiFront": "359,575,225,69",
+    "roiBack": "359,575,225,69",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "关闭个性化推荐"
+  },
+  {
+    "itemName": "goto_bind",
+    "imageName": "login_goto_bind.png",
+    "roiFront": "976,461,68,70",
+    "roiBack": "976,461,68,70",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "前往绑定按钮"
+  },
+  {
+    "itemName": "cancel_bind",
+    "imageName": "login_cancel_bind.png",
+    "roiFront": "462,470,129,67",
+    "roiBack": "462,470,129,67",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "取消绑定"
   }
 ]
