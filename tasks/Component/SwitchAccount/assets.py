@@ -23,8 +23,6 @@ class SwitchAccountAssets:
 	C_SA_LOGIN_FORM_ENTER_GAME_BTN = RuleClick(roi_front=(570,580,130,35), roi_back=(570,580,130,35), name="sa_login_form_enter_game_btn")
 	# 登录界面-选择服务器-底部账号信息展开后的区域 
 	C_SA_LOGIN_FORM_CHARACTER_AREA = RuleClick(roi_front=(260,450,760,160), roi_back=(260,450,760,160), name="sa_login_form_character_area")
-	# 登录界面-选择服务器-点击关闭选择服务器界面的空白区域 
-	C_SA_LOGIN_FORM_CANCEL_SVR_SELECT = RuleClick(roi_front=(50,70,60,360), roi_back=(50,70,60,360), name="sa_login_form_cancel_svr_select")
 	# 登录界面-用户中心-右上角关闭按钮 
 	C_SA_LOGIN_FORM_USER_CENTER_CLOSE_BTN = RuleClick(roi_front=(1055,120,20,20), roi_back=(1055,120,20,20), name="sa_login_form_user_center_close_btn")
 	# 登录界面-账号选择界面-右上角关闭按钮 
@@ -49,7 +47,7 @@ class SwitchAccountAssets:
 	# 登录界面 用户中心(区别于游戏内用户中心) 账户名 
 	O_SA_LOGIN_FORM_USER_CENTER_ACCOUNT = RuleOcr(roi=(290,185,290,50), area=(290,185,290,50), mode="SINGLE", method="Default", keyword="", name="sa_login_form_user_center_account")
 	# 判断是否在 选择服务器 界面的文本特质 
-	O_SA_CHECK_SELECT_SVR = RuleOcr(roi=(252,145,97,32), area=(248,141,102,38), mode="Single", method="Default", keyword="已有角色", name="sa_check_select_svr")
+	O_SA_CHECK_SELECT_SVR = RuleOcr(roi=(234,148,101,31), area=(234,148,101,31), mode="Single", method="Default", keyword="已有角色", name="sa_check_select_svr")
 
 
 	# Swipe Rule Assets
@@ -83,8 +81,10 @@ class SwitchAccountAssets:
 	# 登录界面-选择手机类型为android 
 	I_SA_LOGIN_FORM_ANDROID = RuleImage(roi_front=(671,353,100,100), roi_back=(670,352,100,100), threshold=0.8, method="Template matching", file="./tasks/Component/SwitchAccount/res/res_sa_login_form_android.png")
 	# 判断是否在 选择服务器 界面的标志物 角色的服务器图标还未显示时 
-	I_SA_CHECK_SELECT_SVR_1 = RuleImage(roi_front=(213,133,181,60), roi_back=(210,128,185,68), threshold=0.8, method="Template matching", file="./tasks/Component/SwitchAccount/res/res_sa_check_select_svr_1.png")
+	I_SA_CHECK_SELECT_SVR_1 = RuleImage(roi_front=(223,137,127,48), roi_back=(194,127,181,68), threshold=0.8, method="Template matching", file="./tasks/Component/SwitchAccount/res/res_sa_check_select_svr_1.png")
 	# 判断是否在 选择服务器 界面的标志物 角色的服务器图标已经显示时 
-	I_SA_CHECK_SELECT_SVR_2 = RuleImage(roi_front=(209,131,184,64), roi_back=(207,127,187,70), threshold=0.8, method="Template matching", file="./tasks/Component/SwitchAccount/res/res_sa_check_select_svr_2.png")
+	I_SA_CHECK_SELECT_SVR_2 = RuleImage(roi_front=(223,137,127,48), roi_back=(194,127,181,68), threshold=0.8, method="Template matching", file="./tasks/Component/SwitchAccount/res/res_sa_check_select_svr_2.png")
+	# 关闭服务器选择界面
+	I_SA_LOGIN_FORM_CANCEL_SVR_SELECT = RuleImage(roi_front=(1083,94,39,36), roi_back=(1083,94,39,36), threshold=0.8, method="Template matching", file="./tasks/Component/SwitchAccount/res/res_sa_login_form_cancel_svr_select.png")
 
 

@@ -40,14 +40,21 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RealmRaidAssets):
 
     def run(self):
         con = self.config.realm_raid
+
+        success = self.run_realmraid_core(con)
+
+        self.set_next_run(task='RealmRaid', success=success, finish=True)
+        raise TaskEnd
+
+    def run_realmraid_core(self, con):
+        self.init_tickets = -1
         # 直接进入个人突破页面
         self.goto_page(page_realm_raid)
 
         # 在突破页面内先判断票数，如果没有票了或者已经达到攻击次数上限，就直接结束任务
         if not self.check_ticket(con.raid_config.number_base):
             self.goto_page(page_exploration)
-            self.set_next_run(task='RealmRaid', success=False, finish=True)
-            raise TaskEnd
+            return False
 
         # 票数足够，现在开始进行御魂切换
         if con.switch_soul_config.enable:
@@ -59,7 +66,8 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RealmRaidAssets):
             self.run_switch_soul_by_name(con.switch_soul_config.group_name, con.switch_soul_config.team_name)
             
         # 切换完成后，必须返回突破页面
-        self.goto_page(page_realm_raid)
+        if con.switch_soul_config.enable or con.switch_soul_config.enable_switch_by_name:
+            self.goto_page(page_realm_raid)
 
         # 有呱太活动的时候第一次进入还会 出现一个弹窗
         self.screenshot()
@@ -158,8 +166,8 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RealmRaidAssets):
                 break
 
         self.goto_page(page_exploration)
-        self.set_next_run(task='RealmRaid', success=success, finish=True)
-        raise TaskEnd
+
+        return success
 
     def is_ticket(self) -> bool:
         """

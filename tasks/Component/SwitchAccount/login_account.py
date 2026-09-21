@@ -70,7 +70,7 @@ class LoginAccount(BaseTask, SwitchAccountAssets):
             self.click(self.O_SA_SELECT_SVR_SVR_LIST, interval=1.5)
             return True
         # 没找到 点击空白区域关闭选择服务器界面
-        self.click(self.C_SA_LOGIN_FORM_CANCEL_SVR_SELECT)
+        self.click(self.I_SA_LOGIN_FORM_CANCEL_SVR_SELECT)
         return False
 
     def switch_character(self, characterName: str):
@@ -131,7 +131,7 @@ class LoginAccount(BaseTask, SwitchAccountAssets):
             # 等待滑动动画完成
             time.sleep(1.5)
 
-        self.click(self.C_SA_LOGIN_FORM_CANCEL_SVR_SELECT, 1.5)
+        self.click(self.I_SA_LOGIN_FORM_CANCEL_SVR_SELECT, 1.5)
         return False
 
     def jump2SelectAccount(self):
@@ -241,7 +241,7 @@ class LoginAccount(BaseTask, SwitchAccountAssets):
             self.screenshot()
             # 处于 选择服务器界面 直接点击空白区域退出该界面 进入切换账号流程
             if self.appear(self.I_SA_CHECK_SELECT_SVR_1) or self.appear(self.I_SA_CHECK_SELECT_SVR_2):
-                self.click(self.C_SA_LOGIN_FORM_CANCEL_SVR_SELECT)
+                self.click(self.I_SA_LOGIN_FORM_CANCEL_SVR_SELECT)
                 continue
 
             # 处于选择 苹果安卓界面

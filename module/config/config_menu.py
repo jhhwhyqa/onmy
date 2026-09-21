@@ -34,6 +34,7 @@ class ConfigMenu:
             "HeroTest",
             "FindJade",
             "MemoryScrolls",
+            "AssistBattle",
             "StoryLine"
         ]
         # 阴阳寮

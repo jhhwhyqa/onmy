@@ -10,6 +10,7 @@ from tasks.GameUi.action import ActionSequence, ConditionalAction, conditional_a
 from tasks.GameUi.default_pages import (
     page_act_list,
     page_area_boss,
+    page_assist_battle,
     page_awake_zones,
     page_battle,
     page_battle_prepare,
@@ -78,6 +79,7 @@ __all__ = [
     "not_",
     "page_act_list",
     "page_area_boss",
+    "page_assist_battle",
     "page_awake_zones",
     "page_battle",
     "page_battle_prepare",

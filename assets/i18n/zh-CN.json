@@ -232,5 +232,20 @@
   "min_taiko_value": "太鼓最低收益",
   "min_taiko_value_help": "只蹭勾玉收益不低于此值的太鼓卡（5星59-67，6星67-76），0为不限制",
   "min_fish_value": "斗鱼最低收益",
-  "min_fish_value_help": "只蹭体力收益不低于此值的斗鱼卡（5星118-134，6星134-151），0为不限制"
+  "min_fish_value_help": "只蹭体力收益不低于此值的斗鱼卡（5星118-134，6星134-151），0为不限制",
+  "AssistBattle": "一键协战",
+  "assist_battle_config": "协战配置",
+  "account_count": "协战账号数量",
+  "evozone_enable": "启用觉醒副本",
+  "realmraid_enable": "启用结界突破",
+  "realmraid_easy_enable": "结界突破低勋优先",
+  "switch_soul_enable": "启用结界突破换御魂",
+  "result_push_enable": "启用完成推送",
+  "kekkaiutilize_enable": "启用结界寄养",
+  "account_list": "账号列表",
+  "account_list_description": "脚本会自动识别每个账号的剩余协战次数，理论上只需要手动上阵一次协战式神后续就可以自动执行任务,协战式神建议使用高速火灵输出。3个账号开启觉醒加结界突破可以打满，不开结界突破则需要四个账号",
+  "email_enable": "邮件领取",
+  "courtyard_affairs_enable": "庭院琐事",
+  "store_sign_enable": "启用商店签到",
+  "find_jade_enable": "启用寻找勾协"
 }
