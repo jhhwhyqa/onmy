@@ -170,10 +170,21 @@ def lineup_bond_context(strategy: dict) -> dict:
     )
     primary = strategy.get('display_name', '')
     primary_count = counts.get(primary, 0)
-    secondary = frozenset(
-        bond
-        for bond, count in counts.items()
-        if 2 < count < primary_count
+    # 次要羁绊只保留计数第二多的一项。Counter 保留阵容式神与羁绊的
+    # 首次出现顺序，因此并列时稳定选择阵容配置中先出现的羁绊。
+    secondary_bond = max(
+        (
+            bond
+            for bond, count in counts.items()
+            if bond != primary and count < primary_count
+        ),
+        key=counts.__getitem__,
+        default=None,
+    )
+    secondary = (
+        frozenset((secondary_bond,))
+        if secondary_bond is not None
+        else frozenset()
     )
     return {
         'counts': dict(counts),
