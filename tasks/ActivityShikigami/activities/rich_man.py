@@ -5,7 +5,7 @@ from module.base.timer import Timer
 from module.logger import logger
 from tasks.ActivityShikigami.base_act import BaseAct
 from tasks.DemonEncounter.data.answer import Answer
-from tasks.Quiz.debug import Debugger, remove_symbols
+from tasks.PeriodicActivity.debug import Debugger, remove_symbols
 
 
 class RichManAct(BaseAct, Debugger):

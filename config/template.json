@@ -1096,7 +1096,7 @@
       "collect_exp": true
     }
   },
-  "quiz": {
+  "periodic_activity": {
     "scheduler": {
       "enable": false,
       "next_run": "2023-01-01 00:00:00",
@@ -1107,21 +1107,8 @@
       "delay_date": 1,
       "float_time": "00:00:00"
     },
-    "quiz_config": {
-      "quiz_cnt": 1,
-      "quiz_per_round": 150
-    }
-  },
-  "dye_trials": {
-    "scheduler": {
-      "enable": false,
-      "next_run": "2023-01-01 00:00:00",
-      "priority": 5,
-      "success_interval": "01 00:00:00",
-      "failure_interval": "01 00:00:00",
-      "server_update": "09:00:00",
-      "delay_date": 1,
-      "float_time": "00:00:00"
+    "periodic_activity_config": {
+      "activity": "dye_trials"
     },
     "switch_soul_config": {
       "enable": false,
@@ -1129,18 +1116,6 @@
       "enable_switch_by_name": false,
       "group_name": "",
       "team_name": ""
-    }
-  },
-  "gugu_art_studio": {
-    "scheduler": {
-      "enable": false,
-      "next_run": "2023-01-01 00:00:00",
-      "priority": 5,
-      "success_interval": "01 00:00:00",
-      "failure_interval": "01 00:00:00",
-      "server_update": "09:00:00",
-      "delay_date": 1,
-      "float_time": "00:00:00"
     },
     "general_battle_config": {
       "lock_team_enable": false,
@@ -1157,12 +1132,9 @@
       "max_continuous": 0,
       "quick_exit": false
     },
-    "switch_soul_config": {
-      "enable": false,
-      "switch_group_team": "-1,-1",
-      "enable_switch_by_name": false,
-      "group_name": "",
-      "team_name": ""
+    "quiz_config": {
+      "quiz_cnt": 1,
+      "quiz_per_round": 150
     }
   },
   "bondling_fairyland": {

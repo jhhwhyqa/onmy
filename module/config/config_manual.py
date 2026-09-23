@@ -19,7 +19,7 @@ class ConfigManual:
         > Pets > TalismanPass > Delegation > Hyakkiyakou
         > Secret > WeeklyTrifles > MysteryShop > Duel > Chess
         > TrueOrochi > RichMan
-        > MetaDemon > FrogBoss > FloatParade > Quiz > DyeTrials > MemoryScrolls > GuguArtStudio > AssistBattle
+        > MetaDemon > FrogBoss > FloatParade > PeriodicActivity > MemoryScrolls > AssistBattle
         """
 
     DEVICE_OVER_HTTP = False

@@ -1,7 +1,6 @@
 # This Python file uses the following encoding: utf-8
 # @author runhey
 # github https://github.com/runhey
-from tasks.GuguArtStudio.config import GuguArtStudio
 from tasks.GuildActivityMonitor.config import GuildActivityMonitor
 from tasks.OtherWorldTwilight.config import OtherWorldTwilight
 from typing import Dict, Any
@@ -59,8 +58,7 @@ from tasks.ActivityShikigami.config import ActivityShikigami
 from tasks.MetaDemon.config import MetaDemon
 from tasks.FrogBoss.config import FrogBoss
 from tasks.FloatParade.config import FloatParade
-from tasks.Quiz.config import Quiz
-from tasks.DyeTrials.config import DyeTrials
+from tasks.PeriodicActivity.config import PeriodicActivity
 # ----------------------------------------------------------------------------------------------------------------------
 
 # 肝帝专属---------------------------------------------------------------------------------------------------------------
@@ -126,9 +124,7 @@ class ConfigModel(ConfigBase):
     meta_demon: MetaDemon = Field(default_factory=MetaDemon)
     frog_boss: FrogBoss = Field(default_factory=FrogBoss)
     float_parade: FloatParade = Field(default_factory=FloatParade)
-    quiz: Quiz = Field(default_factory=Quiz)
-    dye_trials: DyeTrials = Field(default_factory=DyeTrials)
-    gugu_art_studio: GuguArtStudio = Field(default_factory=GuguArtStudio)
+    periodic_activity: PeriodicActivity = Field(default_factory=PeriodicActivity)
 
     # 这些是肝帝专属
     bondling_fairyland: BondlingFairyland = Field(default_factory=BondlingFairyland)
