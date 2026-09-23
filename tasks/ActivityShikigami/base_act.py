@@ -153,6 +153,8 @@ class BaseAct(StateMachine, GameUi, GeneralBattle, SwitchSoul, ActivityShikigami
 
     def run(self):
         self.before_run()
+        # 清除缓存
+        self.switch_souled.clear()
         for climb_type in self.conf.general_climb.run_sequence_v:
             logger.hr(f"Start run {self.climb_type}", 1)
             dest_page: Optional[pages.Page] = getattr(
