@@ -540,6 +540,9 @@ class ScriptTask(GameUi, Summon, DailyTriflesAssets):
                 count, price = detect_buy_count(self.I_STORE_COST_TYPE_JADE)
                 if count >= self.config.daily_trifles.trifles_config.buy_sushi_count:
                     break
+                if self.ui_click_until_disappear(self.I_UI_CANCEL_SAMLL):
+                    logger.info(f"Maybe jade not enough, stop")
+                    break
                 if self.ui_get_reward(self.I_STORE_COST_TYPE_JADE, click_interval=2.5):
                     logger.info(f"Buy Sushi With {price} Jade")
                     continue
