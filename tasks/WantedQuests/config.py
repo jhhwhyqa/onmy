@@ -128,7 +128,22 @@ class WantedQuestsConfig(BaseModel):
         return wq_type_list
 
 
+class SecretPresetConfig(BaseModel):
+    """秘闻副本战斗的队伍预设切换。
+
+    悬赏封印里的秘闻战斗复用 `tasks/Secret` 的 `general_battle` 配置，这里单独给
+    「悬赏封印打秘闻」留一份预设选择，避免影响秘闻任务每周自己的打法。
+    """
+    # 是否启用：每次进入秘闻副本的第一场战斗切一次预设，后续连战沿用
+    enable: bool = Field(default=False, description='secret_preset_enable_help')
+    # 选哪一个预设组
+    preset_group: int = Field(default=1, description='preset_group_help', ge=1, le=7)
+    # 选哪一个预设队伍
+    preset_team: int = Field(default=1, description='preset_team_help', ge=1, le=5)
+
+
 class WantedQuests(ConfigBase):
     scheduler: Scheduler = Field(default_factory=Scheduler)
     wanted_quests_config: WantedQuestsConfig = Field(default_factory=WantedQuestsConfig)
+    secret_preset_config: SecretPresetConfig = Field(default_factory=SecretPresetConfig)
     switch_soul_config: SwitchSoulConfig = Field(default_factory=SwitchSoulConfig)

@@ -273,5 +273,11 @@
   "switch_group_team_help": "组号[1-7],队伍号[1-4]",
   "enable_switch_by_name": "是否按名称切换御魂",
   "enable_switch_by_name_help": "启用后按名称识别预设组与预设，名称需与游戏内一致",
-  "team_name": "预设名称"
+  "team_name": "预设名称",
+  "secret_preset_config": "秘闻队伍预设",
+  "secret_preset_enable_help": "启用后每次进入秘闻副本的第一场战斗切到指定预设队伍，后续连战沿用不再切换（仅影响悬赏封印里打的秘闻）",
+  "preset_group": "预设组",
+  "preset_group_help": "预设组编号[1-7]",
+  "preset_team": "预设队伍",
+  "preset_team_help": "预设队伍编号[1-5]"
 }

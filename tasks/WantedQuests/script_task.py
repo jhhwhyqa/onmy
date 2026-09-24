@@ -348,13 +348,14 @@ class ScriptTask(WQExplore, SecretScriptTask, WantedQuestsAssets):
             # 若是当周特殊秘闻则禁止连续进攻, 战斗结束之后直接退到探索页面重新进入挑战(避免当周秘闻没打结果跳转到第一层)
             if self.appear(self.I_WQSE_SPECIAL_FIRE):
                 logger.warning('Current is special secret, exit and retry')
-                return 
+                return
             # 又臭又长的对话针的是服了这个网易
             click_count = 0
             while 1:
                 self.screenshot()
                 if self.get_current_page() in [page_battle_prepare, page_battle]:
-                    self.run_general_battle(self.battle_config, exit_matcher=any_of(self.I_UI_BACK_RED, self.I_WQSE_SPECIAL_FIRE))
+                    self.run_general_battle(self.build_secret_battle_conf(first_battle=i == 0),
+                                            exit_matcher=any_of(self.I_UI_BACK_RED, self.I_WQSE_SPECIAL_FIRE))
                     break
                 if self.appear_then_click(self.I_WQSE_FIRE, interval=1):
                     continue
@@ -366,6 +367,30 @@ class ScriptTask(WQExplore, SecretScriptTask, WantedQuestsAssets):
                         click_count = 0
                         self.device.click_record_clear()
         logger.info('Secret mission finished')
+
+    def build_secret_battle_conf(self, first_battle: bool) -> GeneralBattleConfig:
+        """秘闻战斗配置：首次进入秘闻副本的那一场按配置切换队伍预设。
+
+        切换借 GeneralBattle 的 `preset_enable`（在战斗准备页执行一次切换后确认），
+        所以只有第一场置位，后面 `num - 1` 场连战沿用切好的阵容、不再重复切。
+        切预设要求不锁阵容，`battle_config` 本身已置 `lock_team_enable=False`，这里再显式兜一次。
+
+        :param first_battle: 本次进入秘闻副本的第一场战斗
+        :return: 供 `run_general_battle` 使用的战斗配置
+        """
+        preset = self.config.model.wanted_quests.secret_preset_config
+        if not preset.enable:
+            return self.battle_config
+        if first_battle:
+            logger.info(f'Secret battle: switch to preset group {preset.preset_group} team {preset.preset_team}')
+        return self.battle_config.model_copy(
+            update={
+                'preset_enable': first_battle,
+                'preset_group': preset.preset_group,
+                'preset_team': preset.preset_team,
+                'lock_team_enable': False,
+            }
+        )
 
     def invite_random(self, add_button: RuleImage):
         self.screenshot()
