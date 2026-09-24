@@ -85,7 +85,7 @@ class LoginService(BaseTask, RestartAssets, GameUiAssets):
                         break
                 continue
             from tasks.Component.GeneralInvite.assets import GeneralInviteAssets as gia
-            if self.appear_then_click(gia.I_I_REJECT, interval=0.8):
+            if self.reject_invite(gia.I_I_REJECT):
                 logger.info("reject invites")
                 continue
             if self.appear_then_click(self.I_LOGIN_LOGIN_ONMYOJI_GENIE):
@@ -132,6 +132,24 @@ class LoginService(BaseTask, RestartAssets, GameUiAssets):
                 continue
 
         return login_success
+
+    def reject_invite(self, target, interval: float = 0.8, confirm_timeout: float = 1.0) -> bool:
+        # 第一帧：过了间隔闸门且命中
+        if not self.appear(target, interval=interval):
+            return False
+        # 第二帧确认：排除过渡帧/淡出残影
+        self.screenshot()
+        if not self.appear(target):
+            return False
+
+        self.appear_then_click(target)
+        # 点击后确认这次邀请确实消失；带超时兜底，避免 ✕ 常驻时死等
+        timeout_timer = Timer(confirm_timeout).start()
+        while not timeout_timer.reached():
+            self.screenshot()
+            if not self.appear(target):
+                break
+        return True
 
     def app_handle_login(self) -> bool:
         self.device.stuck_record_clear()
