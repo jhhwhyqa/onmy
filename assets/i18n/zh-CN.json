@@ -207,8 +207,8 @@
   "enable_book_auto_help": "游戏内是否开启自动选择御魂",
   "earn_money": "获取樱灯饰",
   "earn_money_help": "通过放置借处式神获取500樱灯饰\n开启前确保已放置借出式神",
-  "StoryLine": "主线剧情",
-  "story_line": "主线剧情",
+  "LevelRush": "一键起号",
+  "level_rush": "一键起号",
   "story_config": "主线剧情配置",
   "active_souls_clean": "结束后激活御魂清理",
   "active_souls_clean_help": "任务结束后是否激活御魂清理",
@@ -255,5 +255,11 @@
   "store_sign_enable": "启用商店签到",
   "find_jade_enable": "启用寻找勾协",
   "consignment_enable": "启用寄售屋购买",
-  "consignment_date_help": "该账号上次购买寄售券的日期，脚本自动记录，不需要手动修改"
+  "consignment_date_help": "该账号上次购买寄售券的日期，脚本自动记录，不需要手动修改",
+  "level_7_mark": "7级标记(达到40级或跳过会自动恢复默认False,详细内容请看README文件)",
+  "assist_up_mark": "sp姑获鸟上阵标记(达到40级或跳过后会自动恢复默认False)",
+  "skip_to_30_mark": "跳过剧情标记(达到40级或跳过会自动恢复默认False)",
+  "skip_to_30_stop_enable": "跳过剧情就停止任务(只会在执行该操作的那次任务中触发)",
+  "exploration_chapter_max_15_enable": "启用探索章节最大锁定困难十五章(同时锁定过剧情功能)",
+  "get_achievement_reward_mark": "获取成就奖励购买新手体力标记(达到40级或跳过会自动恢复默认False)"
 }

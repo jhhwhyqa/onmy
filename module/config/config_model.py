@@ -70,7 +70,7 @@ from tasks.HeroTest.config import HeroTest
 from tasks.FindJade.config import FindJade
 from tasks.MemoryScrolls.config import MemoryScrolls
 from tasks.AssistBattle.config import AssistBattle
-from tasks.StoryLine.config import StoryLine
+from tasks.LevelRush.config import LevelRush
 # ----------------------------------------------------------------------------------------------------------------------
 
 # 每周任务---------------------------------------------------------------------------------------------------------------
@@ -135,7 +135,7 @@ class ConfigModel(ConfigBase):
     find_jade: FindJade = Field(default_factory=FindJade)
     memory_scrolls: MemoryScrolls = Field(default_factory=MemoryScrolls)
     assist_battle: AssistBattle = Field(default_factory=AssistBattle)
-    story_line: StoryLine = Field(default_factory=StoryLine)
+    level_rush: LevelRush = Field(default_factory=LevelRush)
 
     # 这些是每周任务
     true_orochi: TrueOrochi = Field(default_factory=TrueOrochi)
