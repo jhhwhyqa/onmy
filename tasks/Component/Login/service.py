@@ -5,6 +5,7 @@ from module.base.timer import Timer
 from module.exception import RequestHumanTakeover, GameTooManyClickError, GameStuckError
 from module.logger import logger
 from tasks.GameUi.assets import GameUiAssets
+from tasks.LevelRush.assets import LevelRushAssets
 from tasks.Restart.assets import RestartAssets
 from tasks.base_task import BaseTask
 
@@ -124,6 +125,10 @@ class LoginService(BaseTask, RestartAssets, GameUiAssets):
             if self.ocr_appear_click(self.O_LOGIN_ENTER_GAME, interval=3):
                 skip_login_animation = False  # 进入登录页面后不再处理登录动画逻辑
                 self.wait_until_appear(self.I_LOGIN_SPECIFIC_SERVE, True, wait_time=5)
+                continue
+            # 点击进入游戏后可能弹出的「个性化内容推荐」弹窗
+            if self.appear_then_click(LevelRushAssets.I_CLOSE_RECOMMEND, interval=1):
+                logger.info('Close content recommend popup')
                 continue
 
         return login_success
