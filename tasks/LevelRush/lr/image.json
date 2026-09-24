@@ -228,9 +228,9 @@
     "itemName": "task_reward_exist",
     "imageName": "lr_task_reward_exist.png",
     "roiFront": "1240,144,18,16",
-    "roiBack": "130,78,1148,192",
+    "roiBack": "128,78,1152,203",
     "method": "Template matching",
-    "threshold": 0.8,
+    "threshold": 0.7,
     "description": "存在奖励标志"
   },
   {
@@ -601,5 +601,14 @@
     "method": "Template matching",
     "threshold": 0.8,
     "description": "买体力"
+  },
+  {
+    "itemName": "cancel_before_7",
+    "imageName": "lr_cancel_before_7.png",
+    "roiFront": "416,475,130,36",
+    "roiBack": "416,475,130,36",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "七级前先不跳过剧情"
   }
 ]

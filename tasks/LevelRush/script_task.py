@@ -6,7 +6,7 @@ from time import sleep
 from module.base.timer import Timer
 from module.logger import logger
 from module.base.protect import random_sleep
-from module.exception import TaskEnd
+from module.exception import RequestHumanTakeover, TaskEnd
 from tasks.GameUi.assets import GameUiAssets
 from tasks.GameUi.default_pages import random_click
 from tasks.GameUi.action import conditional_action
@@ -112,6 +112,7 @@ class ScriptTask(
         self.before_run()
         self.conf = self.config.model.level_rush
         self.stop_flag = False
+
         # 七级前流程
         if not self.conf.level_rush_config.level_7_mark:
             self._run_before_level_7()
@@ -127,9 +128,9 @@ class ScriptTask(
         ):
             self._run_storyline()
 
-        cu_level = self._get_current_level()
         # 触发了跳过剧情就判定是否需要停止任务
         # 到达40级就停止任务
+        cu_level = self._get_current_level()
         if (cu_level >= 40 and cu_level <= 60) or (
             self.config.level_rush.level_rush_config.skip_to_30_stop_enable
             and self.stop_flag
@@ -144,13 +145,14 @@ class ScriptTask(
                 self._DEFAULT_CHAPTER
             )
             self.config.save()
-            self._task_end(True)
-        level = self.config.exploration.exploration_config.exploration_level
+            raise TaskEnd('LevelRush')
+
+        chapter = self.config.exploration.exploration_config.exploration_level
         # 体力够就来一轮探索
         if not self._get_current_sushi():
             self._run_exploration()
         # 体力不够且做完了十二章剧情才会触发下面的流程，正常情况500体力应该是足够到这里的
-        elif self._EXPLORATION_CHAPTERS.index(level) >= self._MID_CHAPTER_INDEX:
+        elif self._EXPLORATION_CHAPTERS.index(chapter) >= self._MID_CHAPTER_INDEX:
             # 一次性流程
             if not self.config.level_rush.level_rush_config.get_achievement_reward_mark:
                 # 1.领取邮件中的实名奖励200勾玉
@@ -298,6 +300,8 @@ class ScriptTask(
 
     def _check_skip_enable(self):
         "检测是否可以直接跳过所有剧情并且到30级"
+        get_timer = Timer(5)
+        get_timer.start()
         while 1:
             self.screenshot()
             if self.appear(self.I_CHECK_AGREE_DONE):
@@ -305,11 +309,14 @@ class ScriptTask(
                 logger.info(f"Skip to 30 level and unlock all chapters success")
                 return True
             if self.appear_then_click(self.I_CHECK_AGREE, interval=1):
+                get_timer.reset()
                 continue
             if self.appear_then_click(self.I_SKIP_TO_30, interval=1):
+                get_timer.reset()
                 continue
-            if not self.appear(self.I_SKIP_TO_30):
-                return False
+            if get_timer.reached():
+                logger.critical(f"Skip exception, request human takeover")
+                raise RequestHumanTakeover
 
     def _get_current_level(self):
         "庭院中获取当前等级"
@@ -473,7 +480,7 @@ class ScriptTask(
                 self.I_RECEIVE_ALL, interval=1.2
             ) or self.appear_then_click(self.I_SIGN_REWARD_DAY1, interval=1.2):
                 sleep(1)
-                self.click(random_click(ltrb=(True, False, False, False)), interval=1.5)
+                self.click(random_click(ltrb=(False, False, False, True)), interval=1.5)
                 logger.info(f"Get reward success")
                 continue
             if self.appear_then_click(self.I_TASK_REWARD_EXIST, interval=1.2):
@@ -572,6 +579,7 @@ class ScriptTask(
         "去借姑获鸟"
         self.goto_page(page_rookie_act)
         while 1:
+            sleep(1.2)
             self.screenshot()
             if self.ocr_appear_click(
                 self.O_CLICK_ANYWHERE_CONTINUE, interval=1, log=False
@@ -585,6 +593,7 @@ class ScriptTask(
             if self.appear_then_click(self.I_GUIDE_FAN, interval=1):
                 continue
             if self.appear_then_click(self.I_GH_BIRD_RECOMMEND, interval=1):
+                sleep(1.2)
                 continue
             if not self.appear(self.I_FIRST_BORROW, interval=1):
                 self.ui_click(self.I_ROOKIE_VIP, self.I_IN_ROOKIE_VIP)
@@ -594,7 +603,7 @@ class ScriptTask(
 
     def _run_before_level_7(self):
         "7级解锁借五星姑获鸟之前的剧情，无法开启自动"
-
+        logger.hr("task before level 7", 2)
         while 1:
             sleep(1.25)
             self.screenshot()
@@ -603,12 +612,20 @@ class ScriptTask(
             if self.ocr_appear_click(self.O_CLICK_BLANK_CLOSE, interval=1, log=False):
                 continue
             if self.appear(self.I_LEVEK_7):
-                break
+                logger.info(f"Success complete task before level 7")
+                return True
+            if self.appear(self.I_CHECK_AGREE):
+                self.ui_click(self.I_CANCEL_BEFORE_7, self.I_UI_CONFIRM)
+                self.appear_then_click(self.I_UI_CONFIRM, interval=1)
+                continue
             if self.appear_then_click(self.I_CLOSE_RECOMMEND, interval=1):
                 continue
             if self.appear(self.I_LR_CHECK_SUMMON):
                 self.swipe(self.S_SUMMON_SWIPE, interval=1)
                 sleep(2)
+                continue
+            if self.get_current_page() == page_rookie_act:
+                self.goto_page(page_main)
                 continue
             if self.appear_then_click(self.I_GUIDE_FAN, interval=1):
                 continue

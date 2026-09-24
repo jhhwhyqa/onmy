@@ -69,7 +69,7 @@ class LevelRushAssets:
 	# 一键领取新手活动奖励 
 	I_RECEIVE_ALL = RuleImage(roi_front=(1193,566,47,40), roi_back=(1193,566,47,40), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_receive_all.png")
 	# 存在奖励标志 
-	I_TASK_REWARD_EXIST = RuleImage(roi_front=(1240,144,18,16), roi_back=(130,78,1148,192), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_task_reward_exist.png")
+	I_TASK_REWARD_EXIST = RuleImage(roi_front=(1240,144,18,16), roi_back=(128,78,1152,203), threshold=0.7, method="Template matching", file="./tasks/LevelRush/lr/lr_task_reward_exist.png")
 	# 玩法介绍窗口 
 	I_INTRODUCE_WINDOW = RuleImage(roi_front=(634,121,174,22), roi_back=(634,121,174,22), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_introduce_window.png")
 	# 剧情抽卡界面 
@@ -152,6 +152,8 @@ class LevelRushAssets:
 	I_GO_BUY_SUSHI = RuleImage(roi_front=(984,22,18,20), roi_back=(847,0,210,66), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_go_buy_sushi.png")
 	# 买体力 
 	I_BUY_SUSHI_60 = RuleImage(roi_front=(339,538,35,43), roi_back=(301,527,193,58), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_buy_sushi_60.png")
+	# 七级前先不跳过剧情 
+	I_CANCEL_BEFORE_7 = RuleImage(roi_front=(416,475,130,36), roi_back=(416,475,130,36), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_cancel_before_7.png")
 
 
 	# Ocr Rule Assets

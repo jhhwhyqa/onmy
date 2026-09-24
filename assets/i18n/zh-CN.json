@@ -280,10 +280,10 @@
   "save_touch_fish": "惠比寿的摸鱼行动",
   "save_touch_fish_help": "默认使用全部存储按钮，主要目的是为了配合真蛇每周打一次即可获得俩次奖励(并不会节省体力)",
   "LevelRush": "一键起号",
-  "level_7_mark": "7级标记(达到40级会自动恢复默认False,详细内容请看README文件)",
-  "assist_up_mark": "sp姑获鸟上阵标记(达到40级会自动恢复默认False)",
-  "skip_to_30_mark": "跳过剧情标记(达到40级会自动恢复默认False)",
+  "level_7_mark": "7级标记(达到40级或跳过会自动恢复默认False,详细内容请看README文件)",
+  "assist_up_mark": "sp姑获鸟上阵标记(达到40级或跳过后会自动恢复默认False)",
+  "skip_to_30_mark": "跳过剧情标记(达到40级或跳过会自动恢复默认False)",
   "skip_to_30_stop_enable": "跳过剧情就停止任务(只会在执行该操作的那次任务中触发)",
   "exploration_chapter_max_15_enable": "启用探索章节最大锁定困难十五章(同时锁定过剧情功能)",
-  "get_achievement_reward_mark": "获取成就奖励购买新手体力标记(达到40级会自动恢复默认False)"
+  "get_achievement_reward_mark": "获取成就奖励购买新手体力标记(达到40级或跳过会自动恢复默认False)"
 }
