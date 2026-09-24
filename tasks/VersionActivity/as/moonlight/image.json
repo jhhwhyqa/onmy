@@ -1,0 +1,47 @@
+[
+  {
+    "itemName": "moon_entry",
+    "imageName": "moon_entry.png",
+    "roiFront": "1180,289,54,59",
+    "roiBack": "1115,100,165,490",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "moon_entry"
+  },
+  {
+    "itemName": "moon_lobby",
+    "imageName": "moon_lobby.png",
+    "roiFront": "151,23,130,31",
+    "roiBack": "125,10,185,65",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "moon_lobby"
+  },
+  {
+    "itemName": "moon_enter_battle",
+    "imageName": "moon_enter_battle.png",
+    "roiFront": "470,110,31,119",
+    "roiBack": "435,70,110,215",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "moon_enter_battle"
+  },
+  {
+    "itemName": "moon_battle",
+    "imageName": "moon_battle.png",
+    "roiFront": "158,30,120,28",
+    "roiBack": "125,10,190,70",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "moon_battle"
+  },
+  {
+    "itemName": "moon_challenge",
+    "imageName": "moon_challenge.png",
+    "roiFront": "1144,609,76,34",
+    "roiBack": "1100,568,165,132",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "moon_challenge"
+  }
+]

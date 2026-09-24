@@ -261,5 +261,17 @@
   "skip_to_30_mark": "跳过剧情标记(达到40级或跳过会自动恢复默认False)",
   "skip_to_30_stop_enable": "跳过剧情就停止任务(只会在执行该操作的那次任务中触发)",
   "exploration_chapter_max_15_enable": "启用探索章节最大锁定困难十五章(同时锁定过剧情功能)",
-  "get_achievement_reward_mark": "获取成就奖励购买新手体力标记(达到40级或跳过会自动恢复默认False)"
+  "get_achievement_reward_mark": "获取成就奖励购买新手体力标记(达到40级或跳过会自动恢复默认False)",
+  "VersionActivity": "版本活动",
+  "version_activity": "版本活动",
+  "version_activity_config": "版本活动配置",
+  "challenge_limit": "挑战次数",
+  "limit_time": "最长运行时间",
+  "battle_conf": "战斗设置",
+  "switch_soul_config": "御魂切换",
+  "switch_group_team": "组号,队伍号",
+  "switch_group_team_help": "组号[1-7],队伍号[1-4]",
+  "enable_switch_by_name": "是否按名称切换御魂",
+  "enable_switch_by_name_help": "启用后按名称识别预设组与预设，名称需与游戏内一致",
+  "team_name": "预设名称"
 }

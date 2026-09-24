@@ -1,0 +1,20 @@
+[
+  {
+    "itemName": "moon_resource",
+    "roiFront": "1110,24,102,39",
+    "roiBack": "1110,24,102,39",
+    "mode": "Digit",
+    "method": "Default",
+    "keyword": "",
+    "description": "月华流光挑战资源数量"
+  },
+  {
+    "itemName": "moon_reward_notice",
+    "roiFront": "410,255,445,78",
+    "roiBack": "410,255,445,78",
+    "mode": "Full",
+    "method": "Default",
+    "keyword": "",
+    "description": "月华流光奖励已达上限的提示文本"
+  }
+]
