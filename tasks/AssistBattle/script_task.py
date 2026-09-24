@@ -139,7 +139,6 @@ class ScriptTask(
         )
 
     def run_current_account(self, account: AccountInfo = None):
-        # 执行任务前先获取本账号协战剩余次数以检查是否执行过前置任务，觉醒协战已做完将不再执行日常任务
         total_evozone, total_realmraid = 15, 3
         evozone_done, realmraid_done = 0, 0
         evozone_final, realmraid_final = 0, 0
@@ -147,29 +146,30 @@ class ScriptTask(
         # 不执行协战任务时，可以用来小号挂日常
         start_evozone = 1
 
-        # 每周寄售券（以周一为界，每个账号各自每周一次）
-        if self.conf.assist_battle_config.consignment_enable:
-            self.run_consignment(account)
-
+        # 执行任务前先获取本账号协战剩余次数以检查是否执行过前置任务，觉醒协战已做完将不再执行日常任务
         if (
             self.conf.assist_battle_config.evozone_enable
             or self.conf.assist_battle_config.realmraid_enable
         ):
             start_evozone, start_realmraid = self.get_assist_battle_count()
 
-        # 结界寄养
-        if self.conf.assist_battle_config.kekkaiutilize_enable and start_evozone > 0:
-            # 进入寮结界
-            self.goto_page(page_guild_realm)
-            self.check_utilize_add()
-            self.goto_page(page_main)
-
-        # 庭院事务
+        # 庭院事务（优先完成）
         if (
             self.conf.assist_battle_config.courtyard_affairs_enable
             and start_evozone > 0
         ):
             self.run_courtyard_affairs()
+            self.goto_page(page_main)
+
+        # 每周寄售券（以周一为界，每个账号各自每周一次）
+        if self.conf.assist_battle_config.consignment_enable:
+            self.run_consignment(account)
+
+        # 结界寄养
+        if self.conf.assist_battle_config.kekkaiutilize_enable and start_evozone > 0:
+            # 进入寮结界
+            self.goto_page(page_guild_realm)
+            self.check_utilize_add()
             self.goto_page(page_main)
 
         # 邮件领取
