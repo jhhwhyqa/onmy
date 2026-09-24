@@ -163,9 +163,7 @@ class LevelRushAssets:
 	O_CLICK_BLANK_CLOSE = RuleOcr(roi=(552,658,186,36), area=(374,620,530,87), mode="Single", method="Default", keyword="点击空白处关闭", name="click_blank_close")
 	# 当前等级 
 	O_CURRENT_LEVEL = RuleOcr(roi=(0,19,47,25), area=(0,5,52,87), mode="Digit", method="Default", keyword="", name="current_level")
-	# 点击屏幕继续 
-	O_BATTLE_FINISH = RuleOcr(roi=(555,670,174,42), area=(555,670,174,42), mode="Single", method="Default", keyword="点击屏幕继续", name="battle_finish")
-	#  
+	# 当前章节 
 	O_CURRENT_CHAPTER = RuleOcr(roi=(1057,452,121,40), area=(1057,450,215,103), mode="Single", method="Default", keyword="", name="current_chapter")
 	# 当前体力较低的情况 
 	O_CURRENT_SUSHI_LOW = RuleOcr(roi=(881,0,181,53), area=(881,0,181,53), mode="Single", method="Default", keyword="", name="current_sushi_low")

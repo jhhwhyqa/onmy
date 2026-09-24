@@ -445,6 +445,13 @@ class ScriptTask(
             argument='up_type',
             value='up_exp',
         )
+        # 关闭点击小纸人奖励，防止卡发现妖怪，奖励会自动领取结算
+        self.config.script_set_arg(
+            task='Exploration',
+            group='ExplorationConfig',
+            argument='collect_paper_reward',
+            value=False,
+        )
         self.goto_page(page_main)
         # 3) 唤起：next_run 设为现在，本任务结束后调度器下一轮就挑中 Exploration
         self.config.task_call('Exploration')
@@ -607,13 +614,19 @@ class ScriptTask(
         while 1:
             sleep(1.25)
             self.screenshot()
+            if self.ui_reward_appear_click():
+                continue
+            if self.ocr_appear_click(
+                self.O_CLICK_ANYWHERE_CONTINUE, interval=1, log=False
+            ):
+                continue
             if self.appear_then_click(self.I_RED_CLOSE, interval=1):
                 continue
             if self.ocr_appear_click(self.O_CLICK_BLANK_CLOSE, interval=1, log=False):
                 continue
             if self.appear(self.I_LEVEK_7):
                 logger.info(f"Success complete task before level 7")
-                return True
+                break
             if self.appear(self.I_CHECK_AGREE):
                 self.ui_click(self.I_CANCEL_BEFORE_7, self.I_UI_CONFIRM)
                 self.appear_then_click(self.I_UI_CONFIRM, interval=1)
@@ -668,12 +681,6 @@ class ScriptTask(
                 and self.appear_then_click(self.I_DOT_DIALOG_POPUP, interval=1)
             ):
                 self.device.click_record_clear()
-                continue
-            if self.ocr_appear_click(self.O_BATTLE_FINISH, interval=1, log=False):
-                continue
-            if self.ocr_appear_click(
-                self.O_CLICK_ANYWHERE_CONTINUE, interval=1, log=False
-            ):
                 continue
 
 
