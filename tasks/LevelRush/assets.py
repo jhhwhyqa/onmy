@@ -146,14 +146,10 @@ class LevelRushAssets:
 	I_BUY_SUSHI_GIFT = RuleImage(roi_front=(596,498,96,49), roi_back=(596,498,96,49), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_buy_sushi_gift.png")
 	# 经验妖怪创建按钮 
 	I_EXP_YOUKAI_CREATE = RuleImage(roi_front=(604,495,70,39), roi_back=(604,495,70,39), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_exp_youkai_create.png")
-	# 第一次经验妖怪教程结束 
-	I_EXP_FIRST_FINISH = RuleImage(roi_front=(1182,636,79,51), roi_back=(1182,636,79,51), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_exp_first_finish.png")
-	# 点击购买一次体力 
-	I_GO_BUY_SUSHI = RuleImage(roi_front=(984,22,18,20), roi_back=(847,0,210,66), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_go_buy_sushi.png")
-	# 买体力 
-	I_BUY_SUSHI_60 = RuleImage(roi_front=(339,538,35,43), roi_back=(301,527,193,58), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_buy_sushi_60.png")
 	# 七级前先不跳过剧情 
 	I_CANCEL_BEFORE_7 = RuleImage(roi_front=(416,475,130,36), roi_back=(416,475,130,36), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_cancel_before_7.png")
+	# 新手商店前往特殊商店 
+	I_ROOKIE_GOTO_SPECIAL = RuleImage(roi_front=(1187,298,44,67), roi_back=(1169,90,85,488), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_rookie_goto_special.png")
 
 
 	# Ocr Rule Assets
@@ -163,9 +159,7 @@ class LevelRushAssets:
 	O_CLICK_BLANK_CLOSE = RuleOcr(roi=(552,658,186,36), area=(374,620,530,87), mode="Single", method="Default", keyword="点击空白处关闭", name="click_blank_close")
 	# 当前等级 
 	O_CURRENT_LEVEL = RuleOcr(roi=(0,19,47,25), area=(0,5,52,87), mode="Digit", method="Default", keyword="", name="current_level")
-	# 点击屏幕继续 
-	O_BATTLE_FINISH = RuleOcr(roi=(555,670,174,42), area=(555,670,174,42), mode="Single", method="Default", keyword="点击屏幕继续", name="battle_finish")
-	#  
+	# 当前章节 
 	O_CURRENT_CHAPTER = RuleOcr(roi=(1057,452,121,40), area=(1057,450,215,103), mode="Single", method="Default", keyword="", name="current_chapter")
 	# 当前体力较低的情况 
 	O_CURRENT_SUSHI_LOW = RuleOcr(roi=(881,0,181,53), area=(881,0,181,53), mode="Single", method="Default", keyword="", name="current_sushi_low")

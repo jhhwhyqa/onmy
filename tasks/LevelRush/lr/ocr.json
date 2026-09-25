@@ -27,22 +27,13 @@
     "description": "当前等级"
   },
   {
-    "itemName": "battle_finish",
-    "roiFront": "555,670,174,42",
-    "roiBack": "555,670,174,42",
-    "mode": "Single",
-    "method": "Default",
-    "keyword": "点击屏幕继续",
-    "description": "点击屏幕继续"
-  },
-  {
     "itemName": "current_chapter",
     "roiFront": "1057,452,121,40",
     "roiBack": "1057,450,215,103",
     "mode": "Single",
     "method": "Default",
     "keyword": "",
-    "description": ""
+    "description": "当前章节"
   },
   {
     "itemName": "current_sushi_low",

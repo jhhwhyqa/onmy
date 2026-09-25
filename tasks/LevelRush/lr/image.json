@@ -576,33 +576,6 @@
     "description": "经验妖怪创建按钮"
   },
   {
-    "itemName": "exp_first_finish",
-    "imageName": "lr_exp_first_finish.png",
-    "roiFront": "1182,636,79,51",
-    "roiBack": "1182,636,79,51",
-    "method": "Template matching",
-    "threshold": 0.8,
-    "description": "第一次经验妖怪教程结束"
-  },
-  {
-    "itemName": "go_buy_sushi",
-    "imageName": "lr_go_buy_sushi.png",
-    "roiFront": "984,22,18,20",
-    "roiBack": "847,0,210,66",
-    "method": "Template matching",
-    "threshold": 0.8,
-    "description": "点击购买一次体力"
-  },
-  {
-    "itemName": "buy_sushi_60",
-    "imageName": "lr_buy_sushi_60.png",
-    "roiFront": "339,538,35,43",
-    "roiBack": "301,527,193,58",
-    "method": "Template matching",
-    "threshold": 0.8,
-    "description": "买体力"
-  },
-  {
     "itemName": "cancel_before_7",
     "imageName": "lr_cancel_before_7.png",
     "roiFront": "416,475,130,36",
@@ -610,5 +583,14 @@
     "method": "Template matching",
     "threshold": 0.8,
     "description": "七级前先不跳过剧情"
+  },
+  {
+    "itemName": "rookie_goto_special",
+    "imageName": "lr_rookie_goto_special.png",
+    "roiFront": "1187,298,44,67",
+    "roiBack": "1169,90,85,488",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "新手商店前往特殊商店"
   }
 ]
