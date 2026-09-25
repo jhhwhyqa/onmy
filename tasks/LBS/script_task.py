@@ -18,9 +18,11 @@ from tasks.Component.GeneralInvite.general_invite import GeneralInvite
 from tasks.Component.GeneralRoom.general_room import GeneralRoom
 from tasks.Component.SwitchSoul.switch_soul import SwitchSoul
 from tasks.GameUi.game_ui import GameUi
+from tasks.GameUi.matcher import any_of
 from tasks.GameUi.page import page_main, page_shikigami_records
 from tasks.LBS.assets import LBSAssets
 from tasks.LBS.config import LBS
+import tasks.LBS.page as pages
 
 # 点挑战后等待进入战斗的超时（秒）
 ENTER_BATTLE_TIMEOUT = 30
@@ -50,6 +52,8 @@ class ScriptTask(GeneralBattle, GameUi, GeneralRoom, GeneralInvite, SwitchSoul, 
         # 本地化：原为 self.ui_goto_page(page_main)，本地框架是 goto_page
         self.goto_page(page_main)
         self.enter_lbs()
+        if self.conf.lbs_config.buy_blessing_enable:
+            self.buy_blessing()
 
         success = self.run_rounds()
 
@@ -57,6 +61,26 @@ class ScriptTask(GeneralBattle, GameUi, GeneralRoom, GeneralInvite, SwitchSoul, 
         self.exit_team()
         self.set_next_run(task='LBS', success=success, finish=True)
         raise TaskEnd('LBS')
+
+    # ------------------------------------------------------------------ 现世祝福
+
+    def buy_blessing(self) -> None:
+        """在现世商店购买当日限购一次、100 勾玉的现世祝福。
+
+        买过就不会再出现祝福按钮，直接跳过。点完祝福若弹确认框就用框架的
+        `I_UI_CONFIRM` 确认并领奖（与 DailyTrifles 买东西的写法一致）。
+        """
+        logger.hr('Buy LBS blessing', 2)
+        self.goto_page(pages.page_lbs_shop)
+        self.screenshot()
+        if not self.appear(self.I_LBS_BLESSING):
+            logger.info('LBS 现世祝福今天已买过，跳过')
+            self.goto_page(pages.page_lbs)
+            return
+        logger.info('LBS 购买现世祝福（100 勾玉）')
+        if self.appear_then_click(self.I_LBS_BLESSING, interval=1.5):
+            self.ui_get_reward(self.I_UI_CONFIRM, click_interval=1.5)
+        self.goto_page(pages.page_lbs)
 
     # ------------------------------------------------------------------ 主体循环
 
@@ -70,6 +94,9 @@ class ScriptTask(GeneralBattle, GameUi, GeneralRoom, GeneralInvite, SwitchSoul, 
             if datetime.now() - self.start_time >= self.limit_time:
                 logger.info('LBS 时间已达上限')
                 return True
+            # 先回活动首页：打完一场的结算动画会短暂经过现世地图页，
+            # 用页面图（page_lbs_map -> page_lbs）把它带回活动页
+            self.goto_page(pages.page_lbs)
             # 点「组队」前先查剩余次数：为 0 就没有可打的了，直接结束
             if not self.check_remain_count():
                 return True
@@ -79,9 +106,11 @@ class ScriptTask(GeneralBattle, GameUi, GeneralRoom, GeneralInvite, SwitchSoul, 
             if not self.click_challenge():
                 logger.warning('LBS 点了挑战但未进入战斗，结束本次运行')
                 return False
-            # 准备 / 战斗 / 结算（确认奖励）交给框架；打完回到「组队」可见的界面即本场结束
+            # 准备 / 战斗 / 结算（确认奖励）交给框架；打完回到「组队」可见的界面即本场结束。
+            # 结算动画会短暂经过现世地图页，也一并当作已离开战斗（否则会被后续导航当成未知页）
             if self.run_general_battle(
-                config=self.conf.battle_conf, exit_matcher=self.I_TEAM_UP
+                config=self.conf.battle_conf,
+                exit_matcher=any_of(self.I_TEAM_UP, self.I_CHECK_LBS_MAP),
             ):
                 self.success_count += 1
             logger.info(f'成功次数: {self.success_count}/{self.limit_count}')

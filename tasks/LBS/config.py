@@ -18,6 +18,10 @@ class LBSConfig(BaseModel):
     limit_time: Time = Field(
         default=Time(minute=30), title='最长运行时间', description='格式 时:分:秒，例如00:30:00'
     )
+    # 购买现世祝福（现世商店，每日限购一次，100 勾玉）
+    buy_blessing_enable: bool = Field(
+        default=False, title='购买现世祝福', description='每日一次，100 勾玉'
+    )
 
 
 class LBS(ConfigBase):

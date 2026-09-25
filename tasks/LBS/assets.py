@@ -11,6 +11,25 @@ class LBSAssets:
 
 
 	# Image Rule Assets
+	# 前往LBS活动 
+	I_MAIN_GOTO_LBS = RuleImage(roi_front=(1182,453,50,31), roi_back=(1170,117,83,400), threshold=0.8, method="Template matching", file="./tasks/LBS/lbs/lbs_main_goto_lbs.png")
+	# LBS活动页面标志 
+	I_CHECK_LBS = RuleImage(roi_front=(201,227,47,34), roi_back=(201,227,47,34), threshold=0.8, method="Template matching", file="./tasks/LBS/lbs/lbs_check_lbs.png")
+	# LBS商店标志 
+	I_CHECK_LBS_SHOP = RuleImage(roi_front=(669,85,101,29), roi_back=(669,85,101,29), threshold=0.8, method="Template matching", file="./tasks/LBS/lbs/lbs_check_lbs_shop.png")
+	# 活动前往商店页面 
+	I_ACTIVITY_GOTO_SHOP = RuleImage(roi_front=(104,292,62,91), roi_back=(104,292,62,91), threshold=0.8, method="Template matching", file="./tasks/LBS/lbs/lbs_activity_goto_shop.png")
+	# 商店前往活动页面 
+	I_SHOP_GOTO_ACTIVITY = RuleImage(roi_front=(103,155,62,91), roi_back=(103,155,62,91), threshold=0.8, method="Template matching", file="./tasks/LBS/lbs/lbs_shop_goto_activity.png")
+	# 现世祝福 
+	I_LBS_BLESSING = RuleImage(roi_front=(489,157,95,31), roi_back=(184,126,983,520), threshold=0.8, method="Template matching", file="./tasks/LBS/lbs/lbs_lbs_blessing.png")
+	# 地图页稳定特征 
+	I_CHECK_LBS_MAP = RuleImage(roi_front=(28,614,55,51), roi_back=(28,614,55,51), threshold=0.8, method="Template matching", file="./tasks/LBS/lbs/lbs_check_lbs_map.png")
+	# 右下角活动图标 
+	I_MAP_GOTO_ACTIVITY = RuleImage(roi_front=(1128,565,55,51), roi_back=(1128,565,55,51), threshold=0.8, method="Template matching", file="./tasks/LBS/lbs/lbs_map_goto_activity.png")
+
+
+	# Image Rule Assets
 	# 刷新 
 	I_REFRESH = RuleImage(roi_front=(1189,525,36,32), roi_back=(1178,129,65,434), threshold=0.8, method="Template matching", file="./tasks/LBS/res/res_refresh.png")
 	# 活动入口 
