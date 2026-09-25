@@ -235,13 +235,7 @@ class ScriptTask(
         )
 
     def run_consignment(self, account: AccountInfo = None):
-        """每周（以周一为界）前往寄售屋购买寄售券。
-
-        复用每周任务·大富翁里的寄售屋实现；以账号为单位各自记账，
-        本周已经买过的账号直接跳过，所以每个账号各自每周一次。
-        是否执行只由协战配置里的 consignment_enable 开关决定，
-        与大富翁任务本身是否启用、配置如何无关。
-        """
+        """每周（以周一为界）前往寄售屋购买寄售券"""
         if account is None:
             logger.info('Consignment: no AssistBattle account configured, skip')
             return
@@ -260,6 +254,7 @@ class ScriptTask(
         # 无论本次买没买到，都记为本周已尝试，避免同一周内反复进商城
         account.consignment_date = datetime.now().strftime('%Y-%m-%d')
         logger.info('Consignment: recorded %s for this week', account.consignment_date)
+        self.config.save()
         self.goto_page(page_main)
 
     def find_jade(self):
