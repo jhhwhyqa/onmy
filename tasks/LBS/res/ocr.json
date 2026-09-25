@@ -1,0 +1,11 @@
+[
+  {
+    "itemName": "remain_count",
+    "roiFront": "1089,680,37,27",
+    "roiBack": "1091,680,33,27",
+    "mode": "Digit",
+    "method": "Default",
+    "keyword": "",
+    "description": "剩余挑战次数"
+  }
+]

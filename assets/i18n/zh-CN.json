@@ -279,5 +279,10 @@
   "preset_group": "预设组",
   "preset_group_help": "预设组编号[1-7]",
   "preset_team": "预设队伍",
-  "preset_team_help": "预设队伍编号[1-5]"
+  "preset_team_help": "预设队伍编号[1-5]",
+  "LBS": "LBS鬼王",
+  "lbs": "LBS鬼王",
+  "lbs_config": "LBS配置",
+  "limit_count": "限制次数",
+  "invite_config": "组队邀请"
 }

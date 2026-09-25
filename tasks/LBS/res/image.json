@@ -1,0 +1,47 @@
+[
+  {
+    "itemName": "refresh",
+    "imageName": "res_refresh.png",
+    "roiFront": "1189,525,36,32",
+    "roiBack": "1178,129,65,434",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "刷新"
+  },
+  {
+    "itemName": "activity_entry",
+    "imageName": "res_activity_entry.png",
+    "roiFront": "1168,127,77,449",
+    "roiBack": "1168,127,78,449",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "活动入口"
+  },
+  {
+    "itemName": "team_up",
+    "imageName": "res_team_up.png",
+    "roiFront": "1119,577,61,35",
+    "roiBack": "1117,574,70,73",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "组队"
+  },
+  {
+    "itemName": "team_create",
+    "imageName": "res_team_create.png",
+    "roiFront": "598,493,79,35",
+    "roiBack": "598,493,79,35",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "创建（点组队后出现，点它进标准组队界面）"
+  },
+  {
+    "itemName": "challenge",
+    "imageName": "res_challenge.png",
+    "roiFront": "1196,617,54,45",
+    "roiBack": "1196,617,54,45",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "挑战"
+  }
+]
