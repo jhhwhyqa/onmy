@@ -649,8 +649,8 @@ class ScriptTask(
             if self.appear_then_click(self.I_MOVIE_SKIP, interval=1):
                 continue
             if self.appear_then_click(self.I_FIGHT, interval=1):
-                continue
-            if self.appear_then_click(self.I_PREPARE_HIGHLIGHT, interval=1):
+                sleep(2)
+                self.ui_click_until_disappear(self.I_PREPARE_HIGHLIGHT)
                 continue
             if self.appear(self.I_TECH_LOCK):
                 self.click(self.C_NORMAL_ATTACK_CLICK, interval=1)
