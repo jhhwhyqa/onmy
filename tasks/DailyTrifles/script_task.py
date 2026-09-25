@@ -495,12 +495,19 @@ class ScriptTask(GameUi, Summon, DailyTriflesAssets):
         # 进入Special
         while 1:
             from tasks.RichMan.assets import RichManAssets
+            from tasks.LevelRush.assets import LevelRushAssets
 
             self.screenshot()
             if self.appear(RichManAssets.I_SIDE_CHECK_SPECIAL) and self.appear(
                 self.I_SPECIAL_SUSHI
             ):
                 break
+            if self.appear(LevelRushAssets.I_SIDE_CHECK_ROOKIE_MALL):
+                self.ui_click(
+                    LevelRushAssets.I_ROOKIE_GOTO_SPECIAL,
+                    RichManAssets.I_SIDE_CHECK_SPECIAL,
+                )
+                continue
             if self.appear_then_click(RichManAssets.I_MALL_SUNDRY, interval=1):
                 continue
 

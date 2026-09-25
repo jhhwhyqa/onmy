@@ -115,9 +115,13 @@ class ScriptTask(
 
         # 七级前流程
         if not self.conf.level_rush_config.level_7_mark:
+            # 1.七级前的手动剧情流程
             self._run_before_level_7()
+            # 2.达到七级领取邮件初始奖励
             self.run_pickup_email()
+            # 3.前往新手活动借取姑获鸟
             self._run_borrow_gh_bird()
+            # 4.领取新手体力奖励
             self._get_rookie_reward()
 
         # 过剧情解锁十五章
@@ -164,7 +168,7 @@ class ScriptTask(
                 # 4.过完第一次经验妖怪教程
                 self._run_exp_youkai_1st()
                 # 5.把剩下的勾玉全买体力
-                self._run_buy_sushi_in_main()
+                self._run_buy_sushi()
                 # 正常做完保存配置
                 self.config.level_rush.level_rush_config.get_achievement_reward_mark = (
                     True
@@ -192,25 +196,28 @@ class ScriptTask(
 
     def _run_exp_youkai_1st(self):
         "过完第一次经验妖怪教程"
+        from tasks.ExperienceYoukai.assets import ExperienceYoukaiAssets
+
         logger.hr('run exp youkai tutorial', 2)
         self.goto_page(page_team)
         while 1:
             self.screenshot()
-            if self.ocr_appear_click(
-                self.O_CLICK_ANYWHERE_CONTINUE, interval=1.2, log=False
-            ):
-                continue
             if self.appear_then_click(self.I_GUIDE_FAN, interval=1.2):
                 continue
             if self.appear_then_click(self.I_EXP_YOUKAI_CREATE, interval=1.2):
                 continue
             if self.appear_then_click(self.I_PREPARE_HIGHLIGHT, interval=1.2):
                 continue
-            if self.appear(self.I_EXP_FIRST_FINISH):
+            if self.appear(ExperienceYoukaiAssets.I_EXP_WIN):
                 self.click(random_click(ltrb=(True, False, False, False)), interval=1.5)
                 continue
             if self.get_current_page(page_main) == page_main:
                 logger.info(f"First exp youkai finished")
+                break
+            if self.appear(self.I_CHECK_TEAM):
+                logger.info(
+                    f"Level is more 31 level, first exp youkai should be finished, exit"
+                )
                 break
         self.goto_page(page_main)
 
@@ -231,25 +238,11 @@ class ScriptTask(
                 logger.info(f"Buy rookie sushi gift finished")
                 break
 
-    def _run_buy_sushi_in_main(self):
-        "庭院直接购买体力到没勾玉"
+    def _run_buy_sushi(self):
+        "尝试购买体力2次"
         logger.hr('buy sushi', 2)
-        self.goto_page(page_main)
-        count = 0
-        while 1:
-            self.screenshot()
-            if self.ui_get_reward(self.I_BUY_SUSHI_60, click_interval=2.5):
-                count += 1
-                logger.info(f"尝试购买体力第{count}次")
-                continue
-            if self.ui_click_until_disappear(self.I_UI_CANCEL_SAMLL, interval=2.5):
-                logger.info(f"Maybe jade not enough, stop")
-                self.appear_then_click(self.I_RED_CLOSE, interval=1.2)
-                logger.info(f"Buy sushi finished")
-                break
-            if self.appear_then_click(self.I_GO_BUY_SUSHI, interval=1.2):
-                continue
-        logger.info(f"勾玉购买体力数量为{count-1}00")
+        self.config.daily_trifles.trifles_config.buy_sushi_count = 2
+        self.run_buy_sushi()
 
     def _run_before_buy(self):
         "领取成就和花合战里的奖励大约200勾玉"
