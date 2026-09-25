@@ -176,7 +176,7 @@
     "roiFront": "211,636,20,20",
     "roiBack": "180,601,217,98",
     "method": "Template matching",
-    "threshold": 0.8,
+    "threshold": 0.7,
     "description": "斗技荣誉图标"
   },
   {

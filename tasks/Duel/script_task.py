@@ -222,11 +222,13 @@ class ScriptTask(GameUi, GeneralBattle, SwitchSoul, DuelAssets, SwitchOnmyoji):
             return False
         roi_x = self.I_DUEL_HONOR.roi_front[0] + self.I_DUEL_HONOR.roi_front[2]
         roi_y = self.I_DUEL_HONOR.roi_front[1]
-        roi_w = 110
+        roi_w = 90
         roi_h = self.I_DUEL_HONOR.roi_front[3]
         self.O_D_HONOR.roi = [roi_x, roi_y, roi_w, roi_h]
-        current, remain, total = self.O_D_HONOR.ocr(self.device.image)
-        return current == total and remain == 0
+        current, _, total = self.O_D_HONOR.ocr(self.device.image)
+        if total > 9999:  # OCR 在 4 位数字尾部多粘了一位, 例: 48008 -> 4800
+            total //= 10
+        return current == total
 
     def get_and_update_cur_score(self, skip_screenshot: bool = True) -> int:
         """
