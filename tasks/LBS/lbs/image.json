@@ -1,0 +1,92 @@
+[
+  {
+    "itemName": "main_goto_lbs",
+    "imageName": "lbs_main_goto_lbs.png",
+    "roiFront": "1182,453,50,31",
+    "roiBack": "1170,117,83,400",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "前往LBS活动"
+  },
+  {
+    "itemName": "check_lbs",
+    "imageName": "lbs_check_lbs.png",
+    "roiFront": "201,227,47,34",
+    "roiBack": "201,227,47,34",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "LBS活动页面标志"
+  },
+  {
+    "itemName": "lbs_team",
+    "imageName": "lbs_lbs_team.png",
+    "roiFront": "1121,578,59,73",
+    "roiBack": "1082,539,137,142",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "LBS组队按钮"
+  },
+  {
+    "itemName": "check_lbs_shop",
+    "imageName": "lbs_check_lbs_shop.png",
+    "roiFront": "669,85,101,29",
+    "roiBack": "669,85,101,29",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "LBS商店标志"
+  },
+  {
+    "itemName": "activity_goto_shop",
+    "imageName": "lbs_activity_goto_shop.png",
+    "roiFront": "104,292,62,91",
+    "roiBack": "104,292,62,91",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "活动前往商店页面"
+  },
+  {
+    "itemName": "shop_goto_activity",
+    "imageName": "lbs_shop_goto_activity.png",
+    "roiFront": "103,155,62,91",
+    "roiBack": "103,155,62,91",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "商店前往活动页面"
+  },
+  {
+    "itemName": "lbs_blessing",
+    "imageName": "lbs_lbs_blessing.png",
+    "roiFront": "489,157,95,31",
+    "roiBack": "184,126,983,520",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "现世祝福"
+  },
+  {
+    "itemName": "check_lbs_map",
+    "imageName": "lbs_check_lbs_map.png",
+    "roiFront": "28,614,55,51",
+    "roiBack": "28,614,55,51",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "地图页稳定特征"
+  },
+  {
+    "itemName": "map_goto_activity",
+    "imageName": "lbs_map_goto_activity.png",
+    "roiFront": "1128,565,55,51",
+    "roiBack": "1128,565,55,51",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "右下角活动图标"
+  },
+  {
+    "itemName": "buy_blessing",
+    "imageName": "lbs_buy_blessing.png",
+    "roiFront": "597,499,40,45",
+    "roiBack": "597,499,40,45",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "购买现世祝福"
+  }
+]

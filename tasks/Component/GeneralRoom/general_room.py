@@ -22,7 +22,9 @@ class GeneralRoom(BaseTask, GeneralRoomAssets):
         :return:
         """
         logger.info('Create room')
-        create_room_rule = self.I_CREATE_ROOM if create_room_rule is None else create_room_rule
+        create_room_rule = (
+            self.I_CREATE_ROOM if create_room_rule is None else create_room_rule
+        )
         if not self.appear(create_room_rule):
             logger.warning('No create room button')
             return False
@@ -31,7 +33,9 @@ class GeneralRoom(BaseTask, GeneralRoomAssets):
             self.screenshot()
             if click_number > 3:
                 logger.warning('Create room button do not take effect')
-                logger.warning('The most possible reason is that there are not challenge tickets')
+                logger.warning(
+                    'The most possible reason is that there are not challenge tickets'
+                )
                 return False
             if self.appear_then_click(create_room_rule, interval=2):
                 click_number += 1
@@ -62,9 +66,13 @@ class GeneralRoom(BaseTask, GeneralRoomAssets):
                 return True
             if self.appear(self.I_ENSURE_PRIVATE_2):
                 return True
+            if self.appear(self.I_ENSURE_PRIVATE_3):
+                return True
             if self.appear_then_click(self.I_ENSURE_PRIVATE_FALSE, interval=1):
                 continue
             if self.appear_then_click(self.I_ENSURE_PRIVATE_FALSE_2, interval=1):
+                continue
+            if self.appear_then_click(self.I_ENSURE_PRIVATE_FALSE_3, interval=1):
                 continue
             # 弹窗上的开关匹配不到但房间已经建成: 私人设置此前已生效(或沿用上次设置), 直接放行
             if room_mark is not None and self.appear(room_mark):
@@ -84,9 +92,13 @@ class GeneralRoom(BaseTask, GeneralRoomAssets):
                 return True
             if self.appear(self.I_ENSURE_PUBLIC_2):
                 return True
+            if self.appear(self.I_ENSURE_PUBLIC_3):
+                return True
             if self.appear_then_click(self.I_ENSURE_PUBLIC_FALSE, interval=1):
                 continue
             if self.appear_then_click(self.I_ENSURE_PUBLIC_FALSE_2, interval=1):
+                continue
+            if self.appear_then_click(self.I_ENSURE_PUBLIC_FALSE_3, interval=1):
                 continue
 
     def create_ensure(self) -> bool:
@@ -95,8 +107,12 @@ class GeneralRoom(BaseTask, GeneralRoomAssets):
         :return:
         """
         logger.info('Create ensure')
-        appear1 = self.I_CREATE_ENSURE.match(self.device.image, frame_id=self.device.image_frame_id)
-        appear2 = self.I_CREATE_ENSURE_2.match(self.device.image, frame_id=self.device.image_frame_id)
+        appear1 = self.I_CREATE_ENSURE.match(
+            self.device.image, frame_id=self.device.image_frame_id
+        )
+        appear2 = self.I_CREATE_ENSURE_2.match(
+            self.device.image, frame_id=self.device.image_frame_id
+        )
         target = None
         if appear1:
             target = self.I_CREATE_ENSURE

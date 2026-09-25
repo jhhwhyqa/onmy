@@ -91,6 +91,7 @@ class ConfigMenu:
             'KittyShop',
             'DyeTrials',
             'GuguArtStudio',
+            'LBS',
         ]
         # 开发工具
         self.menu["Tools"] = [

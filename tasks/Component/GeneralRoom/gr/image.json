@@ -54,6 +54,24 @@
     "description": "description"
   },
   {
+    "itemName": "ensure_private_3",
+    "imageName": "gr_ensure_private_3.png",
+    "roiFront": "506,393,38,37",
+    "roiBack": "506,393,38,37",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": ""
+  },
+  {
+    "itemName": "ensure_private_false_3",
+    "imageName": "gr_ensure_private_false_3.png",
+    "roiFront": "506,393,38,37",
+    "roiBack": "506,393,38,37",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": ""
+  },
+  {
     "itemName": "create_ensure_2",
     "imageName": "gr_create_ensure_2.png",
     "roiFront": "552,489,42,55",
@@ -124,5 +142,23 @@
     "method": "Template matching",
     "threshold": 0.8,
     "description": "description"
+  },
+  {
+    "itemName": "ensure_public_3",
+    "imageName": "gr_ensure_public_3.png",
+    "roiFront": "506,265,38,37",
+    "roiBack": "506,265,38,37",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": ""
+  },
+  {
+    "itemName": "ensure_public_false_3",
+    "imageName": "gr_ensure_public_false_3.png",
+    "roiFront": "506,265,38,37",
+    "roiBack": "506,265,38,37",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": ""
   }
 ]

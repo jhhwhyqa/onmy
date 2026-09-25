@@ -1,0 +1,11 @@
+[
+  {
+    "itemName": "lbs_challenge_count",
+    "roiFront": "1092,678,65,29",
+    "roiBack": "1092,678,65,29",
+    "mode": "DigitCounter",
+    "method": "Default",
+    "keyword": "",
+    "description": "LBS剩余挑战次数"
+  }
+]
