@@ -299,6 +299,11 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, AbyssShadowsAssets):
         # 前往当前区域 的某个 敌人
         logger.info(f"Goto enemy: {item_code}")
         click_area = item_code.get_enemy_click()
+        enemy_number = int(item_code.split('-')[1])
+        defeated_ocr = (
+            self.O_1_DIED, self.O_2_DIED, self.O_3_DIED,
+            self.O_4_DIED, self.O_5_DIED, self.O_6_DIED,
+        )[enemy_number - 1]
         logger.info(f"Click emeny area: {click_area.name}")
         # 点击前往按钮的次数，阴阳师BUG:点击后不动，
         # 所以如果失败了，在点击前，尝试使用左下方的摇杆移动一点点
@@ -326,6 +331,10 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, AbyssShadowsAssets):
                 if self.appear(self.I_ABYSS_GOTO_ENEMY):
                     logger.info(f"{self.I_ABYSS_GOTO_ENEMY} appear")
                     break
+                # 导航图中该位置标有“已击破”时直接跳过；漏识别仍由原有三次点击兜底。
+                if defeated_ocr.match(defeated_ocr.ocr(self.device.image), included=True):
+                    logger.info(f"{item_code} is already defeated ({defeated_ocr.name})")
+                    return False
                 if self.click(click_area, interval=1.5):
                     click_times += 1
                     continue
@@ -714,9 +723,10 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, AbyssShadowsAssets):
             logger.info(f"{enemy_type.name} 的预设为 -1,-1，跳过御魂切换")
             return
 
-        # 检查预设是否与当前相同
-        if self.cur_soul_preset == preset_str:
-            logger.info(f"{enemy_type.name} 的预设 {preset_str} 与当前相同，跳过切换")
+        # 不同敌人类型可能共用同一御魂预设；归一化后再比对，配置写成 "3, 5" 也能命中缓存
+        preset_key = ','.join(part.strip() for part in preset_str.split(','))
+        if preset_key == self.cur_soul_preset:
+            logger.info(f"{enemy_type.name} 的预设 {preset_key} 与当前相同，跳过切换")
             return
 
         # 直接在狭间页面点击式神录按钮进入式神录
@@ -733,7 +743,7 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, AbyssShadowsAssets):
             self.run_switch_soul((int(l[0]), int(l[1])))
 
             # 更新当前御魂预设
-            self.cur_soul_preset = preset_str
+            self.cur_soul_preset = preset_key
 
             logger.info(f"成功在狭间中切换至 {enemy_type.name} 预设 {preset_str}")
         except Exception as e:
