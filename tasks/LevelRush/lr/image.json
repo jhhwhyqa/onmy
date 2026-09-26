@@ -264,7 +264,7 @@
     "itemName": "click_youkai_1",
     "imageName": "lr_click_youkai_1.png",
     "roiFront": "530,109,23,23",
-    "roiBack": "551,128,80,60",
+    "roiBack": "310,38,775,278",
     "method": "Template matching",
     "threshold": 0.8,
     "description": "点击妖怪1"

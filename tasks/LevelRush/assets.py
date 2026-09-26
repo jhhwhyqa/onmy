@@ -77,7 +77,7 @@ class LevelRushAssets:
 	# 教学锁1 
 	I_TECH_LOCK = RuleImage(roi_front=(863,381,285,72), roi_back=(863,381,285,72), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_tech_lock.png")
 	# 点击妖怪1 
-	I_CLICK_YOUKAI_1 = RuleImage(roi_front=(530,109,23,23), roi_back=(551,128,80,60), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_click_youkai_1.png")
+	I_CLICK_YOUKAI_1 = RuleImage(roi_front=(530,109,23,23), roi_back=(310,38,775,278), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_click_youkai_1.png")
 	# 这里可以切换自动了 
 	I_SWITCH_AUTOMATIC_MARK = RuleImage(roi_front=(294,32,20,22), roi_back=(294,32,20,22), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_switch_automatic_mark.png")
 	# 点击回正视角 
