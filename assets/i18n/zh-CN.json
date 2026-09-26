@@ -285,5 +285,7 @@
   "lbs_config": "LBS配置",
   "limit_count": "限制次数",
   "invite_config": "组队邀请",
-  "buy_blessing_enable": "购买现世祝福"
+  "buy_blessing_enable": "购买现世祝福",
+  "ocr": "OCR日志",
+  "save_ocr_log_help": "默认关闭；开启后保存OCR输入图片和文字识别结果到 log/ocr，用于调试识别问题"
 }

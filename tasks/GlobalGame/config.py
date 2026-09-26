@@ -34,8 +34,13 @@ class BattleTakeover(BaseModel):
     on_takeover: BattleTaskOverEnum = Field(default=BattleTaskOverEnum.FINISH, description='on_takeover_help')
 
 
+class OcrLog(BaseModel):
+    save_ocr_log: bool = Field(default=False, description='save_ocr_log_help')
+
+
 class GlobalGame(BaseModel):
     emergency: Emergency = Field(default_factory=Emergency)
     costume_config: CostumeConfig = Field(default_factory=CostumeConfig)
     battle: BattleTakeover = Field(default_factory=BattleTakeover)
+    ocr: OcrLog = Field(default_factory=OcrLog)
     team_flow: TeamFlow = Field(default_factory=TeamFlow)
