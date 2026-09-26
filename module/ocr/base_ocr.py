@@ -5,7 +5,7 @@ import time
 import cv2
 import numpy as np
 
-from ppocronnx.predict_system import BoxedResult
+from module.ocr.common import BoxedResult
 from enum import Enum
 
 
@@ -220,7 +220,8 @@ class BaseCor:
         start_time = time.time()
         image = self.crop(image, self.roi)
         image = self.pre_process(image)
-        image = enlarge_canvas(image)
+        # PP-OCRv6 自带缩放预处理，这里不再补成 32 倍数正方形（与上游 OCR 栈保持一致）
+        # image = enlarge_canvas(image)
 
         # ocr
         boxed_results: list[BoxedResult] = self.model.detect_and_ocr(image, **kwargs)
@@ -301,7 +302,8 @@ class BaseCor:
         start_time = time.time()
         image = self.crop(image, self.roi)
         image = self.pre_process(image)
-        image = enlarge_canvas(image)
+        # PP-OCRv6 自带缩放预处理，这里不再补成 32 倍数正方形（与上游 OCR 栈保持一致）
+        # image = enlarge_canvas(image)
         # ocr
         boxed_results: list[BoxedResult] = self.model.detect_and_ocr(image)
         results = ''
