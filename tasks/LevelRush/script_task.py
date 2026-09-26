@@ -86,8 +86,8 @@ class ScriptTask(
         '第二十八章',
     ]
 
-    # 中间章节用来判定执行体力补给任务
-    _MID_CHAPTER = '第十二章'
+    # 中间章节用来联合判定执行体力补给任务
+    _MID_CHAPTER = '第十章'
     _MID_CHAPTER_INDEX = _EXPLORATION_CHAPTERS.index(_MID_CHAPTER)
     # 初始阵容（SP 姑获鸟）的稳定上限：困难十五章
     _MAX_CHAPTER = '第十五章'
@@ -155,7 +155,7 @@ class ScriptTask(
         # 体力够就来一轮探索
         if not self._get_current_sushi():
             self._run_exploration()
-        # 体力不够且做完了十二章剧情才会触发下面的流程，正常情况500体力应该是足够到这里的
+        # 体力不够且做完了十章剧情才会触发下面的流程，正常情况500体力应该是足够到这里的
         elif self._EXPLORATION_CHAPTERS.index(chapter) >= self._MID_CHAPTER_INDEX:
             # 一次性流程
             if not self.config.level_rush.level_rush_config.get_achievement_reward_mark:
@@ -200,9 +200,17 @@ class ScriptTask(
 
         logger.hr('run exp youkai tutorial', 2)
         self.goto_page(page_team)
+        first_exp_flag = False
         while 1:
+            sleep(1)
             self.screenshot()
+            if self.ocr_appear_click(
+                self.O_CLICK_ANYWHERE_CONTINUE, interval=1.2, log=False
+            ):
+                first_exp_flag = True
+                continue
             if self.appear_then_click(self.I_GUIDE_FAN, interval=1.2):
+                first_exp_flag = True
                 continue
             if self.appear_then_click(self.I_EXP_YOUKAI_CREATE, interval=1.2):
                 continue
@@ -218,6 +226,9 @@ class ScriptTask(
                 logger.info(
                     f"Level is more 31 level, first exp youkai should be finished, exit"
                 )
+                break
+            if not first_exp_flag:
+                logger.info(f"No guide, first exp youkai should be finished, exit")
                 break
         self.goto_page(page_main)
 
@@ -242,6 +253,7 @@ class ScriptTask(
         "尝试购买体力2次"
         logger.hr('buy sushi', 2)
         self.config.daily_trifles.trifles_config.buy_sushi_count = 2
+        self.goto_page(page_mall)
         self.run_buy_sushi()
 
     def _run_before_buy(self):
@@ -254,13 +266,14 @@ class ScriptTask(
         self.goto_page(page_achievement)
         loop = 0
         while 1:
+            sleep(0.5)
             self.screenshot()
-            if self.appear_then_click(self.I_GET_ACHIEVEMENT_REWARD, interval=1.2):
+            if self.appear_then_click(self.I_ACHIEVEMENT_MENU_CLOSE, interval=1.2):
                 self.device.click_record_clear()
                 continue
-            if not self.appear(
-                self.I_GET_ACHIEVEMENT_REWARD
-            ) and self.appear_then_click(self.I_ACHIEVEMENT_MENU_CLOSE, interval=1.2):
+            if self.appear(self.I_GET_ACHIEVEMENT_REWARD):
+                self.ui_get_reward(self.I_GET_ACHIEVEMENT_REWARD)
+                self.click(random_click(ltrb=(False, True, False, False)))
                 self.device.click_record_clear()
                 continue
             if self.appear_then_click(self.I_ACHIEVEMENT_REWARD_EXIST, interval=1.2):
@@ -685,5 +698,5 @@ if __name__ == '__main__':
     d = Device(c)
     t = ScriptTask(c, d)
     t.screenshot()
-
-    t.run()
+    t._run_before_buy()
+    # t.run()
