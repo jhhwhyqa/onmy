@@ -354,7 +354,9 @@ class ScriptTask(WQExplore, SecretScriptTask, WantedQuestsAssets):
             while 1:
                 self.screenshot()
                 if self.get_current_page() in [page_battle_prepare, page_battle]:
+                    # 本次任务后续再进秘闻不再重复切"。
                     self.run_general_battle(self.build_secret_battle_conf(first_battle=i == 0),
+                                            battle_key='wq_secret',
                                             exit_matcher=any_of(self.I_UI_BACK_RED, self.I_WQSE_SPECIAL_FIRE))
                     break
                 if self.appear_then_click(self.I_WQSE_FIRE, interval=1):
