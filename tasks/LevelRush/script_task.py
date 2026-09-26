@@ -3,6 +3,7 @@ import re
 from datetime import datetime, timedelta
 from time import sleep
 
+from module.atom.image import RuleImage
 from module.base.timer import Timer
 from module.logger import logger
 from module.base.protect import random_sleep
@@ -123,7 +124,8 @@ class ScriptTask(
             self._run_borrow_gh_bird()
             # 4.领取新手体力奖励
             self._get_rookie_reward()
-
+            self.config.level_rush.level_rush_config.level_7_mark = True
+            self.config.save()
         # 过剧情解锁十五章
         if not (
             self.config.level_rush.level_rush_config.exploration_chapter_max_15_enable
@@ -175,7 +177,8 @@ class ScriptTask(
                 )
                 self.config.save()
             else:
-                # 6.后续体力不足100就尝试运行经验妖怪
+                # 6.后续体力不足100就尝试运行经验妖怪和领取新手体力，防止前面没领到
+                self._get_rookie_reward()
                 self.run_experienceyoukai()
                 # 7.体力不足只能等待体力回复，标记失败，4小时cd
                 logger.info(f"体力不足100，4小时后再次尝试")
@@ -309,6 +312,7 @@ class ScriptTask(
         get_timer = Timer(5)
         get_timer.start()
         while 1:
+            sleep(0.7)
             self.screenshot()
             if self.appear(self.I_CHECK_AGREE_DONE):
                 self.appear_then_click(self.I_LR_LEVEL_SKIP, interval=1)
@@ -599,8 +603,6 @@ class ScriptTask(
             ):
                 continue
             if self.appear(self.I_FIRST_BORROW_GET, interval=1):
-                self.config.level_rush.level_rush_config.level_7_mark = True
-                self.config.save()
                 logger.info(f"Success get assist guhuo bired")
                 break
             if self.appear_then_click(self.I_GUIDE_FAN, interval=1):
@@ -613,6 +615,32 @@ class ScriptTask(
                 self.ui_click(self.I_BORROW_SHIKIGAMI, self.I_IN_BORROW_SHIKIGAMI)
                 continue
         self.goto_page(page_main)
+
+    def click_monster_by_level(self, target: RuleImage) -> bool:
+        """根据怪物等级位置，点击血条下方的怪物"""
+        # 1. 识别等级
+        if not self.appear(target):
+            return False
+
+        # 2. 获取等级 ROI
+        x, y, w, h = target.roi_front
+
+        # 3. 以等级右下角为基准
+        base_x = x + w  # 等级右边界
+        base_y = y + h  # 等级下边界
+
+        # 4. 偏移量，需要根据实际游戏截图测量调整
+        #    水平偏移：从等级右边界到怪物中心的距离
+        offset_x = 80  # 示例值，请自行测量
+        #    垂直偏移：从等级下边界到怪物中心的距离
+        offset_y = 60  # 示例值，请自行测量
+
+        click_x = base_x + offset_x
+        click_y = base_y + offset_y
+
+        # 5. 点击
+        self.device.click(click_x, click_y)
+        return True
 
     def _run_before_level_7(self):
         "7级解锁借五星姑获鸟之前的剧情，无法开启自动"
@@ -668,9 +696,9 @@ class ScriptTask(
             if self.appear(self.I_TECH_LOCK):
                 self.click(self.C_NORMAL_ATTACK_CLICK, interval=1)
                 continue
-            if self.appear_then_click(self.I_CLICK_YOUKAI_1, interval=1):
-                continue
-            if self.appear_then_click(self.I_CLICK_YOUKAI_2, interval=1):
+            if self.appear(self.I_CLICK_YOUKAI_1, interval=1):
+                if self.click_monster_by_level(self.I_CLICK_YOUKAI_1):
+                    self.device.click_record_clear()
                 continue
             if self.appear(self.I_SWITCH_AUTOMATIC_MARK):
                 if self.appear(self.I_SINGLE_SPEED):

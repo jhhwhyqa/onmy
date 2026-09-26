@@ -77,9 +77,7 @@ class LevelRushAssets:
 	# 教学锁1 
 	I_TECH_LOCK = RuleImage(roi_front=(863,381,285,72), roi_back=(863,381,285,72), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_tech_lock.png")
 	# 点击妖怪1 
-	I_CLICK_YOUKAI_1 = RuleImage(roi_front=(619,189,23,23), roi_back=(455,87,574,275), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_click_youkai_1.png")
-	# 点击妖怪2 
-	I_CLICK_YOUKAI_2 = RuleImage(roi_front=(489,265,23,23), roi_back=(431,119,432,269), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_click_youkai_2.png")
+	I_CLICK_YOUKAI_1 = RuleImage(roi_front=(530,109,23,23), roi_back=(551,128,80,60), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_click_youkai_1.png")
 	# 这里可以切换自动了 
 	I_SWITCH_AUTOMATIC_MARK = RuleImage(roi_front=(294,32,20,22), roi_back=(294,32,20,22), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_switch_automatic_mark.png")
 	# 点击回正视角 
@@ -121,7 +119,7 @@ class LevelRushAssets:
 	# 返回庭院 
 	I_TOWN_BACK_MAIN = RuleImage(roi_front=(1039,233,32,63), roi_back=(989,199,129,273), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_town_back_main.png")
 	# 第一天奖励 
-	I_SIGN_REWARD_DAY1 = RuleImage(roi_front=(253,309,108,73), roi_back=(253,309,108,73), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_sign_reward_day1.png")
+	I_SIGN_REWARD_DAY1 = RuleImage(roi_front=(235,299,137,66), roi_back=(205,290,210,110), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_sign_reward_day1.png")
 	# 未锁定阵容 
 	I_TEAM_UNLOCK = RuleImage(roi_front=(1009,661,17,22), roi_back=(848,588,430,132), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_team_unlock.png")
 	# 已锁定阵容 

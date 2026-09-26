@@ -263,20 +263,11 @@
   {
     "itemName": "click_youkai_1",
     "imageName": "lr_click_youkai_1.png",
-    "roiFront": "619,189,23,23",
-    "roiBack": "455,87,574,275",
+    "roiFront": "530,109,23,23",
+    "roiBack": "551,128,80,60",
     "method": "Template matching",
     "threshold": 0.8,
     "description": "点击妖怪1"
-  },
-  {
-    "itemName": "click_youkai_2",
-    "imageName": "lr_click_youkai_2.png",
-    "roiFront": "489,265,23,23",
-    "roiBack": "431,119,432,269",
-    "method": "Template matching",
-    "threshold": 0.8,
-    "description": "点击妖怪2"
   },
   {
     "itemName": "switch_automatic_mark",
@@ -461,8 +452,8 @@
   {
     "itemName": "sign_reward_day1",
     "imageName": "lr_sign_reward_day1.png",
-    "roiFront": "253,309,108,73",
-    "roiBack": "253,309,108,73",
+    "roiFront": "235,299,137,66",
+    "roiBack": "205,290,210,110",
     "method": "Template matching",
     "threshold": 0.8,
     "description": "第一天奖励"
