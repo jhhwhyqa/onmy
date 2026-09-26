@@ -70,7 +70,7 @@ class RestartAssets:
 
 	# Image Rule Assets
 	# 庭院卷轴打开 
-	I_LOGIN_SCROOLL_OPEN = RuleImage(roi_front=(1208,609,33,83), roi_back=(1208,609,33,83), threshold=0.8, method="Template matching", file="./tasks/Restart/login/login_login_scrooll_open.png")
+	I_LOGIN_SCROOLL_OPEN = RuleImage(roi_front=(1209,607,32,84), roi_back=(1209,607,32,84), threshold=0.8, method="Template matching", file="./tasks/Restart/login/login_login_scrooll_open.png")
 	# 庭院卷轴关闭 
 	I_LOGIN_SCROOLL_CLOSE = RuleImage(roi_front=(1181,634,28,39), roi_back=(1162,595,77,112), threshold=0.7, method="Template matching", file="./tasks/Restart/login/login_login_scrooll_close.png")
 	# 闲庭图片 
@@ -105,6 +105,8 @@ class RestartAssets:
 	I_EARLY_SERVER_CANCEL = RuleImage(roi_front=(435,404,172,56), roi_back=(435,404,172,56), threshold=0.8, method="Template matching", file="./tasks/Restart/login/login_early_server_cancel.png")
 	# 取消继续战斗 
 	I_CANCEL_BATTLE = RuleImage(roi_front=(471,395,129,55), roi_back=(367,227,545,296), threshold=0.8, method="Template matching", file="./tasks/Restart/login/login_cancel_battle.png")
+	# 取消返回百鬼棋局，进入棋局结算流程 
+	I_RETURN_CHESS_CANCEL = RuleImage(roi_front=(432,400,181,69), roi_back=(400,370,240,120), threshold=0.8, method="Template matching", file="./tasks/Restart/login/login_return_chess_cancel.png")
 	# 关闭个性化推荐 
 	I_CLOSE_PERSONAL_RECOMMEND = RuleImage(roi_front=(359,575,225,69), roi_back=(359,575,225,69), threshold=0.8, method="Template matching", file="./tasks/Restart/login/login_close_personal_recommend.png")
 	# 前往绑定按钮 

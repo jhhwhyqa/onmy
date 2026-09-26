@@ -78,6 +78,7 @@ class ConfigMenu:
             'WeeklyTrifles',
             'MysteryShop',
             'Duel',
+            'Chess',
         ]
         # 活动的任务
         self.menu["Activity Task"] = [
