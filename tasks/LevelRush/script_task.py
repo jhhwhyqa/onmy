@@ -128,7 +128,7 @@ class ScriptTask(
         if not (
             self.config.level_rush.level_rush_config.exploration_chapter_max_15_enable
             and self.config.exploration.exploration_config.exploration_level
-            == '第十五章'
+            == self._MAX_CHAPTER
         ):
             self._run_storyline()
 
@@ -673,8 +673,10 @@ class ScriptTask(
             if self.appear_then_click(self.I_CLICK_YOUKAI_2, interval=1):
                 continue
             if self.appear(self.I_SWITCH_AUTOMATIC_MARK):
-                self.ui_click(self.I_SINGLE_SPEED, self.I_DOUBLE_SPEED)
-                self.ui_click(self.I_MANUAL_MODE, self.I_AUTOMATIC_MODE)
+                if self.appear(self.I_SINGLE_SPEED):
+                    self.ui_click(self.I_SINGLE_SPEED, self.I_DOUBLE_SPEED)
+                if self.appear(self.I_MANUAL_MODE):
+                    self.ui_click(self.I_MANUAL_MODE, self.I_AUTOMATIC_MODE)
                 continue
             if self.appear_then_click(self.I_DOGGOD_CLICK, interval=1):
                 continue
