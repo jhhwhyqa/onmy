@@ -287,5 +287,10 @@
   "exploration_chapter_max_15_enable": "启用探索章节最大锁定困难十五章(同时锁定过剧情功能)",
   "get_achievement_reward_mark": "获取成就奖励购买新手体力标记(达到40级或跳过会自动恢复默认False)",
   "buy_blessing_enable": "启用购买现世祝福",
-  "buy_blessing_enable_help": "自动识别次数打完结束"
+  "buy_blessing_enable_help": "自动识别次数打完结束",
+  "run_mode": "组队方式",
+  "run_mode_help": "公开匹配随机队友: 创建公开房间, 等随机路人进房后开战\n不公开单刷: 创建仅邀请房间, 不等队友直接点击挑战",
+  "public_team": "公开匹配随机队友",
+  "solo": "不公开单刷",
+  "lbs_config": "LBS活动配置"
 }
