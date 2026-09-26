@@ -422,7 +422,9 @@ class ScriptTask(GameUi, Summon, DailyTriflesAssets):
         if self.config.daily_trifles.today_is_done('sushi'):
             logger.info('Today is done, skip')
             return
+        self.goto_page(page_mall)
         # 进入Special
+        enter_timer = Timer(30).start()
         while 1:
             from tasks.RichMan.assets import RichManAssets
             from tasks.LevelRush.assets import LevelRushAssets
@@ -435,9 +437,14 @@ class ScriptTask(GameUi, Summon, DailyTriflesAssets):
                     LevelRushAssets.I_ROOKIE_GOTO_SPECIAL,
                     RichManAssets.I_SIDE_CHECK_SPECIAL,
                 )
+                enter_timer.reset()
                 continue
             if self.appear_then_click(RichManAssets.I_MALL_SUNDRY, interval=1):
+                enter_timer.reset()
                 continue
+            if enter_timer.reached():
+                logger.warning('Cannot enter special mall, skip buy sushi')
+                return
 
         def detect_buy_count(base_element) -> (int, int):
             # 返回count,price
