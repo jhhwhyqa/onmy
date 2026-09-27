@@ -258,6 +258,7 @@ class ScriptTask(
         self.config.daily_trifles.trifles_config.buy_sushi_count = 2
         self.goto_page(page_mall)
         self.run_buy_sushi()
+        self.goto_page(page_main)
 
     def _run_before_buy(self):
         "领取成就和花合战里的奖励大约200勾玉"
