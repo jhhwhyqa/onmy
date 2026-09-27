@@ -583,5 +583,86 @@
     "method": "Template matching",
     "threshold": 0.8,
     "description": "新手商店前往特殊商店"
+  },
+  {
+    "itemName": "goto_permission",
+    "imageName": "lr_goto_permission.png",
+    "roiFront": "1168,333,29,67",
+    "roiBack": "1168,333,29,67",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "点击前往权限设置子页面"
+  },
+  {
+    "itemName": "push_permission",
+    "imageName": "lr_push_permission.png",
+    "roiFront": "100,82,53,67",
+    "roiBack": "100,82,53,67",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "推送权限"
+  },
+  {
+    "itemName": "get_push_reward",
+    "imageName": "lr_get_push_reward.png",
+    "roiFront": "561,501,169,58",
+    "roiBack": "561,501,169,58",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "领取推送奖励50勾玉"
+  },
+  {
+    "itemName": "friend_goto_add",
+    "imageName": "lr_friend_goto_add.png",
+    "roiFront": "1196,280,55,102",
+    "roiBack": "1196,280,55,102",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "前往添加好友界面"
+  },
+  {
+    "itemName": "bind_button",
+    "imageName": "lr_bind_button.png",
+    "roiFront": "976,597,146,36",
+    "roiBack": "976,597,146,36",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "一键绑定"
+  },
+  {
+    "itemName": "bind_reward_exsit",
+    "imageName": "lr_bind_reward_exsit.png",
+    "roiFront": "684,596,30,40",
+    "roiBack": "684,596,30,40",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "未获取绑定奖励"
+  },
+  {
+    "itemName": "device_permission_confirm",
+    "imageName": "lr_device_permission_confirm.png",
+    "roiFront": "669,383,174,51",
+    "roiBack": "669,383,174,51",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "设备获取通讯录权限确定按钮"
+  },
+  {
+    "itemName": "check_add",
+    "imageName": "lr_check_add.png",
+    "roiFront": "94,640,32,56",
+    "roiBack": "94,640,32,56",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "添加好友页面标志"
+  },
+  {
+    "itemName": "push_reward_already_get",
+    "imageName": "lr_push_reward_already_get.png",
+    "roiFront": "561,501,169,58",
+    "roiBack": "561,501,169,58",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "已领取推送奖励"
   }
 ]

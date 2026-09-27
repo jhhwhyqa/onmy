@@ -148,6 +148,24 @@ class LevelRushAssets:
 	I_CANCEL_BEFORE_7 = RuleImage(roi_front=(416,475,130,36), roi_back=(416,475,130,36), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_cancel_before_7.png")
 	# 新手商店前往特殊商店 
 	I_ROOKIE_GOTO_SPECIAL = RuleImage(roi_front=(1187,298,44,67), roi_back=(1169,90,85,488), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_rookie_goto_special.png")
+	# 点击前往权限设置子页面 
+	I_GOTO_PERMISSION = RuleImage(roi_front=(1168,333,29,67), roi_back=(1168,333,29,67), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_goto_permission.png")
+	# 推送权限 
+	I_PUSH_PERMISSION = RuleImage(roi_front=(100,82,53,67), roi_back=(100,82,53,67), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_push_permission.png")
+	# 领取推送奖励50勾玉 
+	I_GET_PUSH_REWARD = RuleImage(roi_front=(561,501,169,58), roi_back=(561,501,169,58), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_get_push_reward.png")
+	# 前往添加好友界面 
+	I_FRIEND_GOTO_ADD = RuleImage(roi_front=(1196,280,55,102), roi_back=(1196,280,55,102), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_friend_goto_add.png")
+	# 一键绑定 
+	I_BIND_BUTTON = RuleImage(roi_front=(976,597,146,36), roi_back=(976,597,146,36), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_bind_button.png")
+	# 未获取绑定奖励 
+	I_BIND_REWARD_EXSIT = RuleImage(roi_front=(684,596,30,40), roi_back=(684,596,30,40), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_bind_reward_exsit.png")
+	# 设备获取通讯录权限确定按钮 
+	I_DEVICE_PERMISSION_CONFIRM = RuleImage(roi_front=(669,383,174,51), roi_back=(669,383,174,51), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_device_permission_confirm.png")
+	# 添加好友页面标志 
+	I_CHECK_ADD = RuleImage(roi_front=(94,640,32,56), roi_back=(94,640,32,56), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_check_add.png")
+	# 已领取推送奖励 
+	I_PUSH_REWARD_ALREADY_GET = RuleImage(roi_front=(561,501,169,58), roi_back=(561,501,169,58), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_push_reward_already_get.png")
 
 
 	# Ocr Rule Assets

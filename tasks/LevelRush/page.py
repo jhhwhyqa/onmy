@@ -1,5 +1,6 @@
-from tasks.GameUi.default_pages import page_main, page_daily
+from tasks.GameUi.default_pages import page_main, page_daily, page_friends
 from tasks.GameUi.page_definition import Page
+from tasks.GlobalGame.assets import GlobalGameAssets
 from tasks.LevelRush.assets import LevelRushAssets
 
 # 新手活动页面
@@ -27,4 +28,17 @@ page_achievement.connect(
     page_daily,
     LevelRushAssets.I_YELLOW_BACK_BUTTON,
     key="page_achievement->page_daily",
+)
+
+# 好友添加页面
+page_add_friends = Page(LevelRushAssets.I_CHECK_ADD)
+page_friends.connect(
+    page_add_friends,
+    LevelRushAssets.I_FRIEND_GOTO_ADD,
+    key="page_friends->page_add_friends",
+)
+page_add_friends.connect(
+    page_main,
+    GlobalGameAssets.I_UI_BACK_RED,
+    key="page_add_friends->page_main",
 )

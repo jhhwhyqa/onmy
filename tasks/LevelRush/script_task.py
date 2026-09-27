@@ -20,8 +20,9 @@ from tasks.GameUi.page import (
     page_mall,
     page_team,
     page_daily,
+    page_friends,
 )
-from tasks.LevelRush.page import page_rookie_act, page_achievement
+from tasks.LevelRush.page import page_rookie_act, page_achievement, page_add_friends
 from tasks.Exploration.config import ExplorationLevel
 from tasks.Exploration.assets import ExplorationAssets
 from tasks.LevelRush.assets import LevelRushAssets
@@ -177,12 +178,15 @@ class ScriptTask(
                 )
                 self.config.save()
             else:
-                # 6.后续体力不足100就尝试运行经验妖怪和领取新手体力，防止前面没领到
-                self._get_rookie_reward()
+                # 6.后续体力不足100就尝试运行经验妖怪,获取最新成就奖励再购买体力，防止前面没领到
+                self._run_before_buy()
+                self._run_buy_sushi()
                 self.run_experienceyoukai()
-                # 7.体力不足只能等待体力回复，标记失败，4小时cd
-                logger.info(f"体力不足100，4小时后再次尝试")
-                self._task_end(False)
+
+                if self._get_current_sushi():
+                    # 7.体力不足只能等待体力回复，标记失败，4小时cd
+                    logger.info(f"体力不足100，4小时后再次尝试")
+                    self._task_end(False)
         # 有体力的情况下正常结束本轮任务，标记成功，5分钟cd
         logger.info(f"本轮正常结束，即将执行下一轮")
         self._task_end(True)
@@ -253,24 +257,39 @@ class ScriptTask(
                 break
 
     def _run_buy_sushi(self):
-        "尝试购买体力2次"
+        "尝试购买体力4次，不够会退出"
+
         logger.hr('buy sushi', 2)
-        self.config.daily_trifles.trifles_config.buy_sushi_count = 2
+        self.config.daily_trifles.trifles_config.buy_sushi_count = 4
+        self.config.daily_trifles.done_record.sushi_dt = datetime(2023, 1, 1)
         self.goto_page(page_mall)
         self.run_buy_sushi()
         self.goto_page(page_main)
 
     def _run_before_buy(self):
-        "领取成就和花合战里的奖励大约200勾玉"
+        "领取各种勾玉"
         logger.hr('get jade', 2)
+
+        # 领取花合战里的奖励
         self.goto_page(page_daily)
         if self.in_task():
             self.get_all()
 
+        # 领取成就里的奖励
+        self.get_achievement_reward()
+
+        # 领取权限通知的50勾玉
+        self.get_push_permission_reward()
+
+        # 领取绑定通讯录100勾玉
+        self._get_contacts_bind_reward()
+
+    def get_achievement_reward(self):
+        "领取成就里的奖励"
         self.goto_page(page_achievement)
         loop = 0
         while 1:
-            sleep(0.5)
+            sleep(0.8)
             self.screenshot()
             if self.appear_then_click(self.I_ACHIEVEMENT_MENU_CLOSE, interval=1.2):
                 self.device.click_record_clear()
@@ -291,6 +310,59 @@ class ScriptTask(
                 loop += 1
         logger.info(f"Achievement reward get finish")
         self.goto_page(page_main)
+
+    def _get_contacts_bind_reward(self):
+        "领取绑定通讯录100勾玉"
+        self.goto_page(page_add_friends)
+        if self.appear(self.I_BIND_REWARD_EXSIT):
+            while 1:
+                sleep(1.2)
+                self.screenshot()
+                if self.appear_then_click(
+                    self.I_DEVICE_PERMISSION_CONFIRM, interval=1.2
+                ):
+                    continue
+                if self.appear_then_click(self.I_UI_CONFIRM, interval=1.2):
+                    continue
+                if not self.appear(self.I_BIND_REWARD_EXSIT):
+                    logger.info(f"Get bind reward sucsuss")
+                    break
+                if self.appear_then_click(self.I_BIND_BUTTON, interval=1.2):
+                    continue
+        else:
+            logger.info(f"Bind reward not exsit, exit!")
+        self.goto_page(page_main)
+
+    def get_push_permission_reward(self):
+        "领取权限通知的50勾玉"
+        from tasks.Component.SwitchAccount.assets import SwitchAccountAssets
+
+        if self.get_current_page() == page_main:
+            self.ui_click(
+                SwitchAccountAssets.C_SA_EG_PROFILE_PHOTO,
+                SwitchAccountAssets.I_SA_USER_CENTER_PROFILE,
+                3,
+            )
+            self.ui_click(
+                self.I_GOTO_PERMISSION,
+                self.I_PUSH_PERMISSION,
+                3,
+            )
+            self.appear_then_click(self.I_PUSH_PERMISSION, interval=1.2)
+
+            self.screenshot()
+            if self.appear(self.I_GET_PUSH_REWARD):
+                self.ui_get_reward(self.I_GET_PUSH_REWARD)
+                logger.info(f"Get push permission reward sucsuss")
+
+            self.screenshot()
+            if self.appear(self.I_PUSH_REWARD_ALREADY_GET):
+                logger.info(f"Push permission reward not exsit, exit!")
+            self.appear_then_click(self.I_RED_CLOSE, interval=0.8)
+
+            sleep(2)
+            self.screenshot()
+            self.appear_then_click(self.I_RED_CLOSE, interval=0.8)
 
     def _task_end(self, success: bool):
         """
