@@ -1,0 +1,236 @@
+[
+  {
+    "itemName": "draft_round",
+    "roiFront": "450,120,380,55",
+    "roiBack": "450,120,380,55",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "第N名式神提示"
+  },
+  {
+    "itemName": "draft_left_name",
+    "roiFront": "190,652,150,55",
+    "roiBack": "190,652,150,55",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "左侧候选式神名"
+  },
+  {
+    "itemName": "draft_middle_name",
+    "roiFront": "555,652,180,55",
+    "roiBack": "555,652,180,55",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "中间候选式神名"
+  },
+  {
+    "itemName": "draft_right_name",
+    "roiFront": "970,652,150,55",
+    "roiBack": "970,652,150,55",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "右侧候选式神名"
+  },
+  {
+    "itemName": "battle_confirm",
+    "roiFront": "1060,540,210,110",
+    "roiBack": "1060,540,210,110",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "上场确认按钮文字"
+  },
+  {
+    "itemName": "detail_title",
+    "roiFront": "535,20,210,50",
+    "roiBack": "535,20,210,50",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "阵容详情标题"
+  },
+  {
+    "itemName": "lineup_name_0",
+    "roiFront": "230,151,190,50",
+    "roiBack": "230,151,190,50",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "阵容详情第1位式神名"
+  },
+  {
+    "itemName": "lineup_name_1",
+    "roiFront": "420,151,190,50",
+    "roiBack": "420,151,190,50",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "阵容详情第2位式神名"
+  },
+  {
+    "itemName": "lineup_name_2",
+    "roiFront": "615,151,190,50",
+    "roiBack": "615,151,190,50",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "阵容详情第3位式神名"
+  },
+  {
+    "itemName": "lineup_name_3",
+    "roiFront": "805,151,190,50",
+    "roiBack": "805,151,190,50",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "阵容详情第4位式神名"
+  },
+  {
+    "itemName": "lineup_name_4",
+    "roiFront": "995,151,190,50",
+    "roiBack": "995,151,190,50",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "阵容详情第5位式神名"
+  },
+  {
+    "itemName": "lineup_speed_0",
+    "roiFront": "278,346,85,31",
+    "roiBack": "278,346,85,31",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "阵容详情第1位速度"
+  },
+  {
+    "itemName": "lineup_speed_1",
+    "roiFront": "468,346,85,31",
+    "roiBack": "468,346,85,31",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "阵容详情第2位速度"
+  },
+  {
+    "itemName": "lineup_speed_2",
+    "roiFront": "663,346,85,31",
+    "roiBack": "663,346,85,31",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "阵容详情第3位速度"
+  },
+  {
+    "itemName": "lineup_speed_3",
+    "roiFront": "853,346,85,31",
+    "roiBack": "853,346,85,31",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "阵容详情第4位速度"
+  },
+  {
+    "itemName": "lineup_speed_4",
+    "roiFront": "1043,346,85,31",
+    "roiBack": "1043,346,85,31",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "阵容详情第5位速度"
+  },
+  {
+    "itemName": "lineup_defense_0",
+    "roiFront": "278,303,85,31",
+    "roiBack": "278,303,85,31",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "阵容详情第1位防御"
+  },
+  {
+    "itemName": "lineup_defense_1",
+    "roiFront": "468,303,85,31",
+    "roiBack": "468,303,85,31",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "阵容详情第2位防御"
+  },
+  {
+    "itemName": "lineup_defense_2",
+    "roiFront": "663,303,85,31",
+    "roiBack": "663,303,85,31",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "阵容详情第3位防御"
+  },
+  {
+    "itemName": "lineup_defense_3",
+    "roiFront": "853,303,85,31",
+    "roiBack": "853,303,85,31",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "阵容详情第4位防御"
+  },
+  {
+    "itemName": "lineup_defense_4",
+    "roiFront": "1043,303,85,31",
+    "roiBack": "1043,303,85,31",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "阵容详情第5位防御"
+  },
+  {
+    "itemName": "lobby_score",
+    "roiFront": "98,81,240,123",
+    "roiBack": "98,81,240,123",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "大厅番胜数"
+  },
+  {
+    "itemName": "result_continue",
+    "roiFront": "492,657,290,55",
+    "roiBack": "492,657,290,55",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "点击屏幕继续"
+  },
+  {
+    "itemName": "terminal_result",
+    "roiFront": "460,140,380,190",
+    "roiBack": "460,140,380,190",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "终局结算文本"
+  },
+  {
+    "itemName": "bounty_reject",
+    "roiFront": "885,477,120,83",
+    "roiBack": "885,477,120,83",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "悬赏拒绝弹窗文字"
+  },
+  {
+    "itemName": "friend_cancel",
+    "roiFront": "435,434,165,65",
+    "roiBack": "435,434,165,65",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "好友邀请取消文字"
+  }
+]

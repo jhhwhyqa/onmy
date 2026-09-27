@@ -384,6 +384,13 @@ class AssetsExtractor:
             if self.is_list_file(data):
                 result += ListExtractor(file, data).result
                 continue
+
+            if not isinstance(data, list):
+                # 任务自带的纯数据 json（例如 DraftDuel/catalog.json），不是资源文件，跳过
+                logger.info(f'{file} is not an asset file, skip')
+                continue
+
+
             if self.is_image_file(data):
                 result += ImageExtractor(file, data).result
             elif self.is_click_file(data):

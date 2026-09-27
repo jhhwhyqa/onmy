@@ -286,4 +286,11 @@
   "limit_count": "限制次数",
   "invite_config": "组队邀请",
   "buy_blessing_enable": "购买现世祝福",
+  "DraftDuel": "协同对弈",
+  "draft_duel_config": "选人配置",
+  "match_mode": "匹配模式",
+  "start_timeout_seconds": "进入选人时间（秒）",
+  "teammate_timeout_seconds": "等待队友时间（秒）",
+  "pick_timeout_seconds": "等待下一轮选人时间（秒）",
+  "battle_timeout_seconds": "等待整局结束时间（秒）"
 }
