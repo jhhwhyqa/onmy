@@ -124,5 +124,14 @@
     "method": "Template matching",
     "threshold": 0.8,
     "description": "关闭服务器选择界面"
+  },
+  {
+    "itemName": "sa_cancel_new_svr_gathering",
+    "imageName": "res_sa_cancel_new_svr_gathering.png",
+    "roiFront": "462,421,139,61",
+    "roiBack": "462,421,139,61",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "关闭一次性新区集结窗口"
   }
 ]

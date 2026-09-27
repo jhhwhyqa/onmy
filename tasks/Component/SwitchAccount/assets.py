@@ -62,6 +62,8 @@ class SwitchAccountAssets:
 	I_SA_CHECK_SELECT_SVR_2 = RuleImage(roi_front=(223,137,127,48), roi_back=(194,127,181,68), threshold=0.8, method="Template matching", file="./tasks/Component/SwitchAccount/res/res_sa_check_select_svr_2.png")
 	# 关闭服务器选择界面 
 	I_SA_LOGIN_FORM_CANCEL_SVR_SELECT = RuleImage(roi_front=(1083,94,39,36), roi_back=(1083,94,39,36), threshold=0.8, method="Template matching", file="./tasks/Component/SwitchAccount/res/res_sa_login_form_cancel_svr_select.png")
+	# 关闭一次性新区集结窗口 
+	I_SA_CANCEL_NEW_SVR_GATHERING = RuleImage(roi_front=(462,421,139,61), roi_back=(462,421,139,61), threshold=0.8, method="Template matching", file="./tasks/Component/SwitchAccount/res/res_sa_cancel_new_svr_gathering.png")
 
 
 	# Ocr Rule Assets
