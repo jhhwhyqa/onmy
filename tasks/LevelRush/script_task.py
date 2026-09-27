@@ -334,7 +334,10 @@ class ScriptTask(
         if self.get_current_page() != page_main:
             self.goto_page(page_main)
         self.screenshot()
-        return self.O_CURRENT_LEVEL.ocr(self.device.image)
+        level = self.O_CURRENT_LEVEL.ocr(self.device.image)
+        if level > 80 and level < 90:
+            level -= 50
+        return level
 
     def _get_current_sushi(self):
         "庭院中获取当前体力数量是否不足100，识别标志是否存在‘/’符号"
