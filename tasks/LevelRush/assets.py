@@ -139,9 +139,9 @@ class LevelRushAssets:
 	# 前往新手商店 
 	I_MALL_GOTO_ROOKIE_MALL = RuleImage(roi_front=(877,651,45,32), roi_back=(877,651,45,32), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_mall_goto_rookie_mall.png")
 	# 超值体力礼盒 
-	I_ROOKIE_SUSHI_GIFT = RuleImage(roi_front=(182,245,130,69), roi_back=(182,245,130,69), threshold=0.9, method="Template matching", file="./tasks/LevelRush/lr/lr_rookie_sushi_gift.png")
+	I_ROOKIE_SUSHI_GIFT = RuleImage(roi_front=(226,161,64,69), roi_back=(226,161,64,69), threshold=0.9, method="Template matching", file="./tasks/LevelRush/lr/lr_rookie_sushi_gift.png")
 	# 超值体力礼盒购买 
-	I_BUY_SUSHI_GIFT = RuleImage(roi_front=(596,498,96,49), roi_back=(596,498,96,49), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_buy_sushi_gift.png")
+	I_BUY_SUSHI_GIFT = RuleImage(roi_front=(596,498,41,48), roi_back=(596,498,41,48), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_buy_sushi_gift.png")
 	# 经验妖怪创建按钮 
 	I_EXP_YOUKAI_CREATE = RuleImage(roi_front=(604,495,70,39), roi_back=(604,495,70,39), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_exp_youkai_create.png")
 	# 七级前先不跳过剧情 

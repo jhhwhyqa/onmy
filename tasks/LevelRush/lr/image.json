@@ -542,8 +542,8 @@
   {
     "itemName": "rookie_sushi_gift",
     "imageName": "lr_rookie_sushi_gift.png",
-    "roiFront": "182,245,130,69",
-    "roiBack": "182,245,130,69",
+    "roiFront": "226,161,64,69",
+    "roiBack": "226,161,64,69",
     "method": "Template matching",
     "threshold": 0.9,
     "description": "超值体力礼盒"
@@ -551,8 +551,8 @@
   {
     "itemName": "buy_sushi_gift",
     "imageName": "lr_buy_sushi_gift.png",
-    "roiFront": "596,498,96,49",
-    "roiBack": "596,498,96,49",
+    "roiFront": "596,498,41,48",
+    "roiBack": "596,498,41,48",
     "method": "Template matching",
     "threshold": 0.8,
     "description": "超值体力礼盒购买"

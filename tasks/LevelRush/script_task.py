@@ -246,15 +246,14 @@ class ScriptTask(
         self.ui_click(self.I_MALL_GOTO_ROOKIE_MALL, self.I_SIDE_CHECK_ROOKIE_MALL)
         while 1:
             self.screenshot()
-            if self.appear_then_click(self.I_ROOKIE_SUSHI_GIFT, interval=1.2):
+            if self.appear(self.I_ROOKIE_SUSHI_GIFT):
+                self.ui_click(self.I_ROOKIE_SUSHI_GIFT, self.I_BUY_SUSHI_GIFT)
+                self.ui_get_reward(self.I_BUY_SUSHI_GIFT)
                 continue
-            if self.ui_click_until_disappear(self.I_BUY_SUSHI_GIFT, interval=1.2):
-                continue
-            if not self.appear(self.I_BUY_SUSHI_GIFT) and not self.appear(
-                self.I_ROOKIE_SUSHI_GIFT
-            ):
+            if not self.appear(self.I_ROOKIE_SUSHI_GIFT):
                 logger.info(f"Buy rookie sushi gift finished")
                 break
+        self.goto_page(page_main)
 
     def _run_buy_sushi(self):
         "尝试购买体力4次，不够会退出"
