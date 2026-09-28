@@ -108,6 +108,10 @@ class ScriptTask(
                 condition=LevelRushAssets.I_PHONE_BIND_CANCEL,
                 action=LevelRushAssets.I_PHONE_BIND_CANCEL,
             ),
+            conditional_action(
+                condition=LevelRushAssets.O_CLICK_BLANK_CLOSE,
+                action=LevelRushAssets.O_CLICK_BLANK_CLOSE,
+            ),
         )
 
     def run(self):
@@ -262,10 +266,10 @@ class ScriptTask(
         self.goto_page(page_main)
 
     def _run_buy_sushi(self):
-        "尝试购买体力4次，不够会退出"
+        "尝试购买体力5次，不够会退出"
 
         logger.hr('buy sushi', 2)
-        self.config.daily_trifles.trifles_config.buy_sushi_count = 4
+        self.config.daily_trifles.trifles_config.buy_sushi_count = 5
         self.config.daily_trifles.done_record.sushi_dt = datetime(2023, 1, 1)
         self.goto_page(page_mall)
         self.run_buy_sushi()
@@ -362,8 +366,10 @@ class ScriptTask(
                 self.I_PUSH_PERMISSION,
                 3,
             )
+            self.screenshot()
             self.appear_then_click(self.I_PUSH_PERMISSION, interval=1.2)
-
+            # 等个动画
+            sleep(0.5)
             self.screenshot()
             if self.appear(self.I_GET_PUSH_REWARD):
                 self.ui_get_reward(self.I_GET_PUSH_REWARD)
