@@ -27,6 +27,9 @@ class ScriptTask(
 ):
 
     conf: AssistBattleConfig
+    FIND_JADE_NONE = "无勾"
+    FIND_JADE_NORMAL = "普勾"
+    FIND_JADE_SPECIAL = "现勾"
 
     def run(self):
         self.conf = self.config.model.assist_battle
@@ -94,7 +97,7 @@ class ScriptTask(
             if self.conf.assist_battle_config.realmraid_enable:
                 message += f"-个突{result['realmraid_done']}次"
             if self.conf.assist_battle_config.find_jade_enable:
-                message += f"-{'有' if result['jade_flag'] else '无'}勾"
+                message += f"-{result['jade_flag']}"
             logger.info(message)
             push_content.append(message)
         # 未开启协战则不推送总进度
@@ -127,7 +130,7 @@ class ScriptTask(
         total_evozone, total_realmraid = 15, 3
         evozone_done, realmraid_done = 0, 0
         evozone_final, realmraid_final = 0, 0
-        jade_flag = False
+        jade_flag = self.FIND_JADE_NONE
         # 不执行协战任务时，可以用来小号挂日常
         start_evozone = 1
 
@@ -231,7 +234,7 @@ class ScriptTask(
                     done_timer.start()
             if done_timer.started() and done_timer.reached():
                 self.ui_click_until_disappear(self.I_UI_BACK_RED)
-                return False
+                return self.FIND_JADE_NONE
 
         if not (
             self.appear(WantedQuestsAssets.I_WQ_INVITE_1)
@@ -239,19 +242,21 @@ class ScriptTask(
             or self.appear(WantedQuestsAssets.I_WQ_INVITE_3)
         ):
             logger.info("there is no cooperation quest")
-            return False
-        # 存在勾协即返回true
+            return self.FIND_JADE_NONE
+        # 存在勾协即返回对应类型
         self.screenshot()
         if self.appear(WantedQuestsAssets.I_WQ_INVITE_1):
             if self.appear(WantedQuestsAssets.I_WQ_COOPERATION_TYPE_JADE_1):
-                return True
+                if self.appear(self.I_PRESENT_WORLD_JADE_ASSIST):
+                    return self.FIND_JADE_SPECIAL
+                return self.FIND_JADE_NORMAL
         if self.appear(WantedQuestsAssets.I_WQ_INVITE_2):
             if self.appear(WantedQuestsAssets.I_WQ_COOPERATION_TYPE_JADE_2):
-                return True
+                return self.FIND_JADE_NORMAL
         if self.appear(WantedQuestsAssets.I_WQ_INVITE_3):
             if self.appear(WantedQuestsAssets.I_WQ_COOPERATION_TYPE_JADE_3):
-                return True
-        return False
+                return self.FIND_JADE_NORMAL
+        return self.FIND_JADE_NONE
 
     def get_assist_battle_count(self):
         """获取当前账号剩余的协战次数。"""

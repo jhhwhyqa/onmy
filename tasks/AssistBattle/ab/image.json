@@ -7,5 +7,14 @@
     "method": "Template matching",
     "threshold": 0.8,
     "description": "好友界面前往协战界面"
+  },
+  {
+    "itemName": "present_world_jade_assist",
+    "imageName": "ab_present_world_jade_assist.png",
+    "roiFront": "156,293,31,32",
+    "roiBack": "135,266,70,76",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "现世勾协"
   }
 ]

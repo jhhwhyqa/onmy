@@ -13,6 +13,8 @@ class AssistBattleAssets:
 	# Image Rule Assets
 	# 好友界面前往协战界面 
 	I_FRIENDS_GOTO_ASSIST_BATTLE = RuleImage(roi_front=(1205,539,40,72), roi_back=(1185,507,75,147), threshold=0.8, method="Template matching", file="./tasks/AssistBattle/ab/ab_friends_goto_assist_battle.png")
+	# 现世勾协 
+	I_PRESENT_WORLD_JADE_ASSIST = RuleImage(roi_front=(156,293,31,32), roi_back=(135,266,70,76), threshold=0.8, method="Template matching", file="./tasks/AssistBattle/ab/ab_present_world_jade_assist.png")
 
 
 	# Ocr Rule Assets
