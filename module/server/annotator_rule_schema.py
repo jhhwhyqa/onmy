@@ -81,6 +81,22 @@ RULE_TYPE_SCHEMAS: OrderedDict[str, dict[str, Any]] = OrderedDict(
                 {"key": "description", "label": "description", "control": "textarea", "default": "", "full": True},
             ],
         },
+        "scatter": {
+            "type": "scatter",
+            "label": "RuleScatter",
+            "capabilities": {
+                "supports_test": False,
+                "supports_crop": False,
+                "supports_image_preview": False,
+                "shared_roi_back": False,
+            },
+            "fields": [
+                {"key": "itemName", "label": "itemName", "control": "text", "default": "new"},
+                {"key": "focusCount", "label": "focusCount", "control": "number", "default": 8},
+                {"key": "functional", "label": "functional", "control": "checkbox", "default": False},
+                {"key": "description", "label": "description", "control": "textarea", "default": "", "full": True},
+            ],
+        },
         "swipe": {
             "type": "swipe",
             "label": "RuleSwipe",

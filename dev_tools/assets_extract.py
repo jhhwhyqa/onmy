@@ -15,6 +15,7 @@ ASSETS_CLASS = '\nclass Assets: \n'
 IMPORT_EXP = """
 from module.atom.image import RuleImage
 from module.atom.click import RuleClick
+from module.atom.scatter import RuleScatter
 from module.atom.long_click import RuleLongClick
 from module.atom.swipe import RuleSwipe
 from module.atom.ocr import RuleOcr
@@ -24,6 +25,13 @@ from module.atom.list import RuleList
 # Don't modify it manually.
 """
 IMPORT_EXP = IMPORT_EXP.strip().split('MODULE_FOLDER') + ['']
+
+# 本文件的 Scatter 支持移植自 self 分支 a93521f7 / 24010e18。
+# 但这里刻意不移植同一批改动里的 profile(Default/High/More) 点击密度模型：
+# 它依赖 self 24010e18 对 module/atom/click.py、image.py 的改造，本分支尚未
+# 移植，一旦向 assets.py 输出 profile 参数就会在实例化时报 TypeError。
+# 若以后整份移植 24010e18，请从上游恢复 ImageExtractor/ClickExtractor 的
+# profile_arg 输出。
 
 
 def name_transform(name: str) -> str:
@@ -96,11 +104,39 @@ class ClickExtractor:
         :param item:
         :return:
         """
-        description: str = f'\t# {item["description"]} \n'
+        description: str = f'\t# {item["description"]}\n'
         name: str = f'\tC_{name_transform(item["itemName"])} = RuleClick(' \
                     f'roi_front=({item["roiFront"]}), ' \
                     f'roi_back=({item["roiBack"]}), ' \
                     f'name="{item["itemName"]}")\n'
+        return description + name
+
+
+class ScatterExtractor:
+
+    def __init__(self, file: str, data: list) -> None:
+        self._result = '\n\n\t# Scatter Rule Assets\n'
+        for item in data:
+            self._result += self.extract_item(item)
+
+    @property
+    def result(self) -> str:
+        return self._result
+
+    @staticmethod
+    def extract_item(item) -> str:
+        description = f'\t# {item["description"]} \n'
+        points = ", ".join(
+            f"({int(x)}, {int(y)})"
+            for x, y in item["polygon"]
+        )
+        name = f'\tC_{name_transform(item["itemName"])} = RuleScatter(' \
+               f'roi_front=({item["roiFront"]}), ' \
+               f'roi_back=({item["roiBack"]}), ' \
+               f'polygon=[{points}], ' \
+               f'focus_count={int(item["focusCount"])}, ' \
+               f'functional={bool(item.get("functional", False))}, ' \
+               f'name="{item["itemName"]}")\n'
         return description + name
 
 
@@ -308,12 +344,22 @@ class AssetsExtractor:
     @classmethod
     def is_click_file(cls, data: list) -> bool:
         """
-        判断是不是clickrule 文件, 我这样的判断是有点不合规的
+        按 Click 的必要字段判断，允许 description/profile 等扩展字段。
         :param data: 解析后的json数据，是list
         :return:
         """
         item = data[0]
-        return len(item) == 4
+        return (
+            all(key in item for key in ('itemName', 'roiFront', 'roiBack'))
+            and not any(key in item for key in (
+                'imageName', 'polygon', 'duration', 'mode', 'keyword',
+            ))
+        )
+
+    @classmethod
+    def is_scatter_file(cls, data: list) -> bool:
+        item = data[0]
+        return 'polygon' in item
 
     @classmethod
     def is_long_click_file(cls, data: list) -> bool:
@@ -386,6 +432,8 @@ class AssetsExtractor:
                 continue
             if self.is_image_file(data):
                 result += ImageExtractor(file, data).result
+            elif self.is_scatter_file(data):
+                result += ScatterExtractor(file, data).result
             elif self.is_click_file(data):
                 result += ClickExtractor(file, data).result
             elif self.is_long_click_file(data):
