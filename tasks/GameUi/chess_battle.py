@@ -7,6 +7,7 @@ import time
 from module.exception import GameStuckError
 from module.logger import logger
 from tasks.Component.GeneralBattle.assets import GeneralBattleAssets
+from tasks.GlobalGame.assets import GlobalGameAssets
 from tasks.Chess.assets import ChessAssets
 
 
@@ -21,20 +22,27 @@ class ChessBattleNavigationMixin:
         if self.appear(ChessAssets.I_REWARD_CHESS):
             self._chess_share_advancing = False
             from tasks.GameUi.default_pages import random_click
+
             self.click(random_click(), interval=1.5)
             return True
         if self.appear(ChessAssets.I_SHARE):
             self._chess_share_advancing = True
         elif getattr(self, '_chess_share_advancing', False):
-            if any(self.appear(marker) for marker in (
-                ChessAssets.I_RESTART_AGAIN,
-                self.I_CHECK_CHESS_RANK,
-                self.I_CHESS_RANK_GOTO_LOBBY,
-                self.I_CHESS_EXIT_TO_LOBBY,
-                self.I_CHESS_EXIT_TO_LOBBY_2,
-                self.I_CHECK_CHESS,
-            )):
+            if any(
+                self.appear(marker)
+                for marker in (
+                    ChessAssets.I_RESTART_AGAIN,
+                    self.I_CHECK_CHESS_RANK,
+                    self.I_CHESS_RANK_GOTO_LOBBY,
+                    self.I_CHESS_EXIT_TO_LOBBY,
+                    self.I_CHESS_EXIT_TO_LOBBY_2,
+                    self.I_CHECK_CHESS,
+                )
+            ):
                 self._chess_share_advancing = False
+        # 随机点击到分享按钮立即退出
+        self.screenshot()
+        self.appear_then_click(self.I_UI_BACK_RED, interval=1.5)
         if getattr(self, '_chess_share_advancing', False):
             # 分享标志消失后仍推进未知过渡画面。保持规则名称和点击
             # 记录不变，让设备层的过多点击检查正常生效。
@@ -55,10 +63,7 @@ class ChessBattleNavigationMixin:
 
     def chess_result_flow_visible(self) -> bool:
         """检测百鬼棋局大厅或任一结算页面。"""
-        return (
-            self.appear(self.I_CHECK_CHESS)
-            or self.chess_result_page_visible()
-        )
+        return self.appear(self.I_CHECK_CHESS) or self.chess_result_page_visible()
 
     def return_to_chess_lobby(self) -> bool:
         """完成返回按钮、分享页与排名页流程，最终回到棋局大厅。"""
@@ -98,8 +103,7 @@ class ChessBattleNavigationMixin:
                 elif time.monotonic() >= next_rank_safe_click_at:
                     # 部分结算只显示“点击空白处继续”，没有返回大厅按钮。
                     logger.info(
-                        'Global Chess result flow: advance rank page with '
-                        'safe click'
+                        'Global Chess result flow: advance rank page with ' 'safe click'
                     )
                     self.click(GeneralBattleAssets.C_RANDOM_LEFT)
                     safe_clicks += 1
@@ -153,6 +157,9 @@ class ChessBattleNavigationMixin:
                     f'safe_clicks={safe_clicks}'
                 )
                 return True
+            # 随机点击到分享按钮立即退出
+            self.screenshot()
+            self.appear_then_click(GlobalGameAssets.I_UI_BACK_RED, interval=1.5)
 
             safe_clicks += 1
             self.click(ChessAssets.C_C_REWARD_RANDOM_CLICK, interval=1.5)

@@ -72,12 +72,8 @@ class ScriptTask(
                 minutes=configured_limit_time.minute,
                 seconds=configured_limit_time.second,
             )
-        coin_full_exit = bool(
-            getattr(chess_config, 'coin_full_exit', False)
-        )
-        rank_protection = bool(
-            getattr(chess_config, 'rank_protection', False)
-        )
+        coin_full_exit = bool(getattr(chess_config, 'coin_full_exit', False))
+        rank_protection = bool(getattr(chess_config, 'rank_protection', False))
         self._matchmaking_timeout_seconds = max(
             10,
             int(getattr(chess_config, 'matchmaking_timeout_seconds', 60)),
@@ -108,15 +104,13 @@ class ScriptTask(
             if not game_already_started:
                 if datetime.now() - self.start_time >= self.limit_time:
                     logger.info(
-                        'Chess task time reached; '
-                        'stop before starting next game'
+                        'Chess task time reached; ' 'stop before starting next game'
                     )
                     break
                 self.screenshot()
                 if coin_full_exit and self._coin_is_full():
                     logger.info(
-                        'Stop Chess task before next game: '
-                        'coin reached 600/600'
+                        'Stop Chess task before next game: ' 'coin reached 600/600'
                     )
                     coin_limit_reached = True
                     break
@@ -144,18 +138,14 @@ class ScriptTask(
                     f'completed_games={completed}'
                 )
                 if rank_protection_exits_remaining > 0:
-                    next_game_already_started = (
-                        self._restart_chess_game_from_result()
-                    )
+                    next_game_already_started = self._restart_chess_game_from_result()
                 else:
                     self.return_to_chess_lobby()
                 continue
 
             completed += 1
             if rank_protection and game_rank is not None and game_rank <= 4:
-                rank_protection_exits_remaining = (
-                    self.RANK_PROTECTION_EXIT_COUNT
-                )
+                rank_protection_exits_remaining = self.RANK_PROTECTION_EXIT_COUNT
                 logger.info(
                     'Chess rank protection activated: '
                     f'last_rank=第{game_rank}名, schedule '
@@ -187,9 +177,7 @@ class ScriptTask(
                     )
                     self.return_to_chess_lobby()
                     break
-                next_game_already_started = (
-                    self._restart_chess_game_from_result()
-                )
+                next_game_already_started = self._restart_chess_game_from_result()
                 continue
 
             self.return_to_chess_lobby()
@@ -199,9 +187,7 @@ class ScriptTask(
             if coin_full_exit:
                 self.screenshot()
                 if self._coin_is_full():
-                    logger.info(
-                        'Stop Chess task after game: coin reached 600/600'
-                    )
+                    logger.info('Stop Chess task after game: coin reached 600/600')
                     coin_limit_reached = True
                     break
 
@@ -212,7 +198,8 @@ class ScriptTask(
         )
         if coin_limit_reached:
             self.set_next_run_next_monday(
-                task='Chess', scheduler=self.config.chess.scheduler,
+                task='Chess',
+                scheduler=self.config.chess.scheduler,
             )
         else:
             self.set_next_run(task='Chess', success=True, finish=True)
@@ -226,9 +213,7 @@ class ScriptTask(
         if isinstance(rank, int) and 1 <= rank <= 8:
             logger.info(f'Chess game ended: 第{rank}名')
             return rank
-        logger.warning(
-            f'Chess game ended: result-page rank OCR unavailable [{rank}]'
-        )
+        logger.warning(f'Chess game ended: result-page rank OCR unavailable [{rank}]')
         return None
 
     def run_one_round(self, round_no: int) -> int | None:
@@ -250,9 +235,7 @@ class ScriptTask(
             if self._refresh_round_state_screenshot():
                 time.sleep(self.SLOW_POLL_INTERVAL)
                 continue
-            if self._finish_chess_game_after_markers_missing(
-                f'round_{round_no}'
-            ):
+            if self._finish_chess_game_after_markers_missing(f'round_{round_no}'):
                 return None
             if getattr(self, '_rank_protection_exit_requested', False):
                 logger.info(
@@ -304,18 +287,14 @@ class ScriptTask(
             elif unknown_since is None:
                 unknown_since = time.monotonic()
             elif time.monotonic() - unknown_since >= self.UNKNOWN_STATE_TIMEOUT:
-                raise GameStuckError(
-                    f'Chess: lost all markers during round {round_no}'
-                )
+                raise GameStuckError(f'Chess: lost all markers during round {round_no}')
 
             if mode in ('战', '鬼', '待'):
                 if mode == '鬼':
                     hyakki_round_seen = True
                 if mode == '战':
                     if not battle_hand_cleanup_done:
-                        battle_hand_cleanup_done = (
-                            self._handle_battle_sell_stage()
-                        )
+                        battle_hand_cleanup_done = self._handle_battle_sell_stage()
                     # 战阶段必须先完成非体系卡清理，再进入刷新升级。
                     # 若卖卡过程中阶段发生变化，本回目不再启动经济循环。
                     if (
@@ -362,9 +341,7 @@ class ScriptTask(
                         )
 
             interval = (
-                3 * self.SLOW_POLL_INTERVAL
-                if mode == '鬼'
-                else self.SLOW_POLL_INTERVAL
+                3 * self.SLOW_POLL_INTERVAL if mode == '鬼' else self.SLOW_POLL_INTERVAL
             )
             time.sleep(interval)
 
@@ -436,9 +413,8 @@ class ScriptTask(
         if self._read_chess_mode() != '战':
             return
         self._schedule_economy_cycle()
-        while (
-            self._read_chess_mode() == '战'
-            and getattr(self, '_economy_pending', False)
+        while self._read_chess_mode() == '战' and getattr(
+            self, '_economy_pending', False
         ):
             remaining = self._read_remaining_time()
             if remaining is not None and remaining < 15:
@@ -477,8 +453,7 @@ class ScriptTask(
         if not getattr(self, '_economy_pending', False):
             return 'complete'
         logger.debug(
-            'Chess battle economy continuation: '
-            f'state={self._economy_step_state}'
+            'Chess battle economy continuation: ' f'state={self._economy_step_state}'
         )
         return self._run_economy_atomic_batch(battle_mode=True)
 
@@ -557,13 +532,9 @@ class ScriptTask(
                 rank, raw = self._read_game_rank()
                 self._last_game_rank = rank
                 if rank is None:
-                    logger.warning(
-                        f'Chess game-over rank OCR invalid: [{raw}]'
-                    )
+                    logger.warning(f'Chess game-over rank OCR invalid: [{raw}]')
                 else:
-                    logger.info(
-                        f'Chess game-over rank OCR: [{raw}] -> 第{rank}名'
-                    )
+                    logger.info(f'Chess game-over rank OCR: [{raw}] -> 第{rank}名')
                 return True
             time.sleep(2 * self.SLOW_POLL_INTERVAL)
             self.screenshot()
@@ -668,6 +639,9 @@ class ScriptTask(
 
             if not share_seen and self.appear(ChessAssets.I_SHARE):
                 share_seen = True
+            # 随机点击到分享按钮立即退出
+            self.screenshot()
+            self.appear_then_click(self.I_UI_BACK_RED, interval=1.5)
 
             now = time.monotonic()
             if share_seen and now >= next_safe_click_at:
@@ -692,9 +666,7 @@ class ScriptTask(
                 confirmed = 0
                 time.sleep(self.SLOW_POLL_INTERVAL)
                 continue
-            if self._finish_chess_game_after_markers_missing(
-                'wait_for_round_start'
-            ):
+            if self._finish_chess_game_after_markers_missing('wait_for_round_start'):
                 return None
 
             round_no = self._read_round_number()
@@ -713,25 +685,19 @@ class ScriptTask(
 
     def _is_in_chess_game(self) -> bool:
         """以阵容入口或问号图标确认当前处于百鬼棋局对局内。"""
-        return (
-            self.appear(self.I_OPEN_LINEUP)
-            or self.appear(self.I_QUESTION_CHECK)
-        )
+        return self.appear(self.I_OPEN_LINEUP) or self.appear(self.I_QUESTION_CHECK)
 
     def _close_chess_lobby_abnormal_page(self) -> bool:
         """关闭棋局大厅开战时偶发出现的红色返回键异常页面。"""
         if not self.appear(self.I_BACK_RED):
             return False
         logger.warning(
-            'Chess start blocked by abnormal lobby page; '
-            'close it with back red'
+            'Chess start blocked by abnormal lobby page; ' 'close it with back red'
         )
         for attempt in range(1, self.ACTION_ICON_MAX_ATTEMPTS + 1):
             self.device.click_record_remove(self.I_BACK_RED)
             self.click(self.I_BACK_RED)
-            if self._wait_chess_action_state(
-                lambda: not self.appear(self.I_BACK_RED)
-            ):
+            if self._wait_chess_action_state(lambda: not self.appear(self.I_BACK_RED)):
                 logger.info(
                     'Chess abnormal lobby page closed; '
                     f'attempt={attempt}/{self.ACTION_ICON_MAX_ATTEMPTS}'
@@ -758,9 +724,7 @@ class ScriptTask(
         waiting_seen = False
         matched_loading_started_at = None
         matched_loading_logged = False
-        matchmaking_timeout = float(
-            getattr(self, '_matchmaking_timeout_seconds', 60)
-        )
+        matchmaking_timeout = float(getattr(self, '_matchmaking_timeout_seconds', 60))
         while True:
             # 匹配可能持续很久。截图本身会先检查设备卡死计时，因此必须
             # 在每次截图之前清除，不能等识别到“取消等待”后才清除。
@@ -834,9 +798,8 @@ class ScriptTask(
                             )
                             self._consecutive_matchmaking_timeouts = 0
                             return
-                        if (
-                            not self.appear(self.I_CANCEL_WAITING)
-                            and not self.appear(self.I_CHESS_START)
+                        if not self.appear(self.I_CANCEL_WAITING) and not self.appear(
+                            self.I_CHESS_START
                         ):
                             logger.info(
                                 'Chess matchmaking completed while exit '
@@ -951,10 +914,7 @@ class ScriptTask(
                         f'limit={self.MATCHED_LOADING_TIMEOUT:.0f}s'
                     )
                     matched_loading_logged = True
-                if (
-                    now - matched_loading_started_at
-                    >= self.MATCHED_LOADING_TIMEOUT
-                ):
+                if now - matched_loading_started_at >= self.MATCHED_LOADING_TIMEOUT:
                     raise GameStuckError(
                         'Chess: matched successfully, but loading did not '
                         'reach battle or result page within '
@@ -964,9 +924,7 @@ class ScriptTask(
                 continue
 
             if time.monotonic() >= deadline:
-                raise GameStuckError(
-                    'Chess: timeout waiting for in-game markers'
-                )
+                raise GameStuckError('Chess: timeout waiting for in-game markers')
             time.sleep(self.SLOW_POLL_INTERVAL)
 
     def _start_chess_game(self) -> None:
@@ -991,9 +949,7 @@ class ScriptTask(
             timeout=self.GAME_ENTER_TIMEOUT,
             retry_start=True,
         )
-        logger.debug(
-            'Chess entered game; skip lineup preset and start round loop'
-        )
+        logger.debug('Chess entered game; skip lineup preset and start round loop')
 
     def _recover_interrupted_chess_game(self) -> bool:
         """仅在任务启动时清理上次脚本中断后遗留的棋局。"""
