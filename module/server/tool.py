@@ -869,6 +869,28 @@ class AnnotatorManager:
             )
         return normalized
 
+    @staticmethod
+    def _parse_functional(value: Any) -> bool:
+        """
+        解析 functional。只接受布尔或 "true"/"false" 这类明确写法，
+        不能直接用 bool()，否则字符串 "false" 会被当成 True。
+        """
+        if value is None:
+            return False
+        if isinstance(value, bool):
+            return value
+        if isinstance(value, int) and not isinstance(value, bool):
+            if value in (0, 1):
+                return bool(value)
+            raise AnnotatorError("invalid_rule", "functional 必须是布尔值", 400)
+        if isinstance(value, str):
+            normalized = value.strip().lower()
+            if normalized in ("true", "1", "yes"):
+                return True
+            if normalized in ("false", "0", "no", ""):
+                return False
+        raise AnnotatorError("invalid_rule", "functional 必须是布尔值", 400)
+
     def _normalize_scatter_rules(self, rules: list[dict[str, Any]]) -> list[dict[str, Any]]:
         normalized: list[dict[str, Any]] = []
         for index, rule in enumerate(rules):
@@ -881,6 +903,14 @@ class AnnotatorManager:
                 raise AnnotatorError("invalid_rule", f"第 {index + 1} 条散点规则 focusCount 非法", 400) from exc
             if focus_count <= 0:
                 raise AnnotatorError("invalid_rule", f"第 {index + 1} 条散点规则 focusCount 必须大于 0", 400)
+            try:
+                functional = self._parse_functional(rule.get("functional"))
+            except AnnotatorError as exc:
+                raise AnnotatorError(
+                    "invalid_rule",
+                    f"第 {index + 1} 条散点规则 functional 非法",
+                    400,
+                ) from exc
             polygon = self._parse_scatter_polygon(rule.get("polygon"))
             bounding_roi = self._polygon_bounding_roi(polygon)
             normalized.append({
@@ -889,7 +919,7 @@ class AnnotatorManager:
                 "roiBack": bounding_roi,
                 "polygon": polygon,
                 "focusCount": focus_count,
-                "functional": bool(rule.get("functional", False)),
+                "functional": functional,
                 "description": str(rule.get("description", "")).strip(),
             })
         return normalized

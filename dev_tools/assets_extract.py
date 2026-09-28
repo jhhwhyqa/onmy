@@ -104,7 +104,7 @@ class ClickExtractor:
         :param item:
         :return:
         """
-        description: str = f'\t# {item["description"]}\n'
+        description: str = f'\t# {item["description"]} \n'
         name: str = f'\tC_{name_transform(item["itemName"])} = RuleClick(' \
                     f'roi_front=({item["roiFront"]}), ' \
                     f'roi_back=({item["roiBack"]}), ' \
