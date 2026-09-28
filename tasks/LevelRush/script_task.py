@@ -143,16 +143,7 @@ class ScriptTask(
             and self.stop_flag
         ):
             # 达到目标等级后本任务不再需要，把自己在实例配置里禁用，当作一次性任务
-            self.config.level_rush.scheduler.enable = False
-            self.config.level_rush.level_rush_config.level_7_mark = False
-            self.config.level_rush.level_rush_config.assist_up_mark = False
-            self.config.level_rush.level_rush_config.skip_to_30_mark = False
-            self.config.level_rush.level_rush_config.get_achievement_reward_mark = False
-            self.config.exploration.exploration_config.exploration_level = (
-                self._DEFAULT_CHAPTER
-            )
-            self.config.save()
-            raise TaskEnd('LevelRush')
+            self.task_finish()
 
         chapter = self.config.exploration.exploration_config.exploration_level
         # 体力够就来一轮探索
@@ -164,7 +155,7 @@ class ScriptTask(
             if not self.config.level_rush.level_rush_config.get_achievement_reward_mark:
                 # 1.领取邮件中的实名奖励200勾玉
                 self.run_pickup_email()
-                # 2.领取花合站和成就里的奖励大约200勾玉
+                # 2.领取各种奖励
                 self._run_before_buy()
                 # 3.购买新手体力礼包
                 self._run_buy_rookie_gift()
@@ -178,11 +169,13 @@ class ScriptTask(
                 )
                 self.config.save()
             else:
-                # 6.后续体力不足100就尝试运行经验妖怪,获取最新成就奖励再购买体力，防止前面没领到
+                # 6.后续体力不足100就尝试运行经验妖怪,获取最新成就奖励再购买体力(每天最多四次)
                 self._run_before_buy()
                 self._run_buy_sushi()
                 self.run_experienceyoukai()
-
+                # 跑完经验妖怪可能到达40级了，判定一下
+                if self._get_current_level() == 40:
+                    self.task_finish()
                 if self._get_current_sushi():
                     # 7.体力不足只能等待体力回复，标记失败，4小时cd
                     logger.info(f"体力不足100，4小时后再次尝试")
@@ -190,6 +183,19 @@ class ScriptTask(
         # 有体力的情况下正常结束本轮任务，标记成功，5分钟cd
         logger.info(f"本轮正常结束，即将执行下一轮")
         self._task_end(True)
+
+    def task_finish(self):
+        "起号完成，自动关闭任务"
+        self.config.level_rush.scheduler.enable = False
+        self.config.level_rush.level_rush_config.level_7_mark = False
+        self.config.level_rush.level_rush_config.assist_up_mark = False
+        self.config.level_rush.level_rush_config.skip_to_30_mark = False
+        self.config.level_rush.level_rush_config.get_achievement_reward_mark = False
+        self.config.exploration.exploration_config.exploration_level = (
+            self._DEFAULT_CHAPTER
+        )
+        self.config.save()
+        raise TaskEnd('LevelRush')
 
     def run_experienceyoukai(self):
         "运行经验妖怪"
@@ -282,6 +288,15 @@ class ScriptTask(
 
         # 领取绑定通讯录100勾玉
         self._get_contacts_bind_reward()
+
+        # 领取第一天商店签到的20勾玉
+        self._get_store_sign_reward()
+
+    def _get_store_sign_reward(self):
+        "领取第一天商店签到的20勾玉"
+        self.config.daily_trifles.done_record.store_sign_dt = datetime(2023, 1, 1)
+        self.run_store_sign()
+        self.goto_page(page_main)
 
     def get_achievement_reward(self):
         "领取成就里的奖励"
