@@ -22,7 +22,12 @@ from tasks.GameUi.page import (
     page_daily,
     page_friends,
 )
-from tasks.LevelRush.page import page_rookie_act, page_achievement, page_add_friends
+from tasks.LevelRush.page import (
+    page_rookie_act,
+    page_achievement,
+    page_add_friends,
+    page_bind_phone,
+)
 from tasks.Exploration.config import ExplorationLevel
 from tasks.Exploration.assets import ExplorationAssets
 from tasks.LevelRush.assets import LevelRushAssets
@@ -140,12 +145,16 @@ class ScriptTask(
             self._run_storyline()
 
         # 触发了跳过剧情就判定是否需要停止任务
-        # 到达40级就停止任务
-        cu_level = self._get_current_level()
-        if (cu_level >= 40 and cu_level <= 60) or (
+        if (
             self.config.level_rush.level_rush_config.skip_to_30_stop_enable
             and self.stop_flag
         ):
+            self._run_before_buy()
+            # 触发了跳过剧情结束任务
+            self.task_finish()
+        # 到达40级就停止任务
+        cu_level = self._get_current_level()
+        if cu_level >= 40 and cu_level <= 60:
             # 达到目标等级后本任务不再需要，把自己在实例配置里禁用，当作一次性任务
             self.task_finish()
 

@@ -42,3 +42,12 @@ page_add_friends.connect(
     GlobalGameAssets.I_UI_BACK_RED,
     key="page_add_friends->page_main",
 )
+
+# 绑定手机页面
+page_bind_phone = Page(LevelRushAssets.I_PHONE_BIND)
+page_bind_phone.connect(
+    page_main,
+    LevelRushAssets.I_PHONE_BIND,
+    key="page_bind_phone->page_main",
+)
+page_main.add_enter_failure_hooks(LevelRushAssets.I_PHONE_BIND_CANCEL)
