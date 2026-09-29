@@ -149,6 +149,7 @@ class ScriptTask(
             self.config.level_rush.level_rush_config.skip_to_30_stop_enable
             and self.stop_flag
         ):
+            self.run_pickup_email()
             self._run_before_buy()
             # 触发了跳过剧情结束任务
             self.task_finish()
