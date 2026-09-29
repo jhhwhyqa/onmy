@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from time import sleep
 
 from module.base.timer import Timer
@@ -11,7 +11,7 @@ from tasks.RealmRaid.script_task import ScriptTask as RealmRaidScriptTask
 from tasks.DailyTrifles.script_task import ScriptTask as DailyTriflesScriptTask
 from tasks.KekkaiUtilize.script_task import ScriptTask as KekkaiUtilizeScriptTask
 from tasks.KekkaiUtilize.page import page_guild_realm
-from tasks.GameUi.page import page_main, page_assist_battle
+from tasks.GameUi.page import page_main, page_assist_battle, page_mall
 from tasks.WantedQuests.assets import WantedQuestsAssets
 from tasks.WantedQuests.config import CooperationType
 from tasks.AssistBattle.assets import AssistBattleAssets
@@ -126,6 +126,9 @@ class ScriptTask(
         raise TaskEnd('AssistBattle')
 
     def run_current_account(self):
+        from tasks.RichMan.mall.consignment import Consignment
+
+        SUNDAY = 6
         # 执行任务前先获取本账号协战剩余次数以检查是否执行过前置任务，觉醒协战已做完将不再执行日常任务
         total_evozone, total_realmraid = 15, 3
         evozone_done, realmraid_done = 0, 0
@@ -139,6 +142,15 @@ class ScriptTask(
             or self.conf.assist_battle_config.realmraid_enable
         ):
             start_evozone, start_realmraid = self.get_assist_battle_count()
+
+        # 寄售屋
+        if (
+            self.conf.assist_battle_config.consignment_enable
+            and date.today().weekday() == SUNDAY
+        ):
+            self.goto_page(page_mall, confirm_wait=2.5)
+            Consignment.execute_consignment()
+            self.goto_page(page_main)
 
         # 结界寄养
         if self.conf.assist_battle_config.kekkaiutilize_enable and start_evozone > 0:

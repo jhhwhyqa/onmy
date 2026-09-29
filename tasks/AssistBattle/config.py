@@ -48,6 +48,10 @@ class AssistBattleConfig(BaseModel):
         default=False,
         description='读取结界蹭卡模块配置，请确保结界能正常进入，不用开启结界蹭卡任务',
     )
+    consignment_enable: bool = Field(
+        default=False,
+        description='寄售屋购买，仅在周日运行',
+    )
 
 
 class AssistBattle(ConfigBase):
