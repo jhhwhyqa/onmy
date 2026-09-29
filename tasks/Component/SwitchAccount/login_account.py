@@ -91,8 +91,16 @@ class LoginAccount(BaseTask, SwitchAccountAssets):
         @rtype:
         """
         logger.info("start switch_character")
+        # 登录可能会转圈加载,这里清理点击记录防止报错
+        while 1:
+            time.sleep(1)
+            self.screenshot()
+            if self.appear(self.O_SA_CHECK_SELECT_SVR, interval=2):
+                break
+            self.click(self.C_SA_LOGIN_FORM_SWITCH_SVR_BTN, interval=2)
+            self.device.click_record_clear()
         # 改成对比是否出现 已有角色
-        self.ui_click(self.C_SA_LOGIN_FORM_SWITCH_SVR_BTN, self.O_SA_CHECK_SELECT_SVR)
+        # self.ui_click(self.C_SA_LOGIN_FORM_SWITCH_SVR_BTN, self.O_SA_CHECK_SELECT_SVR)
         # 应对可能出现的新区集结弹窗
         self.screenshot()
         self.appear_then_click(self.I_SA_CANCEL_NEW_SVR_GATHERING)
