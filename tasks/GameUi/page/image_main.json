@@ -20,7 +20,7 @@
   {
     "itemName": "main_goto_exploration",
     "imageName": "page_main_goto_exploration.png",
-    "roiFront": "493,116,45,75",
+    "roiFront": "659,135,41,39",
     "roiBack": "243,100,933,211",
     "method": "Template matching",
     "threshold": 0.8,
@@ -29,7 +29,7 @@
   {
     "itemName": "main_goto_town",
     "imageName": "page_main_goto_town.png",
-    "roiFront": "706,249,61,57",
+    "roiFront": "718,257,39,49",
     "roiBack": "200,120,951,298",
     "method": "Template matching",
     "threshold": 0.6,
