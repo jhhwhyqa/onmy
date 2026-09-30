@@ -1,7 +1,7 @@
 [
   {
     "itemName": "login_enter_game",
-    "roiFront": "543,530,194,125",
+    "roiFront": "550,569,173,50",
     "roiBack": "543,530,194,125",
     "mode": "Full",
     "method": "Default",

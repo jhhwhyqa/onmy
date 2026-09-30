@@ -1,5 +1,6 @@
 from module.atom.image import RuleImage
 from module.atom.click import RuleClick
+from module.atom.scatter import RuleScatter
 from module.atom.long_click import RuleLongClick
 from module.atom.swipe import RuleSwipe
 from module.atom.ocr import RuleOcr
@@ -70,7 +71,7 @@ class RestartAssets:
 
 	# Image Rule Assets
 	# 庭院卷轴打开 
-	I_LOGIN_SCROOLL_OPEN = RuleImage(roi_front=(1209,607,32,84), roi_back=(1209,607,32,84), threshold=0.8, method="Template matching", file="./tasks/Restart/login/login_login_scrooll_open.png")
+	I_LOGIN_SCROOLL_OPEN = RuleImage(roi_front=(1208,609,33,83), roi_back=(1208,609,33,83), threshold=0.8, method="Template matching", file="./tasks/Restart/login/login_login_scrooll_open.png")
 	# 庭院卷轴关闭 
 	I_LOGIN_SCROOLL_CLOSE = RuleImage(roi_front=(1181,634,28,39), roi_back=(1162,595,77,112), threshold=0.7, method="Template matching", file="./tasks/Restart/login/login_login_scrooll_close.png")
 	# 闲庭图片 
@@ -117,7 +118,7 @@ class RestartAssets:
 
 	# Ocr Rule Assets
 	# 进入游戏 
-	O_LOGIN_ENTER_GAME = RuleOcr(roi=(543,530,194,125), area=(543,530,194,125), mode="Full", method="Default", keyword="进入", name="login_enter_game")
+	O_LOGIN_ENTER_GAME = RuleOcr(roi=(550,569,173,50), area=(543,530,194,125), mode="Full", method="Default", keyword="进入", name="login_enter_game")
 	# 点击屏幕跳过 
 	O_LOGIN_SKIP_1 = RuleOcr(roi=(1046,35,130,37), area=(1046,35,130,37), mode="Single", method="Default", keyword="点击屏幕跳过", name="login_skip_1")
 	# 登录动画-跳过 
