@@ -1,7 +1,9 @@
 """协同对弈：每人初选五人，再从己方卡牌中安排三人上场。"""
 
+import difflib
 import re
 import time
+from datetime import datetime, timedelta
 from pathlib import Path
 
 import cv2
@@ -37,10 +39,28 @@ class ScriptTask(GameUi, DraftDuelAssets):
     O_LINEUP_DEFENSES = (DraftDuelAssets.O_LINEUP_DEFENSE_0, DraftDuelAssets.O_LINEUP_DEFENSE_1,
                          DraftDuelAssets.O_LINEUP_DEFENSE_2, DraftDuelAssets.O_LINEUP_DEFENSE_3,
                          DraftDuelAssets.O_LINEUP_DEFENSE_4)
-
     CROSS_TEMPLATE = cv2.Canny(cv2.imdecode(
         np.fromfile(str(Path(__file__).with_name('selected_cross.png')), np.uint8),
         cv2.IMREAD_COLOR), 60, 130)
+
+    @staticmethod
+    def _activity_open(now):
+        opening_hour = 8 if now.weekday() >= 5 else 10
+        return opening_hour <= now.hour < 23
+
+    def _require_open_for_match(self):
+        now = datetime.now()
+        if self._activity_open(now):
+            return
+        opening_hour = 8 if now.weekday() >= 5 else 10
+        target = now.replace(hour=opening_hour, minute=5, second=0, microsecond=0)
+        if now >= target:
+            target += timedelta(days=1)
+            target = target.replace(hour=8 if target.weekday() >= 5 else 10)
+        logger.info(f'DraftDuel closed; next attempt after {target}')
+        self.set_next_run(task='DraftDuel', success=False, finish=False,
+                          server=False, target=target)
+        raise TaskEnd('协同对弈当前未开放')
 
     @classmethod
     def _selected_cross(cls, image):
@@ -63,6 +83,7 @@ class ScriptTask(GameUi, DraftDuelAssets):
         return result
 
     def _enter_first_round(self, settings):
+        self._require_open_for_match()
         self.goto_page(page_town)
         self.screenshot()
         self.click(self.I_TOWN_GOTO_DRAFT_DUEL, interval=0.6)
@@ -83,88 +104,33 @@ class ScriptTask(GameUi, DraftDuelAssets):
             else:
                 raise GameStuckError('协同对弈组队模式等待队友超时')
         logger.info(f'DraftDuel matchmaking mode: {settings.match_mode.value}')
-        self._start_first_round(settings)
+        self.click(self.C_DRAFT_START, interval=0.5)
+        return self._wait_round(1, settings.start_timeout_seconds)
 
-    def _wait_lobby_ready(self, timeout) -> bool:
-        """等大厅的「战」按钮出现（用按钮图片判断，不看按钮文字）。
-
-        :param timeout: 最长等待秒数
-        :return: 出现「战」按钮返回 True；一直是「等待」或还没加载完返回 False
-        """
-        deadline = time.monotonic() + timeout
-        while time.monotonic() < deadline:
-            self.device.stuck_record_clear()
-            self.screenshot()
-            if self.appear(self.I_DRAFT_START):
-                return True
-            time.sleep(0.5)
-        return False
-
-    def _start_first_round(self, settings):
-        """点大厅的「战」开始匹配，并校验点击是否生效。
-
-        实测「战」偶尔点了没反应：画面停在组队大厅，`O_DRAFT_ROUND` 框里读到的是
-        频道聊天（「60队」之类），脚本傻等到超时才报错。所以这里：
-
-        - 用「战」按钮的图片（`I_DRAFT_START`）判断能不能点：匹配不到就不点
-          （大厅还在加载，或已经进入「等待」状态），等下一轮再看；
-        - 点完在窗口内校验是否出现「请选择第N名式神」，没进展就重试，最多三次；
-        - 三次都没生效才回落到 `start_timeout_seconds` 的长等待，并留下点击次数日志。
-
-        组队模式的队友等待在 `_enter_first_round` 里已完成。
-        """
-        confirm_seconds = 6
-        clicked = 0
-        for attempt in range(1, 4):
-            if not self._wait_lobby_ready(confirm_seconds):
-                logger.info(f'DraftDuel 战 button not visible before attempt {attempt}/3; '
-                            f'lobby is loading or already waiting')
-                continue
-            clicked += 1
-            logger.info(f'DraftDuel click 战 (attempt {attempt}/3)')
-            self.click(self.I_DRAFT_START, interval=0.5)
-            deadline = time.monotonic() + confirm_seconds
-            while time.monotonic() < deadline:
-                self.device.stuck_record_clear()
-                self.screenshot()
-                if self._round_number() == 1:
-                    return
-                time.sleep(0.4)
-        logger.info(f'DraftDuel clicked 战 {clicked} time(s); keep waiting for the draft prompt '
-                    f'up to {settings.start_timeout_seconds}s')
-        self._wait_round(1, settings.start_timeout_seconds)
-
-    def _round_text(self) -> str:
-        """读取轮次提示的原文本（如「请选择第1名式神」）。"""
-        return str(self.O_DRAFT_ROUND.ocr(self.device.image) or '')
-
-    def _round_number(self, text: str = None):
-        if text is None:
-            text = self._round_text()
+    def _round_number(self):
+        text = str(self.O_DRAFT_ROUND.ocr(self.device.image) or '')
         match = re.search(r'第\s*([1-5])\s*名\s*式神', text)
         return int(match.group(1)) if match else None
 
     def _wait_round(self, expected, timeout):
-        deadline = time.monotonic() + timeout
-        last_text = ''
+        # 选人横幅只在我方回合出现。匹配动画与对方回合可能超过设置的
+        # 30 秒，所以持续读取横幅；宽限期内不重启正在进行的对局。
+        start = time.monotonic()
+        deadline = start + max(timeout + 60, 90)
+        warned = False
         while time.monotonic() < deadline:
             self.device.stuck_record_clear()
             self.screenshot()
-            text = self._round_text()
-            if text:
-                last_text = text
-            number = self._round_number(text)
-            if number == expected:
-                return
-            if number is not None and number > expected:
-                raise GameStuckError(
-                    f'协同对弈轮次跳过：期望第{expected}轮，实际第{number}轮')
-            time.sleep(0.5)
-        # 带上现场信息：框里最后读到什么、大厅「战」按钮是否还在，方便下次定位卡在哪一步
-        raise GameStuckError(
-            f'协同对弈等待第{expected}轮超时；'
-            f'轮次框最后识别到 {last_text!r}，'
-            f'大厅「战」按钮可见={self.appear(self.I_DRAFT_START)}')
+            number = self._round_number()
+            if number is not None and number >= expected:
+                if number > expected:
+                    logger.warning(f'DraftDuel missed pick {expected}; resume at pick {number}')
+                return number
+            if not warned and time.monotonic() - start >= timeout:
+                logger.warning(f'DraftDuel pick {expected} still pending after {timeout}s; keep OCR polling')
+                warned = True
+            time.sleep(0.25)
+        raise GameStuckError(f'协同对弈等待第{expected}轮超时')
 
     def _offers(self):
         for attempt in range(2):
@@ -195,6 +161,38 @@ class ScriptTask(GameUi, DraftDuelAssets):
     def _battle_ready(self):
         return '确定' in str(self.O_BATTLE_CONFIRM.ocr(self.device.image) or '')
 
+    @staticmethod
+    def _resolve_lineup_names(raw_names, drafted):
+        clean_names = [re.sub(r'\d+$', '', raw) for raw in raw_names]
+        names = [normalize_name(raw) for raw in clean_names]
+        # 只依据本局已选名单补全 OCR，避免把近形字认成其他候选。
+        for index, name in enumerate(names):
+            if name and name not in drafted:
+                matches = [candidate for candidate in drafted
+                           if name in candidate and candidate not in names]
+                if len(matches) == 1:
+                    names[index] = matches[0]
+            if names[index] is None and len(clean_names[index]) >= 3:
+                choices = [candidate for candidate in drafted if candidate not in names]
+                ranked = sorted(((difflib.SequenceMatcher(
+                    None, clean_names[index], candidate).ratio(), candidate)
+                    for candidate in choices), reverse=True)
+                if (ranked and ranked[0][0] >= 0.7 and
+                        (len(ranked) == 1 or ranked[0][0] - ranked[1][0] >= 0.15)):
+                    names[index] = ranked[0][1]
+        missing = set(drafted) - set(name for name in names if name)
+        if len(missing) == 1 and names.count(None) == 1:
+            names[names.index(None)] = missing.pop()
+        return names
+
+    @staticmethod
+    def _victory_screen(image):
+        """“获得大胜”字样经过特效处理，OCR 不稳定，改看右上金色大字。"""
+        area = cv2.cvtColor(image[20:255, 950:1240], cv2.COLOR_RGB2HSV)
+        gold = ((area[:, :, 0] >= 8) & (area[:, :, 0] <= 38) &
+                (area[:, :, 1] > 80) & (area[:, :, 2] > 120))
+        return int(gold.sum()) >= 15000
+
     def _read_battle_lineup(self, drafted):
         """阵容详情依当前卡牌顺序列出五人；用初选名单核对 OCR。"""
         candidates = []
@@ -215,12 +213,11 @@ class ScriptTask(GameUi, DraftDuelAssets):
         try:
             self.click(self.C_DETAIL_MINE, interval=0.3)
             self.screenshot()
-            names = [normalize_name(str(rule.ocr(self.device.image) or ''))
-                     for rule in self.O_LINEUP_NAMES]
-            missing = set(drafted) - set(name for name in names if name)
-            if len(missing) == 1 and names.count(None) == 1:
-                names[names.index(None)] = missing.pop()
-            if set(names) != set(drafted) or len(set(names)) != 5:
+            raw_names = [str(rule.ocr(self.device.image) or '')
+                         for rule in self.O_LINEUP_NAMES]
+            names = self._resolve_lineup_names(raw_names, drafted)
+            if (any(name is None for name in names) or
+                    not set(drafted) <= set(names) or len(set(names)) != 5):
                 logger.warning(f'DraftDuel battle lineup OCR mismatch: {names} vs {drafted}')
                 return None
             speed_by_name = {}
@@ -253,7 +250,8 @@ class ScriptTask(GameUi, DraftDuelAssets):
     @staticmethod
     def _spotlight_x(image):
         """寻找当前候选式神上方的蓝色聚光灯；灯位随上场轮次移动。"""
-        area = image[130:300, 80:900].astype(np.float32)
+        # 敌方半场也有蓝色特效；只在我方半场寻找上场聚光灯。
+        area = image[130:300, 80:590].astype(np.float32)
         blue = (area[:, :, 2] > 130) & (area[:, :, 2] > area[:, :, 0] * 1.15)
         columns = blue.sum(axis=0).astype(np.float32)
         window = np.convolve(columns, np.ones(60, dtype=np.float32), mode='valid')
@@ -289,18 +287,20 @@ class ScriptTask(GameUi, DraftDuelAssets):
                 grey = saturation < original * 0.75 and original - saturation > 8
                 if not grey or name in locked:
                     available.append(name)
-            if len(available) < 3:
+            if not available:
                 logger.warning(f'DraftDuel not enough active cards: {available}')
                 return
             preferred = getattr(self, '_battle_plan', None)
             if preferred is None:
                 try:
-                    preferred = plan_lineup(available, team_size=3, locked=locked,
+                    preferred = plan_lineup(available, team_size=min(3, len(available)), locked=locked,
                                             speeds=speeds, defenses=defenses)
                 except ValueError as exc:
                     logger.warning(f'DraftDuel lineup planning failed: {exc}')
                     return
                 self._battle_plan = preferred
+            if len(locked) >= len(preferred):
+                return
             targets = [name for name in preferred if name not in locked]
             pending_targets = [names[index] for index in pending
                                if names[index] in targets]
@@ -320,15 +320,30 @@ class ScriptTask(GameUi, DraftDuelAssets):
                 portrait_change = float(np.abs(
                     before[35:95, 85:510].astype(np.int16) -
                     self.device.image[35:95, 85:510].astype(np.int16)).mean())
-                if (cross_score < 0.46 or
-                        abs(cross_x - (320, 435, 550, 665, 780)[index]) > 180 or
-                        (abs(cross_x - before_x) < 35 and portrait_change < 6)):
+                cross_confirmed = (cross_score >= 0.46 and
+                                   abs(cross_x - (320, 435, 550, 665, 780)[index]) <= 180 and
+                                   abs(cross_x - before_x) >= 35)
+                portrait_confirmed = portrait_change >= 8 and abs(cross_x - before_x) >= 35
+                if not (cross_confirmed or portrait_confirmed):
+                    failures = getattr(self, '_battle_drag_failures', {})
+                    failures[target] = failures.get(target, 0) + 1
+                    self._battle_drag_failures = failures
                     logger.warning(
                         f'DraftDuel card not selected: {target}; '
                         f'spotlight={spotlight_x}, cross={before_x}->{cross_x} '
                         f'({cross_score:.2f}), '
                         f'portrait_change={portrait_change:.1f}')
-                    return
+                    if failures[target] >= 2:
+                        selected = self._selected_cards(self.device.image)
+                        if len(selected) == 1:
+                            index = selected.pop()
+                            target = names[index]
+                            self._battle_plan = None
+                            logger.warning(f'DraftDuel use already selected card: {target}')
+                        else:
+                            return
+                    else:
+                        return
             logger.info(f'DraftDuel field {len(locked) + 1}/3: {target}, '
                         f'planned={preferred}')
             self.click(self.C_BATTLE_CONFIRM, interval=0.3)
@@ -346,22 +361,40 @@ class ScriptTask(GameUi, DraftDuelAssets):
 
     def _wait_battle_return(self, timeout, drafted):
         deadline = time.monotonic() + timeout
-        active_preparation = False
+        preparation_missing_since = None
+        last_preparation_attempt = 0
         terminal_seen = 0
         while time.monotonic() < deadline:
             self.device.stuck_record_clear()
             self.screenshot()
+            leave_text = str(self.O_TEAMMATE_LEAVE.ocr(self.device.image) or '')
+            if '队友已离开战斗' in leave_text and '放弃本场战斗' in leave_text:
+                logger.info('DraftDuel teammate left; confirming this battle ends')
+                self.click(self.C_TEAMMATE_LEAVE_CONFIRM, interval=0.5)
+                continue
+            if self._victory_screen(self.device.image):
+                logger.info('DraftDuel victory settlement detected')
+                self.click(self.C_SETTLEMENT_DISMISS, interval=0.5)
+                continue
+            if '失败' in str(self.O_BATTLE_DEFEAT.ocr(self.device.image) or ''):
+                logger.info('DraftDuel defeat settlement detected')
+                self.click(self.C_SETTLEMENT_DISMISS, interval=0.5)
+                continue
             if self._battle_ready():
-                if not active_preparation:
+                preparation_missing_since = None
+                if time.monotonic() - last_preparation_attempt >= 1.5:
+                    last_preparation_attempt = time.monotonic()
                     self._select_battle_lineup(drafted)
-                    active_preparation = True
                 time.sleep(0.5)
                 continue
-            active_preparation = False
-            if len(getattr(self, '_battle_locked', [])) >= 3:
-                self._battle_locked = []
-                self._battle_plan = None
-                self._battle_detail = None
+            preparation_missing_since = preparation_missing_since or time.monotonic()
+            plan = getattr(self, '_battle_plan', None)
+            if ((plan and len(getattr(self, '_battle_locked', [])) >= len(plan)) or
+                    time.monotonic() - preparation_missing_since >= 25):
+                for attribute in ('_battle_locked', '_battle_plan', '_battle_detail',
+                                  '_battle_drag_failures'):
+                    if hasattr(self, attribute):
+                        delattr(self, attribute)
             if '拒绝' in str(self.O_BOUNTY_REJECT.ocr(self.device.image) or ''):
                 self.click(self.C_BOUNTY_REJECT, interval=0.3)
                 continue
@@ -370,7 +403,12 @@ class ScriptTask(GameUi, DraftDuelAssets):
                 continue
             terminal_text = str(self.O_TERMINAL_RESULT.ocr(self.device.image) or '')
             if '番胜' in terminal_text and '终' in terminal_text:
-                self.click(self.C_RESULT_CONTINUE, interval=0.4)
+                self.click(self.C_SETTLEMENT_DISMISS, interval=0.4)
+                continue
+            final_banner = str(self.O_FINAL_BANNER.ocr(self.device.image) or '')
+            if re.search(r'[0-6]\s*番\s*胜', final_banner):
+                logger.info(f'DraftDuel final banner: {final_banner}')
+                self.click(self.C_SETTLEMENT_DISMISS, interval=0.4)
                 continue
             if '点击屏幕继续' in str(self.O_RESULT_CONTINUE.ocr(self.device.image) or ''):
                 self.click(self.C_RESULT_CONTINUE, interval=0.4)
@@ -395,9 +433,10 @@ class ScriptTask(GameUi, DraftDuelAssets):
                     # 「0番胜」表示五人已选完的本局大厅；「未开启」才是新局入口。
                     self.click(self.C_RESULT_CONTINUE, interval=0.2)
                     self.screenshot()
-                    # 用「战」按钮的图片判断能不能继续开战（「等待」状态匹配不到）
-                    if self.appear(self.I_DRAFT_START):
-                        self.click(self.I_DRAFT_START, interval=0.5)
+                    button = str(self.O_LOBBY_BUTTON.ocr(self.device.image) or '')
+                    if '战' in button and '等待' not in button:
+                        self._require_open_for_match()
+                        self.click(self.C_DRAFT_START, interval=0.5)
                         logger.info(f'DraftDuel continuing same match at {score}')
             else:
                 terminal_seen = 0
@@ -407,27 +446,43 @@ class ScriptTask(GameUi, DraftDuelAssets):
     def run(self):
         self.screenshot()
         settings = self.config.draft_duel.draft_duel_config
-        if self._round_number() != 1:
-            self._enter_first_round(settings)
         timeout = settings.pick_timeout_seconds
-        team = []
-        for round_number in range(1, self.TEAM_SIZE + 1):
-            if round_number > 1:
-                self._wait_round(round_number, timeout)
-            # 对游戏内的十几秒倒计时只重试一次 OCR，避免耗尽选人时间。
-            names = self._offers()
-            decision = choose_pick(
-                [name for name in names if name], team, team_size=self.TEAM_SIZE)
-            position = names.index(decision.name)
-            logger.info(
-                f'DraftDuel pick {round_number}/{self.TEAM_SIZE}: '
-                f'{decision.name}, score={decision.score}, '
-                f'reasons={decision.reasons}, souls={decision.suggested_souls}'
-            )
-            self.click(self.C_SELECT[position], interval=0.5)
-            team.append(decision.name)
-        self._wait_final_pick_accepted(timeout)
-        logger.info(f'DraftDuel five-pick lineup: {team}')
-        self._wait_battle_return(settings.battle_timeout_seconds, team)
+        for match_number in range(1, settings.completion_count + 1):
+            for attribute in ('_battle_detail', '_battle_locked', '_battle_plan',
+                              '_card_color_baseline', '_battle_drag_failures'):
+                if hasattr(self, attribute):
+                    delattr(self, attribute)
+            self.screenshot()
+            round_number = self._round_number()
+            if round_number is None:
+                round_number = self._enter_first_round(settings)
+            elif round_number > 1:
+                logger.warning(f'DraftDuel resumed during pick {round_number}; preserve current match')
+            team = []
+            while round_number <= self.TEAM_SIZE:
+                # 对游戏内的十几秒倒计时只重试一次 OCR，避免耗尽选人时间。
+                names = self._offers()
+                observed = self._round_number()
+                if observed != round_number:
+                    round_number = self._wait_round(round_number, timeout)
+                    continue
+                decision = choose_pick(
+                    [name for name in names if name], team, team_size=self.TEAM_SIZE)
+                position = names.index(decision.name)
+                logger.info(
+                    f'DraftDuel match {match_number}/{settings.completion_count}, '
+                    f'pick {round_number}/{self.TEAM_SIZE}: '
+                    f'{decision.name}, score={decision.score}, '
+                    f'reasons={decision.reasons}, souls={decision.suggested_souls}'
+                )
+                self.click(self.C_SELECT[position], interval=0.5)
+                team.append(decision.name)
+                if round_number == self.TEAM_SIZE:
+                    break
+                round_number = self._wait_round(round_number + 1, timeout)
+            self._wait_final_pick_accepted(timeout)
+            logger.info(f'DraftDuel five-pick lineup: {team}')
+            self._wait_battle_return(settings.battle_timeout_seconds, team)
+            logger.info(f'DraftDuel completed match {match_number}/{settings.completion_count}')
         self.set_next_run(task='DraftDuel', success=True, finish=True)
         raise TaskEnd('DraftDuel')

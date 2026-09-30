@@ -27,8 +27,12 @@ class DraftDuelConfig(ConfigBase):
         description='组队模式下等待大厅队友加入的最长时间。',
     )
     pick_timeout_seconds: int = Field(
-        title='等待下一轮选人时间（秒）', default=60, ge=20, le=180,
-        description='等待对方选择和下一轮出现的最长时间。',
+        title='等待下一轮选人时间（秒）', default=30, ge=20, le=180,
+        description='超过此时间记录等待预警；继续识别至至少90秒，避免匹配或截图延迟中断对局。',
+    )
+    completion_count: int = Field(
+        title='完成次数', default=1, ge=1, le=20,
+        description='本次任务要完成的完整对局数量，每局包含五轮选人及最终结算。',
     )
     battle_timeout_seconds: int = Field(
         title='等待整局结束时间（秒）', default=3600, ge=120, le=7200,

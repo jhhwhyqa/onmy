@@ -293,5 +293,6 @@
   "start_timeout_seconds": "进入选人时间（秒）",
   "teammate_timeout_seconds": "等待队友时间（秒）",
   "pick_timeout_seconds": "等待下一轮选人时间（秒）",
-  "battle_timeout_seconds": "等待整局结束时间（秒）"
+  "battle_timeout_seconds": "等待整局结束时间（秒）",
+  "completion_count": "完成次数"
 }

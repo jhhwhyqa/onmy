@@ -2008,7 +2008,8 @@
       "match_mode": "单人",
       "start_timeout_seconds": 120,
       "teammate_timeout_seconds": 180,
-      "pick_timeout_seconds": 60,
+      "pick_timeout_seconds": 30,
+      "completion_count": 1,
       "battle_timeout_seconds": 3600
     }
   }

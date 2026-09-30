@@ -55,8 +55,8 @@
   },
   {
     "itemName": "detail_mine",
-    "roiFront": "1090,642,60,60",
-    "roiBack": "1090,642,60,60",
+    "roiFront": "1103,664,28,25",
+    "roiBack": "1103,664,28,25",
     "description": "阵容详情“我的”页签"
   },
   {
@@ -88,5 +88,23 @@
     "roiFront": "605,662,75,54",
     "roiBack": "605,662,75,54",
     "description": "结算点击继续"
+  },
+  {
+    "itemName": "draft_start",
+    "roiFront": "1175,605,50,50",
+    "roiBack": "1175,605,50,50",
+    "description": "大厅「战」按钮"
+  },
+  {
+    "itemName": "teammate_leave_confirm",
+    "roiFront": "705,398,70,45",
+    "roiBack": "705,398,70,45",
+    "description": "队友已离开战斗的确认按钮"
+  },
+  {
+    "itemName": "settlement_dismiss",
+    "roiFront": "620,670,45,35",
+    "roiBack": "620,670,45,35",
+    "description": "结算界面点掉继续/关闭"
   }
 ]

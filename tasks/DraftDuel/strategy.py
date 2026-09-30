@@ -15,6 +15,7 @@ from typing import Iterable, Mapping
 
 CATALOG_PATH = Path(__file__).with_name('catalog.json')
 ENCYCLOPEDIA_PATH = Path(__file__).with_name('encyclopedia.json')
+STRENGTH_PATH = Path(__file__).with_name('strength_scores.json')
 TIER_POINTS = {'特等': 40, '上等': 30, '中等': 20, '下等': 10}
 ENCYCLOPEDIA_POINTS = {'SS': 12, 'S': 8, 'A': 4, 'B': 0,
                        'C': -4, 'D': -8, 'E': -12}
@@ -70,6 +71,16 @@ def load_catalog(path: Path = CATALOG_PATH) -> dict[str, Entry]:
 
 
 CATALOG = load_catalog()
+
+
+def load_strength_scores(path: Path = STRENGTH_PATH) -> tuple[dict, tuple]:
+    if not path.exists():
+        return {}, ()
+    data = json.loads(path.read_text(encoding='utf-8'))
+    return data['scores'], tuple(data['combinations'])
+
+
+STRENGTH_SCORES, COMBINATION_RECOMMENDATIONS = load_strength_scores()
 
 
 def load_encyclopedia(path: Path = ENCYCLOPEDIA_PATH) -> tuple[dict, dict, dict]:
@@ -229,6 +240,53 @@ def tier_points(entry: Entry, team: Iterable[str] = (), *, speed: int | None = N
     return 0
 
 
+def strength_points(entry: Entry, team: Iterable[str] = (), *, speed: int | None = None,
+                    defense: int | None = None) -> float:
+    """新表独立强度分；用户指定评级及条件形态保持优先。"""
+    old = tier_points(entry, team, speed=speed, defense=defense)
+    if entry.name in USER_TIERS or entry.name in USER_RATINGS or entry.name in (
+            '云外镜', '茨木童子'):
+        return float(old)
+    score = STRENGTH_SCORES.get(entry.name, {}).get('strength')
+    if not isinstance(score, (int, float)):
+        return float(old)
+    if entry.tier not in TIER_POINTS and entry.tier not in ('', '?', '？'):
+        return float(old)
+    points = ((60, 10), (74, 20), (85, 30), (94, 40))
+    if score <= 60:
+        return max(0.0, score / 6)
+    for (low, low_points), (high, high_points) in zip(points, points[1:]):
+        if score <= high:
+            return low_points + (score - low) * (high_points - low_points) / (high - low)
+    return min(45.0, 40.0 + (score - 94))
+
+
+# 从“组合推荐”中提取可直接由式神名称判断的核心搭配。泛指“输出/火机”
+# 由 role_tags 与队伍平衡评分处理，避免把说明文本当作可点选的式神。
+COMBINATION_PAIRS = (
+    ({'云间不见岳', '炼狱茨木童子'}, 9),
+    ({'云间不见岳', '烬天玉藻前'}, 9),
+    ({'鬼王酒吞童子', '禅心云外镜'}, 10),
+    ({'浮世青行灯', '心狩鬼女红叶'}, 9),
+    ({'食灵', '姑获鸟'}, 8),
+    ({'食灵', '鬼童丸'}, 7),
+    ({'食灵', '心友犬神'}, 7),
+    ({'空相面灵气', '大夜摩天阎魔'}, 8),
+    ({'龙珏', '歌留多'}, 10),
+    ({'不知火', '酒吞童子'}, 8),
+    ({'不知火', '吸血姬'}, 8),
+    ({'鲸汐千姬', '初音未来'}, 9),
+    ({'季', '犬神'}, 8),
+    ({'一目连', '匣中少女'}, 7),
+    ({'鲤鱼精', '匣中少女'}, 7),
+    ({'蚀月吸血姬', '阎魔'}, 7),
+    ({'神启荒', '大夜摩天阎魔'}, 7),
+    ({'神启荒', '遥念烟烟罗'}, 7),
+    ({'言灵', '鬼金羊'}, 9),
+    ({'入内雀', '荒骷髅'}, 7),
+)
+
+
 def suggested_souls(entry: Entry) -> tuple[str, ...]:
     found = [(entry.souls.index(soul), soul) for soul in SOUL_NAMES
              if soul in entry.souls]
@@ -256,9 +314,13 @@ def team_score(names: Iterable[str], catalog: Mapping[str, Entry] = CATALOG,
     speeds = speeds or {}
     defenses = defenses or {}
     tags = [role_tags(catalog[name], defense=defenses.get(name)) for name in team]
-    score = sum(tier_points(catalog[name], team, speed=speeds.get(name),
+    score = sum(strength_points(catalog[name], team, speed=speeds.get(name),
                             defense=defenses.get(name))
                 + encyclopedia_points(name, team=team, defense=defenses.get(name))
+                + ((STRENGTH_SCORES[name]['combo'] - 75) * 0.18
+                   if name in STRENGTH_SCORES
+                   and isinstance(STRENGTH_SCORES[name]['combo'], (int, float))
+                   else 0)
                 for name in team)
     for role, value in ROLE_POINTS.items():
         count = sum(role in item for item in tags)
@@ -280,10 +342,14 @@ def team_score(names: Iterable[str], catalog: Mapping[str, Entry] = CATALOG,
         ({'桃花妖', '云外镜'}, 8),
         ({'桃花妖', '镜音铃连'}, 8),
         ({'稻荷神御馔津', '纺愿缘结神'}, 8),
-        ({'歌留多', '龙珏'}, 10),
         ({'犬神', '季'}, 8),
     )
-    score += sum(points for pair, points in pairs if pair <= set(team))
+    pair_scores = {frozenset(pair): points for pair, points in pairs}
+    for pair, points in COMBINATION_PAIRS:
+        pair_scores[frozenset(pair)] = points
+    score += sum(points for pair, points in pair_scores.items() if pair <= set(team))
+    if {'帝释天', '纺愿缘结神'} <= set(team):
+        score -= 8  # 组合表提示两名单拉重复。
     return float(score)
 
 
@@ -313,7 +379,10 @@ def choose_pick(offers: Iterable[str], team: Iterable[str] = (), *,
         entry = catalog[name]
         gain = team_score((*current, name), catalog, speeds, defenses) - baseline
         new_roles = role_tags(entry, defense=(defenses or {}).get(name)) - existing_roles
+        source = STRENGTH_SCORES.get(name, {})
         reasons = [f'等级：{USER_TIERS.get(name, entry.tier)}']
+        if isinstance(source.get('strength'), (int, float)):
+            reasons.append(f"评分表：强度{source['strength']}，组合{source['combo']}")
         extra = ENCYCLOPEDIA.get(name)
         if extra:
             samples = (extra['wins'] or 0) + (extra['losses'] or 0)

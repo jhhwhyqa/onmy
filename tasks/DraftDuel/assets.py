@@ -30,7 +30,7 @@ class DraftDuelAssets:
 	# 阵容详情第6张卡 
 	C_BATTLE_DETAIL_5 = RuleClick(roi_front=(460,46,40,42), roi_back=(460,46,40,42), name="battle_detail_5")
 	# 阵容详情“我的”页签 
-	C_DETAIL_MINE = RuleClick(roi_front=(1090,642,60,60), roi_back=(1090,642,60,60), name="detail_mine")
+	C_DETAIL_MINE = RuleClick(roi_front=(1103,664,28,25), roi_back=(1103,664,28,25), name="detail_mine")
 	# 关闭阵容详情 
 	C_DETAIL_CLOSE = RuleClick(roi_front=(1170,93,60,60), roi_back=(1170,93,60,60), name="detail_close")
 	# 确认上场 
@@ -41,13 +41,17 @@ class DraftDuelAssets:
 	C_FRIEND_CANCEL = RuleClick(roi_front=(479,443,95,49), roi_back=(479,443,95,49), name="friend_cancel")
 	# 结算点击继续 
 	C_RESULT_CONTINUE = RuleClick(roi_front=(605,662,75,54), roi_back=(605,662,75,54), name="result_continue")
+	# 大厅「战」按钮 
+	C_DRAFT_START = RuleClick(roi_front=(1175,605,50,50), roi_back=(1175,605,50,50), name="draft_start")
+	# 队友已离开战斗的确认按钮 
+	C_TEAMMATE_LEAVE_CONFIRM = RuleClick(roi_front=(705,398,70,45), roi_back=(705,398,70,45), name="teammate_leave_confirm")
+	# 结算界面点掉继续/关闭 
+	C_SETTLEMENT_DISMISS = RuleClick(roi_front=(620,670,45,35), roi_back=(620,670,45,35), name="settlement_dismiss")
 
 
 	# Image Rule Assets
-	# 大厅“战”按钮 
-	I_DRAFT_START = RuleImage(roi_front=(1169,591,65,67), roi_back=(1169,591,65,67), threshold=0.8, method="Template matching", file="./tasks/DraftDuel/res/draft_start.png")
 	# 组队模式下队友位为空 
-	I_EMPTY_TEAMMATE = RuleImage(roi_front=(983,330,62,56), roi_back=(983,330,62,56), threshold=0.83, method="Template matching", file="./tasks/DraftDuel/res/empty_teammate.png")
+	I_EMPTY_TEAMMATE = RuleImage(roi_front=(980,320,70,70), roi_back=(970,310,90,90), threshold=0.83, method="Template matching", file="./tasks/DraftDuel/res/empty_teammate.png")
 
 
 	# Ocr Rule Assets
@@ -103,5 +107,13 @@ class DraftDuelAssets:
 	O_BOUNTY_REJECT = RuleOcr(roi=(885,477,120,83), area=(885,477,120,83), mode="Single", method="Default", keyword="", name="bounty_reject")
 	# 好友邀请取消文字 
 	O_FRIEND_CANCEL = RuleOcr(roi=(435,434,165,65), area=(435,434,165,65), mode="Single", method="Default", keyword="", name="friend_cancel")
+	# 大厅按钮文字（战/等待） 
+	O_LOBBY_BUTTON = RuleOcr(roi=(1140,555,120,125), area=(1140,555,120,125), mode="Single", method="Default", keyword="", name="lobby_button")
+	# 终局番胜横幅 
+	O_FINAL_BANNER = RuleOcr(roi=(420,205,450,235), area=(420,205,450,235), mode="Single", method="Default", keyword="", name="final_banner")
+	# 队友已离开战斗提示 
+	O_TEAMMATE_LEAVE = RuleOcr(roi=(430,260,420,210), area=(430,260,420,210), mode="Single", method="Default", keyword="", name="teammate_leave")
+	# 战斗失败结算文字 
+	O_BATTLE_DEFEAT = RuleOcr(roi=(650,30,365,185), area=(650,30,365,185), mode="Single", method="Default", keyword="", name="battle_defeat")
 
 

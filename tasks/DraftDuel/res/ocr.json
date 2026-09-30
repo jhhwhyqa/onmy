@@ -232,5 +232,41 @@
     "method": "Default",
     "keyword": "",
     "description": "好友邀请取消文字"
+  },
+  {
+    "itemName": "lobby_button",
+    "roiFront": "1140,555,120,125",
+    "roiBack": "1140,555,120,125",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "大厅按钮文字（战/等待）"
+  },
+  {
+    "itemName": "final_banner",
+    "roiFront": "420,205,450,235",
+    "roiBack": "420,205,450,235",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "终局番胜横幅"
+  },
+  {
+    "itemName": "teammate_leave",
+    "roiFront": "430,260,420,210",
+    "roiBack": "430,260,420,210",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "队友已离开战斗提示"
+  },
+  {
+    "itemName": "battle_defeat",
+    "roiFront": "650,30,365,185",
+    "roiBack": "650,30,365,185",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "战斗失败结算文字"
   }
 ]
