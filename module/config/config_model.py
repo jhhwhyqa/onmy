@@ -67,6 +67,7 @@ from tasks.FloatParade.config import FloatParade
 from tasks.Quiz.config import Quiz
 from tasks.KittyShop.config import KittyShop
 from tasks.DyeTrials.config import DyeTrials
+from tasks.IbukiArena.config import IbukiArena
 
 # ----------------------------------------------------------------------------------------------------------------------
 
@@ -144,6 +145,7 @@ class ConfigModel(ConfigBase):
     kitty_shop: KittyShop = Field(default_factory=KittyShop)
     dye_trials: DyeTrials = Field(default_factory=DyeTrials)
     gugu_art_studio: GuguArtStudio = Field(default_factory=GuguArtStudio)
+    ibuki_arena: IbukiArena = Field(default_factory=IbukiArena)
     lbs: LBS = Field(default_factory=LBS)
 
     # 这些是肝帝专属
