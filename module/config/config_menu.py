@@ -87,6 +87,7 @@ class ConfigMenu:
             'ActivityExploration',
             'MetaDemon',
             'FrogBoss',
+            'FrogChallenge',
             'FloatParade',
             'Quiz',
             'KittyShop',

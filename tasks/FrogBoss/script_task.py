@@ -35,7 +35,8 @@ class ScriptTask(RightActivity, FrogBossAssets, GeneralBattleAssets):
         winner = self.detect()
         if winner is not None:
             result = self.oas_history.settle(
-                fingerprint(self.device.image), 'LEFT' if winner else 'RIGHT')
+                fingerprint(self.device.image), 'LEFT' if winner else 'RIGHT'
+            )
             logger.info(f'frog_oas result: {result}')
 
     def enter_frog_boss(self):
@@ -67,6 +68,9 @@ class ScriptTask(RightActivity, FrogBossAssets, GeneralBattleAssets):
                 self.detect()
                 while 1:
                     self.screenshot()
+                    # 下一局可能直接进入休息中，而不再显示左右投注入口。
+                    if self.appear(self.I_FROG_BOSS_REST):
+                        break
                     if self.appear(self.I_BET_LEFT) and self.appear(self.I_BET_RIGHT):
                         break
                     if self.appear_then_click(self.I_BET_SUCCESS_BOX, interval=1):
@@ -94,7 +98,9 @@ class ScriptTask(RightActivity, FrogBossAssets, GeneralBattleAssets):
 
     def next_run(self):
         time = self.config.model.frog_boss.frog_boss_config.before_end_frog
-        time_delta = TimeDelta(hours=time.hour, minutes=time.minute, seconds=time.second)
+        time_delta = TimeDelta(
+            hours=time.hour, minutes=time.minute, seconds=time.second
+        )
         time_now = datetime.now()
         time_set = time_now.replace(minute=0, second=0, microsecond=0)
         if 10 <= time_now.hour < 12:
@@ -124,36 +130,55 @@ class ScriptTask(RightActivity, FrogBossAssets, GeneralBattleAssets):
         count_right = self.O_RIGHT_COUNT.ocr(self.device.image)
         match self.config.model.frog_boss.frog_boss_config.strategy_frog:
             case Strategy.Majority:
-                click_image = self.I_BET_LEFT if count_left > count_right else self.I_BET_RIGHT
+                click_image = (
+                    self.I_BET_LEFT if count_left > count_right else self.I_BET_RIGHT
+                )
             case Strategy.Minority:
-                click_image = self.I_BET_LEFT if count_left < count_right else self.I_BET_RIGHT
+                click_image = (
+                    self.I_BET_LEFT if count_left < count_right else self.I_BET_RIGHT
+                )
             case Strategy.Bilibili:
-                click_image = self.I_BET_LEFT if count_left > count_right else self.I_BET_RIGHT
+                click_image = (
+                    self.I_BET_LEFT if count_left > count_right else self.I_BET_RIGHT
+                )
             case Strategy.Dashen:
                 click_image = self.get_dashen(count_left, count_right)
             case Strategy.Oas:
                 signature = fingerprint(self.device.image)
                 predictions = fetch_predictions(self.oas_history)
                 try:
-                    decision = self.oas_history.choose(signature, count_left, count_right, predictions)
+                    decision = self.oas_history.choose(
+                        signature, count_left, count_right, predictions
+                    )
                 except ValueError as exc:
                     raise GameStuckError(str(exc)) from exc
                 logger.info(f'frog_oas decision: {decision}')
                 # Fetching may span a round transition; never click a stale frame.
                 self.screenshot()
                 from tasks.FrogBoss.frog_oas import same_lineup
+
                 if not same_lineup(signature, fingerprint(self.device.image)):
-                    raise GameStuckError('FrogBoss lineup changed while fetching predictions')
+                    raise GameStuckError(
+                        'FrogBoss lineup changed while fetching predictions'
+                    )
                 if not (self.appear(self.I_BET_LEFT) and self.appear(self.I_BET_RIGHT)):
-                    raise GameStuckError('FrogBoss betting closed while fetching predictions')
-                click_image = self.I_BET_LEFT if decision['side'] == 'LEFT' else self.I_BET_RIGHT
+                    raise GameStuckError(
+                        'FrogBoss betting closed while fetching predictions'
+                    )
+                click_image = (
+                    self.I_BET_LEFT if decision['side'] == 'LEFT' else self.I_BET_RIGHT
+                )
             case Strategy.AlwaysRed:
                 click_image = self.I_BET_LEFT
             case Strategy.AlwaysBlue:
                 click_image = self.I_BET_RIGHT
             case _:
-                raise ValueError(f'Unknown bet mode: {self.config.model.frog_boss.frog_boss_config.strategy_frog}')
-        logger.info(f'You strategy is {self.config.model.frog_boss.frog_boss_config.strategy_frog} and bet on {click_image}')
+                raise ValueError(
+                    f'Unknown bet mode: {self.config.model.frog_boss.frog_boss_config.strategy_frog}'
+                )
+        logger.info(
+            f'You strategy is {self.config.model.frog_boss.frog_boss_config.strategy_frog} and bet on {click_image}'
+        )
         self.ui_click_until_disappear(click_image)
         gold_30_timer = Timer(10)
         gold_30_timer.start()
@@ -172,7 +197,10 @@ class ScriptTask(RightActivity, FrogBossAssets, GeneralBattleAssets):
             self.screenshot()
             if self.appear(self.I_BETTED):
                 break
-            if self.appear_then_click(self.I_BET_SURE, interval=2) and flag_glod_30 == 1:
+            if (
+                self.appear_then_click(self.I_BET_SURE, interval=2)
+                and flag_glod_30 == 1
+            ):
                 continue
             if self.appear_then_click(self.I_GOLD_30, interval=2):
                 flag_glod_30 = 1
@@ -211,8 +239,12 @@ class ScriptTask(RightActivity, FrogBossAssets, GeneralBattleAssets):
         """
         logger.info('Fetching strategy from multiple Dashen UPer')
         # 定义正则表达式
-        red_regex = re.compile(r'(押红|押左|压红|压左|红方|红色|我红|我左|红优|左|红六|红七|红八|红九|红十|91开|82开|73开|64开)')
-        blue_regex = re.compile(r'(押蓝|押右|压蓝|压右|蓝方|蓝色|我蓝|我右|蓝优|右|蓝六|蓝七|蓝八|蓝九|蓝十|19开|28开|37开|46开)')
+        red_regex = re.compile(
+            r'(押红|押左|压红|压左|红方|红色|我红|我左|红优|左|红六|红七|红八|红九|红十|91开|82开|73开|64开)'
+        )
+        blue_regex = re.compile(
+            r'(押蓝|押右|压蓝|压右|蓝方|蓝色|我蓝|我右|蓝优|右|蓝六|蓝七|蓝八|蓝九|蓝十|19开|28开|37开|46开)'
+        )
 
         # 获取 feedId 的函数
         def get_feed_id(uid):
@@ -220,10 +252,14 @@ class ScriptTask(RightActivity, FrogBossAssets, GeneralBattleAssets):
             response = requests.get(url)
             if response.status_code == 200:
                 data = response.json()
-                if 'result' in data and 'feeds' in data['result'] and len(data['result']['feeds']) > 0:
+                if (
+                    'result' in data
+                    and 'feeds' in data['result']
+                    and len(data['result']['feeds']) > 0
+                ):
                     return data['result']['feeds'][0]['id']
             return None
-        
+
         # 获取 feed 详细信息的函数
         def get_feed_details(feed_id):
             url = f'https://inf.ds.163.com/v1/web/feed/basic/facade?feedId={feed_id}'
@@ -239,23 +275,33 @@ class ScriptTask(RightActivity, FrogBossAssets, GeneralBattleAssets):
                     return {
                         'user_nick': user_nick,
                         'create_time': create_time,
-                        'body_text': body_text
+                        'body_text': body_text,
                     }
                 except (KeyError, IndexError, json.JSONDecodeError):
                     return None
             return None
-        
+
         # 检查发布时间是否符合规则
         def is_time_valid(create_time):
             # 定义时间段
-            valid_time_ranges = [(10, 12), (12, 14), (14, 16), (16, 18), (18, 20), (20, 22), (22, 24)]
+            valid_time_ranges = [
+                (10, 12),
+                (12, 14),
+                (14, 16),
+                (16, 18),
+                (18, 20),
+                (20, 22),
+                (22, 24),
+            ]
             now = datetime.now()
             # now = datetime(year=2024, month=10, day=3, hour=19, minute=45, second=0)  # 指定时间读取历史文章
-            
+
             # 获取发布时间
-            post_time = datetime.fromtimestamp(create_time / 1000)  # 假设 create_time 是毫秒级时间戳
+            post_time = datetime.fromtimestamp(
+                create_time / 1000
+            )  # 假设 create_time 是毫秒级时间戳
             post_hour = post_time.hour
-            
+
             # 检查发布时间是否在有效时间段内
             for start, end in valid_time_ranges:
                 if start <= post_hour < end and start <= now.hour < end:
@@ -264,12 +310,12 @@ class ScriptTask(RightActivity, FrogBossAssets, GeneralBattleAssets):
 
         # 分析 body_text 来判断投注结果
         def analyze_bet(body_text):
-            red_span=9999
-            blue_span=9999
+            red_span = 9999
+            blue_span = 9999
             if red_regex.search(body_text):
-                red_span=red_regex.search(body_text).start()
+                red_span = red_regex.search(body_text).start()
             if blue_regex.search(body_text):
-                blue_span=blue_regex.search(body_text).start()
+                blue_span = blue_regex.search(body_text).start()
             if red_span < blue_span:
                 return 'LEFT'
             elif red_span > blue_span:
@@ -304,10 +350,9 @@ class ScriptTask(RightActivity, FrogBossAssets, GeneralBattleAssets):
             {"name": "CC南浔", "id": "74db771d92a54c28ae3e98d19aa565a3"},
             {"name": "冰七喜Den", "id": "e498e524252041e29999b38e57c4df1d"},
             {"name": "行水姑娘", "id": "30b0c2923faa483f95572c324a5bc910"},
-            {"name": "更慕林", "id": "e32aedbdd8da46a5b5b497a16c4b7658"}
+            {"name": "更慕林", "id": "e32aedbdd8da46a5b5b497a16c4b7658"},
             # ... 可以添加更多 uid
         ]
-
 
         # 主函数，遍历这批 uid
         count_uper_left = 0  # 统计博主投注左侧红方次数
@@ -320,10 +365,15 @@ class ScriptTask(RightActivity, FrogBossAssets, GeneralBattleAssets):
             if feed_id:
                 details = get_feed_details(feed_id)
                 # 检查 create_time 和 body_text
-                if details and is_time_valid(int(details['create_time'])) and details['body_text']:
+                if (
+                    details
+                    and is_time_valid(int(details['create_time']))
+                    and details['body_text']
+                ):
                     bet_result = analyze_bet(details['body_text'])
-                    bet_rate = (re.compile(r"([5-9]\d%|\d+开|[一二三四五六七八九十零]+开|([红蓝][一二三四五六七八九十零,0-9])+)")
-                            .search(details.get('body_text')))
+                    bet_rate = re.compile(
+                        r"([5-9]\d%|\d+开|[一二三四五六七八九十零]+开|([红蓝][一二三四五六七八九十零,0-9])+)"
+                    ).search(details.get('body_text'))
                     if bet_rate:
                         bet_rate = ',' + bet_rate.group()
                     else:
@@ -339,13 +389,19 @@ class ScriptTask(RightActivity, FrogBossAssets, GeneralBattleAssets):
 
         # 最终输出决策
         if count_uper_left > count_uper_right:
-            logger.info(f"Final decision: The best bet is LEFT({count_uper_left}:{count_uper_right})")
+            logger.info(
+                f"Final decision: The best bet is LEFT({count_uper_left}:{count_uper_right})"
+            )
             return self.I_BET_LEFT  # 返回下注的目标是左边
         elif count_uper_right > count_uper_left:
-            logger.info(f"Final decision: The best bet is RIGHT({count_uper_right}:{count_uper_left})")
+            logger.info(
+                f"Final decision: The best bet is RIGHT({count_uper_right}:{count_uper_left})"
+            )
             return self.I_BET_RIGHT  # 返回下注的目标是右边
         else:
-            logger.info("Final decision:Left and right bets are equal, default bet is minority")
+            logger.info(
+                "Final decision:Left and right bets are equal, default bet is minority"
+            )
             # 若五五开则投注少数博反压奖励
             if count_left < count_right:
                 return self.I_BET_LEFT
@@ -356,9 +412,9 @@ class ScriptTask(RightActivity, FrogBossAssets, GeneralBattleAssets):
 if __name__ == '__main__':
     from module.config.config import Config
     from module.device.device import Device
+
     c = Config('oas1')
     d = Device(c)
     t = ScriptTask(c, d)
 
     t.run()
-

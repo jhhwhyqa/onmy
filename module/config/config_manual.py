@@ -20,7 +20,7 @@ class ConfigManual:
         > Pets > TalismanPass > Delegation > Hyakkiyakou
         > Secret > WeeklyTrifles > MysteryShop > Duel > Chess
         > TrueOrochi > RichMan
-        > MetaDemon > FrogBoss > FloatParade > Quiz > KittyShop > DyeTrials > MemoryScrolls > GuguArtStudio > IbukiArena > LBS
+        > MetaDemon > FrogBoss > FrogChallenge > FloatParade > Quiz > KittyShop > DyeTrials > MemoryScrolls > GuguArtStudio > IbukiArena > LBS
         > AssistBattle > ActivityExploration > LevelRush
         """
 
