@@ -732,6 +732,8 @@ class ModelProxy:
 
     def _reconnect_after_timeout(self, failed_client) -> None:
         """只在低配 OCR 请求超时后更换连接，避免重复重连。"""
+        """OCR 请求超时后更换连接。加锁且只在连接仍是失败的那个时才重建，
+        避免并发超时时重复重连。"""
         with self._reconnect_lock:
             if self.client is not failed_client:
                 return
@@ -747,10 +749,8 @@ class ModelProxy:
         try:
             return getattr(client, method_name)(*args)
         except zerorpc.TimeoutExpired:
-            if not self.low_spec_mode:
-                raise
             logger.warning(
-                'Low spec OCR request timed out; reconnecting and retrying once'
+                'OCR request timed out; reconnecting and retrying once'
             )
             self._reconnect_after_timeout(client)
             return getattr(self.client, method_name)(*args)
