@@ -19,7 +19,7 @@ class ConfigManual:
         > Pets > TalismanPass > Delegation > Hyakkiyakou
         > Secret > WeeklyTrifles > MysteryShop > Duel > Chess > DraftDuel
         > TrueOrochi > RichMan
-        > MetaDemon > FrogBoss > FloatParade > PeriodicActivity > MemoryScrolls > AssistBattle > VersionActivity > LBS
+        > MetaDemon > FrogBoss > FloatParade > PeriodicActivity > MemoryScrolls > AssistBattle > IbukiArena > VersionActivity > LBS
         """
 
     DEVICE_OVER_HTTP = False

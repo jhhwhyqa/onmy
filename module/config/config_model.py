@@ -61,6 +61,8 @@ from tasks.MetaDemon.config import MetaDemon
 from tasks.FrogBoss.config import FrogBoss
 from tasks.FloatParade.config import FloatParade
 from tasks.PeriodicActivity.config import PeriodicActivity
+from tasks.IbukiArena.config import IbukiArena
+
 # ----------------------------------------------------------------------------------------------------------------------
 
 # 肝帝专属---------------------------------------------------------------------------------------------------------------
@@ -130,6 +132,7 @@ class ConfigModel(ConfigBase):
     frog_boss: FrogBoss = Field(default_factory=FrogBoss)
     float_parade: FloatParade = Field(default_factory=FloatParade)
     periodic_activity: PeriodicActivity = Field(default_factory=PeriodicActivity)
+    ibuki_arena: IbukiArena = Field(default_factory=IbukiArena)
 
     # 这些是肝帝专属
     bondling_fairyland: BondlingFairyland = Field(default_factory=BondlingFairyland)
