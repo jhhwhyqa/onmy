@@ -9,7 +9,13 @@ from uuid import uuid4
 import cv2
 import requests
 
-from tasks.FrogBoss.oas_sources import DASHEN_UIDS
+from tasks.FrogBoss.oas_sources import DASHEN_UIDS, source_label
+
+# 拉普拉斯平滑强度：每个来源先按 50% 记 RELIABILITY_PRIOR 次虚拟观测（默认 1 胜 1 负），
+# 权重 = (押对次数 + RELIABILITY_PRIOR / 2) / (参与次数 + RELIABILITY_PRIOR)。
+# 不加平滑时只结算过 1 次的来源不是 1.0 就是 0.0，早期权重会大起大落；
+# 样本多了以后平滑的影响自然衰减（趋近真实命中率）。
+RELIABILITY_PRIOR = 2
 
 
 def fingerprint(image):
@@ -71,8 +77,10 @@ class OasHistory:
             if vote in ('LEFT', 'RIGHT'):
                 total += 1
                 correct += vote == result['winner']
-        # Unverified newcomers start neutral; verified sources use raw win rate.
-        return correct / total if total else 0.5
+        # 未验证的来源按 0.5 中性；有样本的用拉普拉斯平滑后的命中率
+        # （total=0 时正好也是 0.5，所以不用单独分支）
+        return ((correct + RELIABILITY_PRIOR / 2)
+                / (total + RELIABILITY_PRIOR))
 
     def settle(self, signature, winner=None, *, bet_won=None):
         if winner not in ('LEFT', 'RIGHT') and type(bet_won) is not bool:
@@ -199,7 +207,7 @@ def fetch_predictions(history):
                 response.raise_for_status()
                 feeds = response.json().get('result', {}).get('feeds', [])
                 if not feeds:
-                    history.append('fetch', uid=uid, accepted=False, reason='no_feed')
+                    history.append('fetch', uid=uid, name=source_label(uid), accepted=False, reason='no_feed')
                     continue
                 feed_id = feeds[0]['id']
                 response = session.get('https://inf.ds.163.com/v1/web/feed/basic/facade',
@@ -219,12 +227,12 @@ def fetch_predictions(history):
                 side = parse_side(body)
                 fresh = published is not None and published.date() == now.date() and published.hour // 2 == now.hour // 2 and published <= now
                 accepted = fresh and side is not None and (uid, feed_id) not in used
-                history.append('fetch', uid=uid, feed_id=feed_id, create_time=raw_time,
+                history.append('fetch', uid=uid, name=source_label(uid), feed_id=feed_id, create_time=raw_time,
                                body=body, side=side, accepted=accepted,
                                reason='accepted' if accepted else 'stale_unknown_ambiguous_or_duplicate')
                 if accepted:
-                    predictions.append(dict(uid=uid, side=side, feed_id=feed_id))
+                    predictions.append(dict(uid=uid, name=source_label(uid), side=side, feed_id=feed_id))
             except (requests.RequestException, ValueError, KeyError, IndexError, TypeError) as exc:
-                history.append('fetch', uid=uid, feed_id=feed_id, accepted=False,
+                history.append('fetch', uid=uid, name=source_label(uid), feed_id=feed_id, accepted=False,
                                reason='request_or_parse_error', error=str(exc))
     return predictions

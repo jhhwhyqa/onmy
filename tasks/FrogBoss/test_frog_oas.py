@@ -3,10 +3,16 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from tasks.FrogBoss.frog_oas import OasHistory, parse_side, same_lineup
+from tasks.FrogBoss.frog_oas import RELIABILITY_PRIOR, OasHistory, parse_side, same_lineup
 
 
 class OasTests(unittest.TestCase):
+    @staticmethod
+    def smoothed(correct, total):
+        """期望值走和 frog_oas 同一套拉普拉斯平滑公式，改先验强度时测试自动跟随。"""
+        half = RELIABILITY_PRIOR / 2
+        return (correct + half) / (total + RELIABILITY_PRIOR)
+
     def test_persistence_rewards_and_dedup(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / 'history.jsonl'
@@ -19,17 +25,20 @@ class OasTests(unittest.TestCase):
             store.settle('0' * 512, 'LEFT')
             self.assertIsNone(store.settle('0' * 512, 'LEFT'))
             reloaded = OasHistory(path)
-            self.assertEqual(reloaded.reliability('a'), 1)
-            self.assertEqual(reloaded.reliability('b'), 0)
-            self.assertEqual(reloaded.reliability('crowd'), 1)
+            # 平滑后单次命中不再直接给 1.0 / 0.0
+            self.assertAlmostEqual(reloaded.reliability('a'), self.smoothed(1, 1))
+            self.assertAlmostEqual(reloaded.reliability('b'), self.smoothed(0, 1))
+            self.assertAlmostEqual(reloaded.reliability('crowd'), self.smoothed(1, 1))
             second = reloaded.choose('1' * 512, 10, 20, [
                 {'uid': 'a', 'side': 'LEFT'}, {'uid': 'b', 'side': 'LEFT'}])
-            self.assertEqual(second['scores'], {'LEFT': 1, 'RIGHT': 1})
+            self.assertAlmostEqual(second['scores']['LEFT'],
+                                   self.smoothed(1, 1) + self.smoothed(0, 1))
+            self.assertAlmostEqual(second['scores']['RIGHT'], self.smoothed(1, 1))
             self.assertEqual(second['mode'], 'win_rate')
             reloaded.settle('1' * 512, 'RIGHT')
-            self.assertEqual(reloaded.reliability('a'), .5)
-            self.assertEqual(reloaded.reliability('b'), 0)
-            self.assertEqual(reloaded.reliability('crowd'), 1)
+            self.assertAlmostEqual(reloaded.reliability('a'), self.smoothed(1, 2))
+            self.assertAlmostEqual(reloaded.reliability('b'), self.smoothed(0, 2))
+            self.assertAlmostEqual(reloaded.reliability('crowd'), self.smoothed(2, 2))
 
     def test_fallback_and_missing_data(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -64,7 +73,8 @@ class OasTests(unittest.TestCase):
                     self.assertEqual(result['winner'], expected)
                     self.assertEqual(result['id'], first['id'])
                     self.assertEqual(result['source'], 'bet_outcome')
-                    self.assertEqual(store.reliability('a'), float(won))
+                    self.assertAlmostEqual(
+                        store.reliability('a'), self.smoothed(1, 1) if won else self.smoothed(0, 1))
                     self.assertIsNone(store.settle('0' * 512, bet_won=won))
                     reloaded = OasHistory(store.path)
                     second = reloaded.choose('1' * 512, left, right, [{'uid': 'a', 'side': side}])
@@ -102,8 +112,8 @@ class OasTests(unittest.TestCase):
             self.assertEqual(result['id'], 'twelve')
             self.assertEqual(result['winner'], 'LEFT')
             self.assertEqual(result['source'], 'record_page')
-            self.assertEqual(store.reliability('a'), 0)
-            self.assertEqual(store.reliability('crowd'), 1)
+            self.assertAlmostEqual(store.reliability('a'), self.smoothed(0, 1))
+            self.assertAlmostEqual(store.reliability('crowd'), self.smoothed(1, 1))
             self.assertIsNone(store.settle_record('2026.09.30 12:00', False))
             self.assertEqual(len([e for e in store.events if e['kind'] == 'result']), 1)
             self.assertEqual(store.settle_record('2026.09.30 10:00', True)['winner'], 'LEFT')
@@ -135,8 +145,8 @@ class OasTests(unittest.TestCase):
                          votes={'a': 'RIGHT', 'crowd': 'LEFT'})
             result = store.settle_record('2026.09.30 12:00', False, selected_side='RIGHT')
             self.assertEqual(result['winner'], 'LEFT')
-            self.assertEqual(store.reliability('crowd'), 1)
-            self.assertEqual(store.reliability('a'), 0)
+            self.assertAlmostEqual(store.reliability('crowd'), self.smoothed(1, 1))
+            self.assertAlmostEqual(store.reliability('a'), self.smoothed(0, 1))
             self.assertIsNone(store.settle_record('2026.09.30 12:00', False, selected_side='RIGHT'))
             self.assertEqual(len([e for e in store.events if e['kind'] == 'record']), 1)
             self.assertIsNone(store.settle_record('2026.09.30 10:00', True, selected_side='LEFT'))
@@ -149,6 +159,22 @@ class OasTests(unittest.TestCase):
             self.assertIsNone(store.settle_record('2026.09.30 12:00', False, selected_side='RIGHT'))
             self.assertEqual(store.events[-1]['reason'], 'record_bet_side_mismatch')
             self.assertEqual(store.reliability('a'), .5)
+
+    def test_reliability_smoothing_keeps_small_samples_near_neutral(self):
+        with tempfile.TemporaryDirectory() as directory:
+            store = OasHistory(Path(directory) / 'history.jsonl')
+            store.append('decision', id='r', slot='2026-09-30:6', side='LEFT',
+                         votes={'a': 'LEFT', 'b': 'RIGHT'})
+            self.assertIsNotNone(store.settle_record('2026.09.30 12:00', True))
+            # 只结算过一次：命中方 < 1.0、失手方 > 0.0，都被拉向 0.5
+            self.assertAlmostEqual(store.reliability('a'), self.smoothed(1, 1))
+            self.assertAlmostEqual(store.reliability('b'), self.smoothed(0, 1))
+            self.assertGreater(store.reliability('a'), 0.5)
+            self.assertLess(store.reliability('b'), 0.5)
+            self.assertLess(store.reliability('a'), 1.0)
+            self.assertGreater(store.reliability('b'), 0.0)
+            # 无样本来源仍是中性 0.5
+            self.assertAlmostEqual(store.reliability('从未出现'), 0.5)
 
     def test_ambiguous_text_and_signature(self):
         self.assertEqual(parse_side('本场押红'), 'LEFT')

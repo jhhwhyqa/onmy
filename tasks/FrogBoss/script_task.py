@@ -21,6 +21,7 @@ from tasks.Component.config_base import TimeDelta
 from tasks.FrogBoss.assets import FrogBossAssets
 from tasks.FrogBoss.config import Strategy
 from tasks.FrogBoss.record_reader import read_record_rows
+from tasks.FrogBoss.oas_sources import DASHEN_SOURCES, format_sources
 from tasks.FrogBoss.frog_oas import OasHistory, fetch_predictions, fingerprint
 
 
@@ -55,7 +56,13 @@ class ScriptTask(RightActivity, FrogBossAssets, GeneralBattleAssets):
             else:
                 for stamp, won, side in dict.fromkeys(readings[0]):
                     result = self.oas_history.settle_record(stamp, won, selected_side=side)
-                    logger.info(f'frog_oas record result: {result}, time={stamp}, won={won}, selected={side}')
+                    if result is None:
+                        logger.info(f'frog_oas record: no pended decision, time={stamp}, '
+                                    f'won={won}, selected={side}')
+                    else:
+                        logger.info(f'frog_oas record result: winner={result["winner"]} '
+                                    f'({format_sources(result.get("outcomes", {}))}), '
+                                    f'time={stamp}, won={won}, selected={side}')
         finally:
             timer = Timer(10).start()
             while not timer.reached():
@@ -169,11 +176,18 @@ class ScriptTask(RightActivity, FrogBossAssets, GeneralBattleAssets):
             case Strategy.Oas:
                 signature = fingerprint(self.device.image)
                 predictions = fetch_predictions(self.oas_history)
+                logger.info('frog_oas predictions(%s): %s' % (
+                    len(predictions),
+                    format_sources({p['uid']: p['side'] for p in predictions}) or '-'))
                 try:
                     decision = self.oas_history.choose(signature, count_left, count_right, predictions)
                 except ValueError as exc:
                     raise GameStuckError(str(exc)) from exc
-                logger.info(f'frog_oas decision: {decision}')
+                logger.info(f'frog_oas decision: mode={decision["mode"]} side={decision["side"]} scores={decision["scores"]} tiebreak={decision["random_tiebreak"]}')
+                logger.info(f'frog_oas votes: {format_sources(decision["votes"])}')
+                if decision.get('weights'):
+                    logger.info('frog_oas weights: '
+                                f'{format_sources({k: round(v, 3) for k, v in decision["weights"].items()})}')
                 # Fetching may span a round transition; never click a stale frame.
                 self.screenshot()
                 from tasks.FrogBoss.frog_oas import same_lineup
@@ -339,16 +353,15 @@ class ScriptTask(RightActivity, FrogBossAssets, GeneralBattleAssets):
             {"name": "CC南浔", "id": "74db771d92a54c28ae3e98d19aa565a3"},
             {"name": "冰七喜Den", "id": "e498e524252041e29999b38e57c4df1d"},
             {"name": "行水姑娘", "id": "30b0c2923faa483f95572c324a5bc910"},
-            {"name": "更慕林", "id": "e32aedbdd8da46a5b5b497a16c4b7658"}
-            # ... 可以添加更多 uid
+            {"name": "更慕林", "id": "e32aedbdd8da46a5b5b497a16c4b7658"},
+            {"name": "二蛋搬砖", "id": "3efc40a0a9754bd0922c3d75752beaf4"}
         ]
-
 
         # 主函数，遍历这批 uid
         count_uper_left = 0  # 统计博主投注左侧红方次数
         count_uper_right = 0  # 统计博主投注右侧蓝方次数
 
-        for user in uids:
+        for user in DASHEN_SOURCES:
             uid = user['id']
             name = user['name']
             feed_id = get_feed_id(uid)
