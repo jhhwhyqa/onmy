@@ -768,8 +768,9 @@ class ScriptTask(
                 logger.info(f"Success complete task before level 7")
                 break
             if self.appear(self.I_CHECK_AGREE):
-                self.ui_click(self.I_CANCEL_BEFORE_7, self.I_UI_CONFIRM)
-                self.appear_then_click(self.I_UI_CONFIRM, interval=1)
+                self.appear_then_click(self.I_CANCEL_BEFORE_7, interval=1)
+                continue
+            if self.appear_then_click(self.I_UI_CONFIRM, interval=1):
                 continue
             if self.appear_then_click(self.I_CLOSE_RECOMMEND, interval=1):
                 continue
