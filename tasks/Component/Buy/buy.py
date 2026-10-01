@@ -15,10 +15,12 @@ from module.base.timer import Timer
 from tasks.base_task import BaseTask
 from tasks.Component.Buy.assets import BuyAssets
 
+
 class Buy(BaseTask, BuyAssets):
 
-    def buy_one(self, start_click: Union[RuleImage, RuleOcr, RuleClick],
-                check_image: RuleImage):
+    def buy_one(
+        self, start_click: Union[RuleImage, RuleOcr, RuleClick], check_image: RuleImage
+    ):
         """
         购买一个物品
         :param check_image: 购买确认时候的图片
@@ -55,7 +57,9 @@ class Buy(BaseTask, BuyAssets):
                 return False
 
             if self.appear(self.I_BUY_SUCCESS):
-                self.ui_click_until_smt_disappear(random_click(), self.I_BUY_SUCCESS, interval=0.8)
+                self.ui_click_until_smt_disappear(
+                    random_click(), self.I_BUY_SUCCESS, interval=0.8
+                )
                 logger.info('Get reward success')
                 break
 
@@ -76,8 +80,9 @@ class Buy(BaseTask, BuyAssets):
 
         return True
 
-    def buy_more(self, start_click: Union[RuleImage, RuleOcr, RuleClick],
-                 number: int = None):
+    def buy_more(
+        self, start_click: Union[RuleImage, RuleOcr, RuleClick], number: int = None
+    ):
         """
         购买多个物品
         :param start_click:
@@ -126,6 +131,8 @@ class Buy(BaseTask, BuyAssets):
                 if not ocr_timer.reached():
                     continue
                 ocr_timer.reset()
+                time.sleep(0.5)
+                self.screenshot()
                 current = self.O_BUY_NUMBER.ocr(self.device.image)
                 if current >= number:
                     break
@@ -133,7 +140,12 @@ class Buy(BaseTask, BuyAssets):
                     logger.warning(f'OCR current number failed {current}')
                 number_record.append(current)
                 if len(number_record) >= 4:
-                    if number_record[0] == number_record[1] == number_record[2] == number_record[3]:
+                    if (
+                        number_record[0]
+                        == number_record[1]
+                        == number_record[2]
+                        == number_record[3]
+                    ):
                         break
                     number_record.pop(0)
 
@@ -192,7 +204,6 @@ class Buy(BaseTask, BuyAssets):
         return False
 
 
-
 if __name__ == '__main__':
     from module.config.config import Config
     from module.device.device import Device
@@ -200,4 +211,3 @@ if __name__ == '__main__':
     c = Config('oas1')
     d = Device(c)
     t = Buy(c, d)
-
