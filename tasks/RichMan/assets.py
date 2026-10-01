@@ -1,5 +1,6 @@
 from module.atom.image import RuleImage
 from module.atom.click import RuleClick
+from module.atom.scatter import RuleScatter
 from module.atom.long_click import RuleLongClick
 from module.atom.swipe import RuleSwipe
 from module.atom.ocr import RuleOcr
@@ -305,31 +306,25 @@ class RichManAssets:
 	# 下期预览 
 	I_S_NEXT_PERIOD = RuleImage(roi_front=(1083,574,90,86), roi_back=(1083,574,90,86), threshold=0.8, method="Template matching", file="./tasks/RichMan/shrine/shrine_s_next_period.png")
 	# description 
-	I_S_WHITE_FIVE = RuleImage(roi_front=(769,143,77,85), roi_back=(769,143,77,85), threshold=0.85, method="Template matching", file="./tasks/RichMan/shrine/shrine_s_white_five.png")
+	I_S_WHITE_FIVE = RuleImage(roi_front=(769,143,77,85), roi_back=(218,130,828,441), threshold=0.85, method="Template matching", file="./tasks/RichMan/shrine/shrine_s_white_five.png")
 	# description 
-	I_S_WHITE_FOUR = RuleImage(roi_front=(951,144,73,82), roi_back=(951,144,73,82), threshold=0.85, method="Template matching", file="./tasks/RichMan/shrine/shrine_s_white_four.png")
+	I_S_WHITE_FOUR = RuleImage(roi_front=(951,144,73,82), roi_back=(218,130,828,441), threshold=0.85, method="Template matching", file="./tasks/RichMan/shrine/shrine_s_white_four.png")
 	# 黑蛋 
-	I_S_BLACK = RuleImage(roi_front=(588,143,78,83), roi_back=(588,143,78,83), threshold=0.9, method="Template matching", file="./tasks/RichMan/shrine/shrine_s_black.png")
+	I_S_BLACK = RuleImage(roi_front=(588,143,78,83), roi_back=(218,130,828,441), threshold=0.9, method="Template matching", file="./tasks/RichMan/shrine/shrine_s_black.png")
 	# description 
-	I_S_BUY_BLACK = RuleImage(roi_front=(777,508,173,60), roi_back=(777,508,173,60), threshold=0.8, method="Template matching", file="./tasks/RichMan/shrine/shrine_s_buy_black.png")
+	I_S_BUY_BLACK = RuleImage(roi_front=(551,517,173,60), roi_back=(454,458,388,205), threshold=0.8, method="Template matching", file="./tasks/RichMan/shrine/shrine_s_buy_black.png")
 	# description 
-	I_S_BUY_WHITE_FIVE = RuleImage(roi_front=(778,512,177,56), roi_back=(778,512,177,56), threshold=0.8, method="Template matching", file="./tasks/RichMan/shrine/shrine_s_buy_white_five.png")
+	I_S_BUY_WHITE_FIVE = RuleImage(roi_front=(551,517,177,56), roi_back=(454,458,388,205), threshold=0.8, method="Template matching", file="./tasks/RichMan/shrine/shrine_s_buy_white_five.png")
 	# description 
-	I_S_BUY_WHITE_FOUR = RuleImage(roi_front=(779,507,173,64), roi_back=(779,507,173,64), threshold=0.8, method="Template matching", file="./tasks/RichMan/shrine/shrine_s_buy_white_four.png")
+	I_S_BUY_WHITE_FOUR = RuleImage(roi_front=(553,546,173,64), roi_back=(454,458,388,205), threshold=0.8, method="Template matching", file="./tasks/RichMan/shrine/shrine_s_buy_white_four.png")
 	# description 
-	I_S_CONFIRM_WHITE_FIVE = RuleImage(roi_front=(554,522,174,61), roi_back=(520,416,220,193), threshold=0.8, method="Template matching", file="./tasks/RichMan/shrine/shrine_s_confirm_white_five.png")
+	I_S_BUY_UP = RuleImage(roi_front=(757,456,56,54), roi_back=(757,456,56,54), threshold=0.8, method="Template matching", file="./tasks/RichMan/shrine/shrine_s_buy_up.png")
 	# description 
-	I_S_CONFIRM_WHITE_FOUR = RuleImage(roi_front=(548,486,176,62), roi_back=(509,404,252,231), threshold=0.8, method="Template matching", file="./tasks/RichMan/shrine/shrine_s_confirm_white_four.png")
+	I_S_CHECK_BLACK = RuleImage(roi_front=(597,223,89,82), roi_back=(597,223,89,82), threshold=0.8, method="Template matching", file="./tasks/RichMan/shrine/shrine_s_check_black.png")
 	# description 
-	I_S_CONFIRM_BLACK = RuleImage(roi_front=(547,496,180,62), roi_back=(532,426,214,184), threshold=0.8, method="Template matching", file="./tasks/RichMan/shrine/shrine_s_confirm_black.png")
+	I_S_CHECK_WHITE_FIVE = RuleImage(roi_front=(592,218,95,93), roi_back=(592,218,95,93), threshold=0.8, method="Template matching", file="./tasks/RichMan/shrine/shrine_s_check_white_five.png")
 	# description 
-	I_S_BUY_UP = RuleImage(roi_front=(762,412,56,54), roi_back=(762,412,56,54), threshold=0.8, method="Template matching", file="./tasks/RichMan/shrine/shrine_s_buy_up.png")
-	# description 
-	I_S_CHECK_BLACK = RuleImage(roi_front=(811,225,108,178), roi_back=(811,225,108,178), threshold=0.8, method="Template matching", file="./tasks/RichMan/shrine/shrine_s_check_black.png")
-	# description 
-	I_S_CHECK_WHITE_FIVE = RuleImage(roi_front=(810,222,109,182), roi_back=(810,222,109,182), threshold=0.8, method="Template matching", file="./tasks/RichMan/shrine/shrine_s_check_white_five.png")
-	# description 
-	I_S_CHECK_WHITE_FOUR = RuleImage(roi_front=(808,222,113,181), roi_back=(808,222,113,181), threshold=0.8, method="Template matching", file="./tasks/RichMan/shrine/shrine_s_check_white_four.png")
+	I_S_CHECK_WHITE_FOUR = RuleImage(roi_front=(591,187,94,91), roi_back=(591,187,94,91), threshold=0.8, method="Template matching", file="./tasks/RichMan/shrine/shrine_s_check_white_four.png")
 	# 召唤页面前往神龛标志 
 	I_S_SUMMON_TO_SHRINE = RuleImage(roi_front=(1235,353,16,38), roi_back=(864,210,413,337), threshold=0.8, method="Template matching", file="./tasks/RichMan/shrine/shrine_s_summon_to_shrine.png")
 

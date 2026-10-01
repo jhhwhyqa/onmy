@@ -75,8 +75,7 @@ class Shrine(GameUi, RichManAssets):
             self.ui_click_until_disappear(self.I_UI_BACK_RED)
             time.sleep(0.5)
             return
-        self.ui_click(self.I_S_BUY_BLACK, self.I_S_CONFIRM_BLACK)
-        self.ui_get_reward(self.I_S_CONFIRM_BLACK)
+        self.ui_get_reward(self.I_S_BUY_BLACK)
         self.ui_click_until_disappear(self.I_UI_BACK_RED)
         time.sleep(1)
 
@@ -95,8 +94,7 @@ class Shrine(GameUi, RichManAssets):
             self.ui_click_until_disappear(self.I_UI_BACK_RED)
             time.sleep(1)
             return
-        self.ui_click(self.I_S_BUY_WHITE_FIVE, self.I_S_CONFIRM_WHITE_FIVE)
-        self.ui_get_reward(self.I_S_CONFIRM_WHITE_FIVE)
+        self.ui_get_reward(self.I_S_BUY_WHITE_FIVE)
         self.ui_click_until_disappear(self.I_UI_BACK_RED)
         time.sleep(1)
 
@@ -115,11 +113,10 @@ class Shrine(GameUi, RichManAssets):
             self.ui_click_until_disappear(self.I_UI_BACK_RED)
             time.sleep(1)
             return
-        self.ui_click(self.I_S_BUY_WHITE_FOUR, self.I_S_CONFIRM_WHITE_FOUR)
-        self.ui_get_reward(self.I_S_CONFIRM_WHITE_FOUR)
+        self.appear_then_click(self.I_S_BUY_UP, interval=0.5)
+        self.ui_get_reward(self.I_S_BUY_WHITE_FOUR)
         self.ui_click_until_disappear(self.I_UI_BACK_RED)
         time.sleep(1)
-
 
 
 if __name__ == '__main__':
@@ -134,5 +131,3 @@ if __name__ == '__main__':
     t.execute_shrine(t.config.model.rich_man.shrine)
     # t.screenshot()
     # print(t.appear(t.I_S_BUY_WHITE_FIVE, threshold=0.9))
-
-
