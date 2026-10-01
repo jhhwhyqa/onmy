@@ -202,7 +202,7 @@ class ScriptTask(RightActivity, FrogBossAssets, GeneralBattleAssets):
                 and flag_glod_30 == 1
             ):
                 continue
-            if self.appear_then_click(self.I_GOLD_30, interval=2):
+            if self.appear_then_click(self.I_GOLD_30, interval=2) and flag_glod_30 == 0:
                 flag_glod_30 = 1
                 continue
             if self.appear_then_click(self.I_UI_CONFIRM, interval=2):
