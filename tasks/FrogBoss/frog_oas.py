@@ -11,11 +11,34 @@ import requests
 
 from tasks.FrogBoss.oas_sources import DASHEN_UIDS, source_label
 
-# 拉普拉斯平滑强度：每个来源先按 50% 记 RELIABILITY_PRIOR 次虚拟观测（默认 1 胜 1 负），
-# 权重 = (押对次数 + RELIABILITY_PRIOR / 2) / (参与次数 + RELIABILITY_PRIOR)。
-# 不加平滑时只结算过 1 次的来源不是 1.0 就是 0.0，早期权重会大起大落；
-# 样本多了以后平滑的影响自然衰减（趋近真实命中率）。
 RELIABILITY_PRIOR = 2
+
+_SIDE_L, _SIDE_R = r'左(?:边|面|方)?', r'右(?:边|面|方)?'
+_COLOR_L, _COLOR_R = r'红(?:色|方|队)?', r'蓝(?:色|方|队)?'
+_ANCHOR = re.compile(
+    r'(?:\d{1,2}\s*[:：]\s*\d{2}(?:\s*[-~～]\s*\d{1,2}\s*[:：]\s*\d{2})?'
+    r'|\d{1,2}\s*[-~～]\s*\d{1,2}\s*(?:点|时)'
+    r'|\d{1,2}\s*(?:点|时))'
+    r'\s*(?:场|局|场次)?\s*[，,：:、；;。\s]*')
+# 明确表态（最可靠）：「押红」「我蓝方」「选左边」…
+_VERB = re.compile(r'(?:押|压|我|选|推荐|信)\s*('
+                   + _SIDE_L + r'|' + _SIDE_R + r'|' + _COLOR_L + r'|' + _COLOR_R + r')')
+# 成语/抽奖语干扰：窗口内命中就不作为颜色依据
+_NOISE = re.compile(r'开门红|红红火火|大红|红包|小红|彩头')
+# 时间锚点后允许的表态窗口长度（实测 8 字足够，再长会把"分析另一边"读成表态）
+_ANCHOR_WINDOW = 8
+
+
+def _side_of(token: str):
+    """方向词 -> LEFT/RIGHT；左=红、右=蓝。"""
+    if not token:
+        return None
+    head = token[0]
+    if head in '左红':
+        return 'LEFT'
+    if head in '右蓝':
+        return 'RIGHT'
+    return None
 
 
 def fingerprint(image):
@@ -34,12 +57,28 @@ def same_lineup(a, b):
 
 
 def parse_side(text):
-    # Ambiguous text is deliberately excluded rather than guessed by word order.
-    red = bool(re.search(r'押红|押左|压红|压左|我红|我左|红优|红方胜|红色胜', text))
-    blue = bool(re.search(r'押蓝|押右|压蓝|压右|我蓝|我右|蓝优|蓝方胜|蓝色胜', text))
-    if re.search(r'不押|不压|别押|别压|不要押|不要压', text):
+    """从动态正文里解析押哪一边；拿不准一律返回 None。
+
+    两级判定，顺序不能反：
+    ① 明确表态动词（押/压/我/选/推荐/信 + 方向）—— 最可靠；两侧都明确表态则放弃。
+       先看它是为了挡住「先分析双方、最后一句才表态」的写法被人名/阵容讨论带偏。
+    ② 时间锚点（10点场 / 18:00 / 10-12点场 …）之后 `_ANCHOR_WINDOW` 字内的方向词，
+       覆盖裸单字「红/蓝」与「左红」「右边蓝方」这类连写；窗口内剔掉「开门红」等干扰词，
+       两侧都提到同样放弃。
+    """
+    flat = re.sub(r'\s+', ' ', re.sub(r'#.*?#', ' ', text))   # 剔掉话题标签
+    if re.search(r'不押|不压|别押|别压|不要押|不要压', flat):
         return None
-    return ('LEFT' if red else 'RIGHT') if red != blue else None
+    verbs = [side for side in (_side_of(match.group(1)) for match in _VERB.finditer(flat)) if side]
+    if verbs:
+        return verbs[0] if len(set(verbs)) == 1 else None
+    for match in _ANCHOR.finditer(flat):
+        window = _NOISE.sub(' ', flat[match.end():match.end() + _ANCHOR_WINDOW])
+        left = bool(re.search(_SIDE_L, window)) or bool(re.search(_COLOR_L, window))
+        right = bool(re.search(_SIDE_R, window)) or bool(re.search(_COLOR_R, window))
+        if left != right:
+            return 'LEFT' if left else 'RIGHT'
+    return None
 
 
 class OasHistory:
