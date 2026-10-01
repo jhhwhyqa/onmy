@@ -16,3 +16,11 @@ page_main.connect(page_gugu, PeriodicActivityAssets.I_GAS_MAIN_TO_GUGU, key="pag
 page_gugu_fire = Page(any_of(PeriodicActivityAssets.I_GAS_CAN_FIRE, PeriodicActivityAssets.I_GAS_CANNOT_FIRE))
 page_gugu_fire.connect(page_gugu, GlobalGameAssets.I_UI_BACK_YELLOW, key="page_gugu_fire->page_gugu")
 page_gugu.connect(page_gugu_fire, PeriodicActivityAssets.I_OBTAIN_PAINT, key="page_gugu->page_gugu_fire")
+
+# 青蛙瓷器挑战赛页面（点击庭院右侧图标直接进入，没有中间页面）
+page_frog_challenge = Page(any_of(PeriodicActivityAssets.I_CHECK_FROG_CHALLENGE, PeriodicActivityAssets.I_FC_FIRE))
+page_frog_challenge.add_enter_failure_hooks(RightActivityAssets.I_TOGGLE_BUTTON)
+page_frog_challenge.connect(page_main, GlobalGameAssets.I_UI_BACK_YELLOW,
+                            key="page_frog_challenge->page_main")
+page_main.connect(page_frog_challenge, PeriodicActivityAssets.I_GOTO_FROG_CHALLENGE,
+                  key="page_main->page_frog_challenge")

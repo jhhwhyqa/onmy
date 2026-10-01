@@ -14,6 +14,7 @@ from tasks.Component.GeneralBattle.general_battle import GeneralBattle
 from tasks.Component.SwitchSoul.switch_soul import SwitchSoul
 from tasks.DemonEncounter.data.answer import Answer
 from tasks.GameUi.game_ui import GameUi
+from tasks.GameUi.default_pages import random_click
 from tasks.GameUi.page import page_main, page_shikigami_records
 from tasks.PeriodicActivity.assets import PeriodicActivityAssets
 from tasks.PeriodicActivity.config import PeriodicActivity, PeriodicActivityName
@@ -48,6 +49,7 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, PeriodicActivityAssets, Debu
         self.conf = self.config.periodic_activity
         activity = self.conf.periodic_activity_config.activity
         logger.hr(f'Periodic activity: {activity.value}')
+        success = True
         match activity:
             case PeriodicActivityName.DYE_TRIALS:
                 self.run_dye_trials()
@@ -55,10 +57,13 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, PeriodicActivityAssets, Debu
                 self.run_quiz()
             case PeriodicActivityName.GUGU_ART_STUDIO:
                 self.run_gugu_art_studio()
+            case PeriodicActivityName.FROG_CHALLENGE:
+                # 异常退出时按失败间隔重试，其余子活动保持原行为
+                success = self.run_frog_challenge()
             case _:
                 logger.error(f'Unknown periodic activity: {activity}')
 
-        self.set_next_run(task='PeriodicActivity', success=True, finish=True)
+        self.set_next_run(task='PeriodicActivity', success=success, finish=True)
         raise TaskEnd('PeriodicActivity')
 
     # ---------------------------- 灵染试炼 ----------------------------
@@ -187,6 +192,92 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, PeriodicActivityAssets, Debu
             self.ui_get_reward(click, click_interval=2.5)
             break
         logger.info('Get gugu reward done')
+
+    # ---------------------------- 青蛙瓷器挑战赛 ----------------------------
+
+    # 连续识别不到骰子奖励进度时的退出保护（避免识别失败后无脑点挑战）
+    fc_ocr_fail_limit = 3
+    # 连续挑战但奖励进度不涨时的退出保护（避免挑战点不中时空转）
+    fc_no_progress_limit = 3
+
+    def run_frog_challenge(self) -> bool:
+        """青蛙瓷器挑战赛
+
+        挑战次数上限以「神秘骰子奖励进度」实时识别为准：进度形如 25/50，
+        左边是今日已获取的骰子、右边是今日可获取的总量；每次挑战 25 个，
+        奖励最多累计 3 天（右值会变成 50/100/150），所以不写死次数。
+        本活动没有锁定阵容功能，直接由通用战斗点准备进战斗。
+
+        Returns:
+            bool: True 表示今日奖励刷满（或无奖励可打）；False 表示识别/挑战异常提前退出
+        """
+        logger.hr('Frog challenge', level=1)
+        self.switch_soul_by_config()
+        # 点击庭院右侧图标直接进入挑战页面，没有中间页面
+        self.goto_page(pages.page_frog_challenge)
+        battle_count = 0
+        ocr_fail_count = 0
+        no_progress_count = 0
+        last_acquired = -1
+        result = True
+        while True:
+            self.screenshot()
+            # 首次进入的剧情：跳过
+            if self.appear_then_click(self.I_FC_SKIP, interval=0.8):
+                logger.info('Skip story')
+                continue
+            if self.get_current_page() == pages.page_frog_challenge:
+                # 战斗按钮变成「无奖励」状态：今日没奖励了，收工
+                if self.appear(self.I_FC_FIRE_STOP):
+                    logger.info('No reward battle left, exit')
+                    break
+                # 今日已经获取 / 今日可以获取
+                acquired, remain, total = self.O_MYSTERY_DICE_REWARD.ocr(self.device.image)
+                if total <= 0:
+                    ocr_fail_count += 1
+                    logger.warning(
+                        f'Cannot read dice reward [{ocr_fail_count}/{self.fc_ocr_fail_limit}]'
+                    )
+                    if ocr_fail_count >= self.fc_ocr_fail_limit:
+                        logger.warning('Dice reward unrecognizable, exit')
+                        result = False
+                        break
+                    time.sleep(0.5)
+                    continue
+                ocr_fail_count = 0
+                logger.info(f'Dice reward today {acquired}/{total}, remain {remain}')
+                if acquired >= total:
+                    logger.info('Today reward reached, exit')
+                    break
+                # 上一轮挑战没有让进度涨，说明挑战没打起来
+                if last_acquired >= 0 and acquired <= last_acquired:
+                    no_progress_count += 1
+                    logger.warning(
+                        f'Reward progress not increased '
+                        f'[{no_progress_count}/{self.fc_no_progress_limit}]'
+                    )
+                    if no_progress_count >= self.fc_no_progress_limit:
+                        logger.warning('Cannot start challenge, exit')
+                        result = False
+                        break
+                else:
+                    no_progress_count = 0
+                last_acquired = acquired
+                # 挑战
+                if self.appear_then_click(self.I_FC_FIRE, interval=1.2):
+                    logger.info(f'Battle [{battle_count + 1}], reward {acquired}/{total}')
+                    time.sleep(0.5)
+                    if self.appear(self.O_CLICK_ANYWHERE_CONTINUE, interval=1):
+                        random_click(ltrb=(True, False, False, False))
+                    self.run_general_battle(config=self.conf.general_battle_config,
+                                            exit_matcher=pages.page_frog_challenge)
+                    battle_count += 1
+                    self.device.stuck_record_clear()
+                    continue
+            time.sleep(0.2)
+        logger.info(f'Frog challenge done, battles={battle_count}, result={result}')
+        self.goto_page(page_main)
+        return result
 
     # ---------------------------- 智力竞赛 ----------------------------
 
@@ -371,7 +462,7 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, PeriodicActivityAssets, Debu
     # ---------------------------- 公共 ----------------------------
 
     def switch_soul_by_config(self) -> None:
-        """切换御魂（灵染试炼、呱呱画室共用）"""
+        """切换御魂（灵染试炼、呱呱画室、青蛙瓷器挑战赛共用）"""
         cfg = self.conf.switch_soul_config
         if cfg.enable:
             self.goto_page(page_shikigami_records)
