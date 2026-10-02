@@ -259,14 +259,18 @@ class ScriptTask(
         self.screenshot()
         if self.appear(WantedQuestsAssets.I_WQ_INVITE_1):
             if self.appear(WantedQuestsAssets.I_WQ_COOPERATION_TYPE_JADE_1):
-                if self.appear(self.I_PRESENT_WORLD_JADE_ASSIST):
+                if self.appear(self.I_PRESENT_WORLD_JADE_ASSIST_1):
                     return self.FIND_JADE_SPECIAL
                 return self.FIND_JADE_NORMAL
         if self.appear(WantedQuestsAssets.I_WQ_INVITE_2):
             if self.appear(WantedQuestsAssets.I_WQ_COOPERATION_TYPE_JADE_2):
+                if self.appear(self.I_PRESENT_WORLD_JADE_ASSIST_2):
+                    return self.FIND_JADE_SPECIAL
                 return self.FIND_JADE_NORMAL
         if self.appear(WantedQuestsAssets.I_WQ_INVITE_3):
             if self.appear(WantedQuestsAssets.I_WQ_COOPERATION_TYPE_JADE_3):
+                if self.appear(self.I_PRESENT_WORLD_JADE_ASSIST_3):
+                    return self.FIND_JADE_SPECIAL
                 return self.FIND_JADE_NORMAL
         return self.FIND_JADE_NONE
 

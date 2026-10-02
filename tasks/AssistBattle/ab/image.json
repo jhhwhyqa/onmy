@@ -9,12 +9,30 @@
     "description": "好友界面前往协战界面"
   },
   {
-    "itemName": "present_world_jade_assist",
-    "imageName": "ab_present_world_jade_assist.png",
+    "itemName": "present_world_jade_assist_1",
+    "imageName": "ab_present_world_jade_assist_1.png",
     "roiFront": "156,293,31,32",
     "roiBack": "135,266,70,76",
     "method": "Template matching",
     "threshold": 0.8,
-    "description": "现世勾协"
+    "description": "现世勾协位置1"
+  },
+  {
+    "itemName": "present_world_jade_assist_2",
+    "imageName": "ab_present_world_jade_assist_2.png",
+    "roiFront": "456,293,31,32",
+    "roiBack": "441,273,70,76",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "现世勾协位置2"
+  },
+  {
+    "itemName": "present_world_jade_assist_3",
+    "imageName": "ab_present_world_jade_assist_3.png",
+    "roiFront": "756,300,31,32",
+    "roiBack": "742,276,70,76",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "现世勾协位置3"
   }
 ]

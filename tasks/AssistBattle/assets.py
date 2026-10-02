@@ -1,5 +1,6 @@
 from module.atom.image import RuleImage
 from module.atom.click import RuleClick
+from module.atom.scatter import RuleScatter
 from module.atom.long_click import RuleLongClick
 from module.atom.swipe import RuleSwipe
 from module.atom.ocr import RuleOcr
@@ -13,8 +14,12 @@ class AssistBattleAssets:
 	# Image Rule Assets
 	# 好友界面前往协战界面 
 	I_FRIENDS_GOTO_ASSIST_BATTLE = RuleImage(roi_front=(1205,539,40,72), roi_back=(1185,507,75,147), threshold=0.8, method="Template matching", file="./tasks/AssistBattle/ab/ab_friends_goto_assist_battle.png")
-	# 现世勾协 
-	I_PRESENT_WORLD_JADE_ASSIST = RuleImage(roi_front=(156,293,31,32), roi_back=(135,266,70,76), threshold=0.8, method="Template matching", file="./tasks/AssistBattle/ab/ab_present_world_jade_assist.png")
+	# 现世勾协位置1 
+	I_PRESENT_WORLD_JADE_ASSIST_1 = RuleImage(roi_front=(156,293,31,32), roi_back=(135,266,70,76), threshold=0.8, method="Template matching", file="./tasks/AssistBattle/ab/ab_present_world_jade_assist_1.png")
+	# 现世勾协位置2 
+	I_PRESENT_WORLD_JADE_ASSIST_2 = RuleImage(roi_front=(456,293,31,32), roi_back=(441,273,70,76), threshold=0.8, method="Template matching", file="./tasks/AssistBattle/ab/ab_present_world_jade_assist_2.png")
+	# 现世勾协位置3 
+	I_PRESENT_WORLD_JADE_ASSIST_3 = RuleImage(roi_front=(756,300,31,32), roi_back=(742,276,70,76), threshold=0.8, method="Template matching", file="./tasks/AssistBattle/ab/ab_present_world_jade_assist_3.png")
 
 
 	# Ocr Rule Assets
