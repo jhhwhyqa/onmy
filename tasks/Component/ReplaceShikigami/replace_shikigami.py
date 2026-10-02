@@ -22,7 +22,9 @@ class ReplaceShikigami(BaseTask, ReplaceShikigamiAssets):
             self.screenshot()
         return self.appear(self.I_RS_RECORDS_SHIKI, interval=0.5)
 
-    def switch_shikigami_class(self, shikigami_class: ShikigamiClass = ShikigamiClass.N):
+    def switch_shikigami_class(
+        self, shikigami_class: ShikigamiClass = ShikigamiClass.N
+    ):
         """
         要求在式神育成的界面
         切换分类
@@ -30,20 +32,24 @@ class ReplaceShikigami(BaseTask, ReplaceShikigamiAssets):
         :param shikigami_order:
         :return:
         """
-        match_selected = {ShikigamiClass.MATERIAL: self.I_RS_MATERIAL_SELECTED,
-                          ShikigamiClass.N: self.I_RS_N_SELECTED,
-                          ShikigamiClass.R: self.I_RS_R_SELECTED,
-                          ShikigamiClass.SR: self.I_RS_SR_SELECTED,
-                          ShikigamiClass.SSR: self.I_RS_SSR_SELECTED,
-                          ShikigamiClass.SP: self.I_RS_SP_SELECTED,
-                          ShikigamiClass.UR: self.I_RS_UR_SELECTED}
-        match_click = {ShikigamiClass.MATERIAL: self.I_RS_MATERIAL,
-                       ShikigamiClass.N: self.I_RS_N,
-                       ShikigamiClass.R: self.I_RS_R,
-                       ShikigamiClass.SR: self.I_RS_SR,
-                       ShikigamiClass.SSR: self.I_RS_SSR,
-                       ShikigamiClass.SP: self.I_RS_SP,
-                       ShikigamiClass.UR: self.I_RS_UR}
+        match_selected = {
+            ShikigamiClass.MATERIAL: self.I_RS_MATERIAL_SELECTED,
+            ShikigamiClass.N: self.I_RS_N_SELECTED,
+            ShikigamiClass.R: self.I_RS_R_SELECTED,
+            ShikigamiClass.SR: self.I_RS_SR_SELECTED,
+            ShikigamiClass.SSR: self.I_RS_SSR_SELECTED,
+            ShikigamiClass.SP: self.I_RS_SP_SELECTED,
+            ShikigamiClass.UR: self.I_RS_UR_SELECTED,
+        }
+        match_click = {
+            ShikigamiClass.MATERIAL: self.I_RS_MATERIAL,
+            ShikigamiClass.N: self.I_RS_N,
+            ShikigamiClass.R: self.I_RS_R,
+            ShikigamiClass.SR: self.I_RS_SR,
+            ShikigamiClass.SSR: self.I_RS_SSR,
+            ShikigamiClass.SP: self.I_RS_SP,
+            ShikigamiClass.UR: self.I_RS_UR,
+        }
         check_selected = match_selected[shikigami_class]
         check_click = match_click[shikigami_class]
         # 选择式神的种类
@@ -52,7 +58,9 @@ class ReplaceShikigami(BaseTask, ReplaceShikigamiAssets):
             if self.appear(check_selected, interval=1):
                 break
             if self.appear(check_click, interval=3):
-                if self.wait_until_pos_stable(check_click, stable_time=0.8, timeout=2.5):
+                if self.wait_until_pos_stable(
+                    check_click, stable_time=0.8, timeout=2.5
+                ):
                     self.click(check_click)
                 continue
             if self.appear_then_click(self.I_RS_ALL_SELECTED, interval=5):
@@ -82,16 +90,18 @@ class ReplaceShikigami(BaseTask, ReplaceShikigamiAssets):
         :return:
         """
         # 选择式神
-        _click_match = {1: self.C_SHIKIGAMI_LEFT_1,
-                        2: self.C_SHIKIGAMI_LEFT_2,
-                        3: self.C_SHIKIGAMI_LEFT_3,
-                        4: self.C_SHIKIGAMI_LEFT_4,
-                        5: self.C_SHIKIGAMI_LEFT_5,
-                        6: self.C_SHIKIGAMI_LEFT_6,
-                        7: self.C_SHIKIGAMI_LEFT_7}
+        _click_match = {
+            1: self.C_SHIKIGAMI_LEFT_1,
+            2: self.C_SHIKIGAMI_LEFT_2,
+            3: self.C_SHIKIGAMI_LEFT_3,
+            4: self.C_SHIKIGAMI_LEFT_4,
+            5: self.C_SHIKIGAMI_LEFT_5,
+            6: self.C_SHIKIGAMI_LEFT_6,
+            7: self.C_SHIKIGAMI_LEFT_7,
+        }
         click_match = _click_match[shikigami_order]
-        TIMEOUT_SEC = 120          # 超时时长（秒）
-        start_time = time.time()   # 记录起始时间
+        TIMEOUT_SEC = 120  # 超时时长（秒）
+        start_time = time.time()  # 记录起始时间
         click_interval_timer = Timer(1.5).start()  # 点击选择式神间隔
         clicked = False
         while 1:
@@ -118,18 +128,20 @@ class ReplaceShikigami(BaseTask, ReplaceShikigamiAssets):
                 clicked = True
                 continue
             if self.appear_then_click(self.I_U_CIRCLE_ALTERNATE, interval=2.5):
-                self.appear_then_click(self.I_U_CONFIRM_ALTERNATE, interval=1.5)
+                self.appear_then_click(self.I_UI_CONFIRM, interval=1.5)
                 continue
         logger.info('Set shikigami: %d' % shikigami_order)
 
     def detect_no_shikigami(self) -> bool:
         self.screenshot()
-        if self.appear(self.I_DETECT_EMPTY_1)\
-            or self.appear(self.I_DETECT_EMPTY_2) \
-                or self.appear(self.I_DETECT_EMPTY_3) \
-                or self.appear(self.I_DETECT_EMPTY_4) \
-                or self.appear(self.I_DETECT_EMPTY_5) \
-                or self.appear(self.I_DETECT_EMPTY_6):
+        if (
+            self.appear(self.I_DETECT_EMPTY_1)
+            or self.appear(self.I_DETECT_EMPTY_2)
+            or self.appear(self.I_DETECT_EMPTY_3)
+            or self.appear(self.I_DETECT_EMPTY_4)
+            or self.appear(self.I_DETECT_EMPTY_5)
+            or self.appear(self.I_DETECT_EMPTY_6)
+        ):
             return True
         return False
 
