@@ -44,8 +44,7 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, IbukiArenaAssets):
         ocr_fail_count = 0
         battle_handoff_count = 0
         last_page = None
-        # 兜底：只有"页面变了"或"真的点了东西"才算有进展；连续 30s 毫无进展就自己退出，
-        # 不要空转到 60s 的卡死检测把整个任务崩掉。
+
         progress_timer = Timer(30).start()
         while True:
             self.screenshot()
@@ -89,21 +88,11 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, IbukiArenaAssets):
                 # 挑战
                 if self.appear_then_click(self.I_CHALLENGE, interval=1.2):
                     logger.info(f'remain {remain}/{total}')
-                    # 不能把 page_ibuki_arena 当 exit_matcher：该页的识别图之一就是
-                    # I_CHALLENGE 本身，而点它正是进战斗的动作；run_general_battle 一开
-                    # 始检测不到战斗页时就会评估 exit_matcher，此时人还站在擂台页 →
-                    # 立刻命中 → 这一场直接判 Lose 退出、根本没打。改为不传，走默认的
-                    # "结算后页面持续识别不到 2.5s 即结束"，打完回到擂台页同样能正常收尾。
                     self.run_general_battle(config=self.conf.general_battle_config)
-                    # 打完一场本身就算进展：战斗可能耗时 60s+，且结束后页面可能和
-                    # 进战斗前同为擂台页，"页面变化"判据不会重置，这里显式重置。
                     progress_timer.reset()
                     self.device.stuck_record_clear()
                     continue
             elif current_page in (page_battle_prepare, page_battle):
-                # 兜底：停在战斗页(准备/战斗中)说明有一场待打的战斗——例如上一次
-                # run_general_battle 提前返回了。这里交回通用战斗把它打完（点准备 →
-                # 打完 → 结算），而不是在本循环里干等到卡死检测。
                 if battle_handoff_count >= self.battle_handoff_limit:
                     logger.warning(
                         f'IbukiArena: still in battle page after '
@@ -116,7 +105,6 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, IbukiArenaAssets):
                     f'[{battle_handoff_count}/{self.battle_handoff_limit}]'
                 )
                 self.run_general_battle(config=self.conf.general_battle_config)
-                # 同上：一次战斗跑完算进展（这一支靠 battle_handoff_count 封顶兜住打转）
                 progress_timer.reset()
                 self.device.stuck_record_clear()
                 continue
