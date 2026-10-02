@@ -4,6 +4,7 @@
   "lineup_bond": "选择阵容羁绊",
   "rank_protection": "保段位",
   "rank_protection_help": "上一局进入前四名后主动退出三局；主动退出的局数不计入执行次数",
+  "protect_count_before_run": "保段位局数",
   "run_count": "执行次数",
   "limit_time": "运行时间限制",
   "limit_time_help": "达到限制时间后不再开始下一局或下一场战斗，已经开始的战斗会正常完成",

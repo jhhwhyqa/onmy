@@ -21,7 +21,11 @@ class ChessConfig(ConfigBase):
         default=False,
         description='勾选启用保段位。',
     )
-
+    protect_count_before_run: int = Field(
+        title='保段位局数',
+        default=0,
+        description='每次任务先执行保段位操作的局数，需要开启保段位才会生效。',
+    )
     run_count: int = Field(
         title='执行次数',
         default=1,

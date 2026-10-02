@@ -81,7 +81,9 @@ class ScriptTask(
         self._consecutive_matchmaking_timeouts = 0
         completed = 0
         coin_limit_reached = False
-        rank_protection_exits_remaining = 0
+        rank_protection_exits_remaining = int(
+            getattr(chess_config, 'protect_count_before_run', 0)
+        )
         next_game_already_started = False
         logger.info(
             'Chess task constraints: '
