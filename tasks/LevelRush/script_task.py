@@ -224,6 +224,7 @@ class ScriptTask(
     def _run_exp_youkai_1st(self):
         "过完第一次经验妖怪教程"
         from tasks.ExperienceYoukai.assets import ExperienceYoukaiAssets
+        from tasks.Component.GeneralRoom.assets import GeneralRoomAssets
 
         logger.hr('run exp youkai tutorial', 2)
         self.goto_page(page_team)
@@ -232,12 +233,14 @@ class ScriptTask(
             sleep(1)
             self.screenshot()
             if self.ocr_appear_click(
-                self.O_CLICK_ANYWHERE_CONTINUE, interval=1.2, log=False
+                self.O_CLICK_ANYWHERE_CONTINUE, interval=5, log=False
             ):
                 first_exp_flag = True
                 continue
             if self.appear_then_click(self.I_GUIDE_FAN, interval=1.2):
                 first_exp_flag = True
+                continue
+            if self.appear_then_click(GeneralRoomAssets.I_CREATE_ROOM, interval=1.2):
                 continue
             if self.appear_then_click(self.I_EXP_YOUKAI_CREATE, interval=1.2):
                 continue
@@ -376,23 +379,23 @@ class ScriptTask(
                 self.I_PUSH_PERMISSION,
                 3,
             )
-            self.screenshot()
-            self.appear_then_click(self.I_PUSH_PERMISSION, interval=1.2)
-            # 等个动画
-            sleep(0.5)
-            self.screenshot()
-            if self.appear(self.I_GET_PUSH_REWARD):
-                self.ui_get_reward(self.I_GET_PUSH_REWARD)
-                logger.info(f"Get push permission reward sucsuss")
-
-            self.screenshot()
-            if self.appear(self.I_PUSH_REWARD_ALREADY_GET):
-                logger.info(f"Push permission reward not exsit, exit!")
-            self.appear_then_click(self.I_RED_CLOSE, interval=0.8)
-
-            sleep(2)
-            self.screenshot()
-            self.appear_then_click(self.I_RED_CLOSE, interval=0.8)
+            while 1:
+                sleep(1)
+                self.screenshot()
+                if self.appear(self.I_GET_PUSH_REWARD):
+                    self.ui_get_reward(self.I_GET_PUSH_REWARD)
+                    logger.info(f"Get push permission reward sucsuss")
+                    break
+                if self.appear(self.I_PUSH_REWARD_ALREADY_GET):
+                    self.appear_then_click(self.I_RED_CLOSE, interval=0.8)
+                    logger.info(f"Push permission reward not exsit, exit!")
+                    break
+                if self.appear_then_click(self.I_PUSH_PERMISSION, interval=1.2):
+                    continue
+            while self.get_current_page() != page_main:
+                sleep(0.5)
+                self.screenshot()
+                self.appear_then_click(self.I_RED_CLOSE, interval=0.8)
 
     def _task_end(self, success: bool):
         """
