@@ -33,26 +33,79 @@ class ScriptTask(
 
     def run(self):
         self.conf = self.config.model.assist_battle
+        results = self.run_switch_account()
+        if results:
+            self.run_push_result(results)
+        self.set_next_run(task='AssistBattle', success=True, finish=True)
+        raise TaskEnd('AssistBattle')
+
+    def run_push_result(self, results):
+        """输出协战结果"""
+        logger.hr('AssistBattle Result', 2)
+        push_content = []
+        total = len(results)
+        push_content.append(f"本次执行任务共{total}个账号：")
+        for result in results:
+            # 账号取前4位，服务器取后4位，角色名取后2位
+            message = f"{result['account'][:4] + ('**' if len(result['account']) > 4 else '')}-{'安卓' if result['apple_or_android'] else '苹果'}-{str(result['svr'])[-4:]:　>4}-{'**' + result['character'][-2:]}"
+            if self.conf.assist_battle_config.evozone_enable:
+                message += f"-觉醒{result['evozone_done']}次"
+            if self.conf.assist_battle_config.realmraid_enable:
+                message += f"-个突{result['realmraid_done']}次"
+            if self.conf.assist_battle_config.find_jade_enable:
+                if (
+                    result['jade_flag'] != self.FIND_JADE_NONE
+                    or not self.conf.assist_battle_config.find_jade_push_clear_enable
+                ):
+                    message += f"-{result['jade_flag']}"
+            logger.info(message)
+            push_content.append(message)
+        # 未开启协战则不推送总进度
+        if (
+            self.conf.assist_battle_config.evozone_enable
+            or self.conf.assist_battle_config.realmraid_enable
+        ):
+            push_content.append(f"今日协战任务：")
+            for result in results:
+                message = f"{result['account'][:4] + ('…' if len(result['account']) > 4 else '')}-{'安卓' if result['apple_or_android'] else '苹果'}-{str(result['svr'])[-4:]:　>4}-{'…' + result['character'][-2:]}"
+                if self.conf.assist_battle_config.evozone_enable:
+                    message += f"-觉醒{result['evozone_final']}次"
+                if self.conf.assist_battle_config.realmraid_enable:
+                    message += f"-个突{result['realmraid_final']}次"
+                push_content.append(message)
+        # 推送协战完成结果
+        if self.conf.assist_battle_config.result_push_enable:
+            self.config.notifier.push(
+                title='多号任务完成',
+                content='<{}><br>{}'.format(
+                    self.config.config_name,
+                    '<br>'.join(push_content),
+                ),
+            )
+
+    def run_switch_account(self):
+        """切换账号并执行协战任务"""
         accounts = [account for account in self.conf.account_list if account.is_valid()]
         results = []
         if not accounts:
-            logger.info('No AssistBattle account configured; run on current account')
-            evozone_done, realmraid_done, evozone_final, realmraid_final, jade_flag = (
-                self.run_current_account()
-            )
-            results.append(
-                {
-                    'account': account.account,
-                    'character': account.character,
-                    'svr': account.svr,
-                    'apple_or_android': account.apple_or_android,
-                    'evozone_done': evozone_done,
-                    'realmraid_done': realmraid_done,
-                    'evozone_final': evozone_final,
-                    'realmraid_final': realmraid_final,
-                    'jade_flag': jade_flag,
-                }
-            )
+            # 没有配置协战账号则不执行协战任务，避免误操作
+            logger.info('No AssistBattle account configured, exit')
+            # evozone_done, realmraid_done, evozone_final, realmraid_final, jade_flag = (
+            #     self.run_current_account()
+            # )
+            # results.append(
+            #     {
+            #         'account': account.account,
+            #         'character': account.character,
+            #         'svr': account.svr,
+            #         'apple_or_android': account.apple_or_android,
+            #         'evozone_done': evozone_done,
+            #         'realmraid_done': realmraid_done,
+            #         'evozone_final': evozone_final,
+            #         'realmraid_final': realmraid_final,
+            #         'jade_flag': jade_flag,
+            #     }
+            # )
         else:
             for account in accounts:
                 logger.hr(
@@ -85,45 +138,7 @@ class ScriptTask(
                         'jade_flag': jade_flag,
                     }
                 )
-        # 输出协战结果
-        logger.hr('AssistBattle Result', 2)
-        push_content = []
-        push_content.append(f"本次执行任务：")
-        for result in results:
-            # 账号取前4位，服务器取后4位，角色名取后2位
-            message = f"{result['account'][:4] + ('**' if len(result['account']) > 4 else '')}-{'安卓' if result['apple_or_android'] else '苹果'}-{str(result['svr'])[-4:]:　>4}-{'**' + result['character'][-2:]}"
-            if self.conf.assist_battle_config.evozone_enable:
-                message += f"-觉醒{result['evozone_done']}次"
-            if self.conf.assist_battle_config.realmraid_enable:
-                message += f"-个突{result['realmraid_done']}次"
-            if self.conf.assist_battle_config.find_jade_enable:
-                message += f"-{result['jade_flag']}"
-            logger.info(message)
-            push_content.append(message)
-        # 未开启协战则不推送总进度
-        if (
-            self.conf.assist_battle_config.evozone_enable
-            or self.conf.assist_battle_config.realmraid_enable
-        ):
-            push_content.append(f"今日协战任务：")
-            for result in results:
-                message = f"{result['account'][:4] + ('…' if len(result['account']) > 4 else '')}-{'安卓' if result['apple_or_android'] else '苹果'}-{str(result['svr'])[-4:]:　>4}-{'…' + result['character'][-2:]}"
-                if self.conf.assist_battle_config.evozone_enable:
-                    message += f"-觉醒{result['evozone_final']}次"
-                if self.conf.assist_battle_config.realmraid_enable:
-                    message += f"-个突{result['realmraid_final']}次"
-                push_content.append(message)
-        # 推送协战完成结果
-        if self.conf.assist_battle_config.result_push_enable:
-            self.config.notifier.push(
-                title='多号任务完成',
-                content='<{}><br>{}'.format(
-                    self.config.config_name,
-                    '<br>'.join(push_content),
-                ),
-            )
-        self.set_next_run(task='AssistBattle', success=True, finish=True)
-        raise TaskEnd('AssistBattle')
+        return results
 
     def run_current_account(self):
         from tasks.RichMan.mall.consignment import Consignment

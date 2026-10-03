@@ -41,6 +41,10 @@ class AssistBattleConfig(BaseModel):
         default=False,
         description='标记有勾协的账号并一起推送,没有做邀请功能',
     )
+    find_jade_push_clear_enable: bool = Field(
+        default=False,
+        description='勾选后只推送有勾协的账号信息,没有勾协的账号只计数',
+    )
     result_push_enable: bool = Field(
         default=False, description='请自行去脚本设置中配置并启用'
     )
