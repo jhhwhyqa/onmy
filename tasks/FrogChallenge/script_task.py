@@ -95,7 +95,8 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, FrogChallengeAssets):
                     logger.info(
                         f'Battle [{battle_count + 1}], reward {acquired}/{total}'
                     )
-                    time.sleep(0.5)
+                    time.sleep(1)
+                    self.screenshot()
                     if self.appear(self.O_CLICK_ANYWHERE_CONTINUE, interval=1):
                         random_click(ltrb=(True, False, False, False))
                     self.run_general_battle(

@@ -73,7 +73,7 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, IbukiArenaAssets):
                 # 挑战
                 if self.appear_then_click(self.I_CHALLENGE, interval=1.2):
                     logger.info(f'remain {remain}/{total}')
-                    time.sleep(0.5)
+                    time.sleep(1)
                     self.screenshot()
                     self.run_general_battle(
                         config=self.conf.general_battle_config,
