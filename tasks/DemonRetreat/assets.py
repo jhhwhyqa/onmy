@@ -16,7 +16,7 @@ class DemonRetreatAssets:
 	# 首领退治 
 	I_HUNT = RuleImage(roi_front=(698,228,122,78), roi_back=(661,164,187,165), threshold=0.8, method="Template matching", file="./tasks/DemonRetreat/DemonRetreat/DemonRetreat_hunt.png")
 	# 检查是否成功进入首领退治 
-	I_HUNT_CHECK = RuleImage(roi_front=(570,12,143,46), roi_back=(570,12,143,46), threshold=0.8, method="Template matching", file="./tasks/DemonRetreat/DemonRetreat/DemonRetreat_hunt_check.png")
+	I_HUNT_CHECK = RuleImage(roi_front=(545,4,195,55), roi_back=(545,4,195,55), threshold=0.8, method="Template matching", file="./tasks/DemonRetreat/DemonRetreat/DemonRetreat_hunt_check.png")
 	# description 
 	I_DEMON_GATHER = RuleImage(roi_front=(26,487,76,48), roi_back=(26,487,76,48), threshold=0.8, method="Template matching", file="./tasks/DemonRetreat/DemonRetreat/DemonRetreat_demon_gather.png")
 	# 非退治时间进行检查 
@@ -31,6 +31,10 @@ class DemonRetreatAssets:
 	I_REWARD_ALL = RuleImage(roi_front=(535,540,177,60), roi_back=(535,540,177,60), threshold=0.8, method="Template matching", file="./tasks/DemonRetreat/DemonRetreat/DemonRetreat_reward_all.png")
 	# 祈愿 
 	I_PRAY = RuleImage(roi_front=(1176,385,43,70), roi_back=(1176,385,43,70), threshold=0.8, method="Template matching", file="./tasks/DemonRetreat/DemonRetreat/DemonRetreat_pray.png")
+	# 首领退治右下角「开启狭间」按钮 
+	I_OPEN_ABYSS = RuleImage(roi_front=(1132,549,99,58), roi_back=(1126,540,112,76), threshold=0.8, method="Template matching", file="./tasks/DemonRetreat/DemonRetreat/DemonRetreat_open_abyss.png")
+	# 「开启狭间」的确认按钮 
+	I_OPEN_ABYSS_CONFIRM = RuleImage(roi_front=(699,405,83,41), roi_back=(699,405,83,41), threshold=0.8, method="Template matching", file="./tasks/DemonRetreat/DemonRetreat/DemonRetreat_open_abyss_confirm.png")
 
 
 	# Ocr Rule Assets

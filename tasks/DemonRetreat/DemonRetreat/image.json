@@ -20,8 +20,8 @@
   {
     "itemName": "hunt_check",
     "imageName": "DemonRetreat_hunt_check.png",
-    "roiFront": "570,12,143,46",
-    "roiBack": "570,12,143,46",
+    "roiFront": "545,4,195,55",
+    "roiBack": "545,4,195,55",
     "method": "Template matching",
     "threshold": 0.8,
     "description": "检查是否成功进入首领退治"
@@ -88,5 +88,23 @@
     "method": "Template matching",
     "threshold": 0.8,
     "description": "祈愿"
+  },
+  {
+    "itemName": "open_abyss",
+    "imageName": "DemonRetreat_open_abyss.png",
+    "roiFront": "1132,549,99,58",
+    "roiBack": "1126,540,112,76",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "首领退治右下角「开启狭间」按钮"
+  },
+  {
+    "itemName": "open_abyss_confirm",
+    "imageName": "DemonRetreat_open_abyss_confirm.png",
+    "roiFront": "699,405,83,41",
+    "roiBack": "699,405,83,41",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "「开启狭间」的确认按钮"
   }
 ]

@@ -47,6 +47,10 @@ class ScriptTask(GameUi, GeneralBattle, SwitchSoul, DemonRetreatAssets, AbyssSha
             self.set_next_run(task='DemonRetreat', server=False, target=self.get_next_dt(datetime.now()))
             raise TaskEnd
 
+        # 首领退治界面右下角若可开启狭间，就点开它，然后照常进行本次首领退治
+        if cfg.process_manage.try_start_abyss_shadows and self.open_abyss_shadows():
+            logger.info('Abyss shadows opened, continue demon retreat')
+
         # 首领退治战斗
         success = self.demon_retreat()
 
@@ -71,6 +75,41 @@ class ScriptTask(GameUi, GeneralBattle, SwitchSoul, DemonRetreatAssets, AbyssSha
         # 设置下次运行时间
         self.set_next_run(task='DemonRetreat', server=False, target=self.get_next_dt(datetime.now(), success))
         raise TaskEnd
+
+    def open_abyss_shadows(self) -> bool:
+        """首领退治界面（`I_HUNT_CHECK`）右下角若出现「开启狭间」就点它，再点掉确认框。
+
+        :return: 开启流程走完返回 True；没出现按钮、或点完按钮仍在返回 False
+        """
+        self.screenshot()
+        if not self.appear(self.I_OPEN_ABYSS):
+            logger.info('No open-abyss button on demon retreat page, skip')
+            return False
+        logger.info('Found open-abyss button, click it')
+        self.click(self.I_OPEN_ABYSS, interval=1)
+
+        # 点开后弹确认框，需要再点一次确认（等它出现，最多 5 秒）
+        confirm_timer = Timer(5).start()
+        confirmed = False
+        while not confirm_timer.reached():
+            self.screenshot()
+            if self.appear_then_click(self.I_OPEN_ABYSS_CONFIRM, interval=1):
+                logger.info('Confirm open abyss shadows')
+                confirmed = True
+                break
+            sleep(0.5)
+        if not confirmed:
+            logger.warning('Open-abyss confirm button not found in 5s; '
+                           '确认按钮的图/框可能还是占位，需要重新标注')
+
+        sleep(1.5)
+        self.screenshot()
+        if self.appear(self.I_OPEN_ABYSS):
+            logger.warning('Open-abyss button still visible after confirming; '
+                           'abyss shadows may not be open (please report the screen)')
+            return False
+        logger.info('Open-abyss button disappeared, assume abyss shadows is open')
+        return True
 
     def goto_demon_retreat(self) -> bool:
         """
