@@ -4,7 +4,7 @@
 from datetime import timedelta, time, datetime
 from time import sleep
 
-from tasks.GameUi.default_pages import page_battle_prepare, page_battle
+from tasks.GameUi.default_pages import page_battle_prepare, page_battle, random_click
 from tasks.GameUi.matcher import any_of
 from typing import List, Callable, Optional
 
@@ -13,7 +13,7 @@ from cached_property import cached_property
 from module.atom.image import RuleImage
 from module.atom.ocr import RuleOcr
 from module.base.timer import Timer
-from module.exception import TaskEnd
+from module.exception import GameTooManyClickError, TaskEnd
 from module.image.recipes import match_highlight_rule
 from module.logger import logger
 from tasks.Component.Costume.config import MainType
@@ -341,6 +341,21 @@ class ScriptTask(WQExplore, SecretScriptTask, WantedQuestsAssets):
         wq_config = GeneralBattleConfig(lock_team_enable=True)
         self.run_general_battle(config=wq_config, exit_matcher=self.I_WQC_FIRE)
 
+    def click_talk_until_disappear(self):
+        "点击秘闻结算后的一次性剧情对话"
+        get_timer = Timer(15)
+        get_timer.start()
+        while 1:
+            self.screenshot()
+            if self.appear(self.I_UI_BACK_RED) or self.appear(self.I_WQSE_FIRE):
+                break
+            if self.appear(self.I_WQC_BATTLE_END_TALKS):
+                self.click(random_click(ltrb=(True, False, False, False)), interval=0.3)
+                self.device.click_record_clear()
+                continue
+            if get_timer.reached():
+                raise GameTooManyClickError('Talks too long, force to restart')
+
     def secret(self, goto, num=1):
         self.ui_click(goto, self.I_WQSE_FIRE)
         for i in range(num):
@@ -358,6 +373,10 @@ class ScriptTask(WQExplore, SecretScriptTask, WantedQuestsAssets):
                     self.run_general_battle(self.build_secret_battle_conf(first_battle=i == 0),
                                             battle_key='wq_secret',
                                             exit_matcher=any_of(self.I_UI_BACK_RED, self.I_WQSE_SPECIAL_FIRE))
+                    # 在没有命中 exit_matcher 但是出现奖励的情况时，认为是剧情对话进行判定
+                    self.screenshot()
+                    if self.appear(self.I_WQC_BATTLE_END_TALKS):
+                        self.click_talk_until_disappear()
                     break
                 if self.appear_then_click(self.I_WQSE_FIRE, interval=1):
                     continue
