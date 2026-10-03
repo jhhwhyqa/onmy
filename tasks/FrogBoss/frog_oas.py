@@ -104,12 +104,15 @@ class OasHistory:
         self.events.append(event)
         return event
 
-    def reliability(self, source):
+    def reliability(self, source, window: int = 0):
         decisions = {e['id']: e for e in self.events if e.get('kind') == 'decision'}
+        settled = [e for e in self.events if e.get('kind') == 'result']
+        if window:
+            settled = settled[-window:]
         correct = total = 0
         seen = set()
-        for result in self.events:
-            if result.get('kind') != 'result' or result['id'] in seen:
+        for result in settled:
+            if result['id'] in seen:
                 continue
             seen.add(result['id'])
             vote = decisions.get(result['id'], {}).get('votes', {}).get(source)
@@ -197,7 +200,8 @@ class OasHistory:
                            source='record_page', bet_won=bet_won, selected_side=side,
                            outcomes={s: v == winner for s, v in decision['votes'].items()})
 
-    def choose(self, signature, left, right, predictions):
+    def choose(self, signature, left, right, predictions, *, crowd_weight: float = 0.0,
+               window: int = 0):
         now = datetime.now()
         # Re-entry in the same slot reuses the original frozen decision.
         slot = f'{now.date()}:{now.hour // 2}'
@@ -206,30 +210,34 @@ class OasHistory:
                 return e
         crowd = ('LEFT' if left > right else 'RIGHT') if left != right and left + right > 0 else None
         votes = {p['uid']: p['side'] for p in predictions if p.get('side') in ('LEFT', 'RIGHT')}
+        voters = len(votes)
         expert_left = sum(v == 'LEFT' for v in votes.values())
         expert_right = sum(v == 'RIGHT' for v in votes.values())
         expert_side = ('LEFT' if expert_left > expert_right else 'RIGHT') if expert_left != expert_right else None
-        if crowd:
+        if crowd and crowd_weight > 0:
             votes['crowd'] = crowd
         cold_start = not any(e.get('kind') == 'result' for e in self.events)
-        weights = {} if cold_start else {uid: self.reliability(uid) for uid in votes}
+        weights = {} if cold_start else {uid: self.reliability(uid, window) for uid in votes}
         scores = {'LEFT': 0.0, 'RIGHT': 0.0}
         if cold_start:
-            # Two equal votes: the expert majority as a whole and the crowd.
-            for vote in (expert_side, crowd):
-                if vote:
-                    scores[vote] += 1
+            # 冷启动：大神整体多数派 1 票；大众票按配置权重计入（默认 0 = 不投）
+            if expert_side:
+                scores[expert_side] += 1
+            if crowd and crowd_weight > 0:
+                scores[crowd] += crowd_weight
         else:
             for uid, vote in votes.items():
-                scores[vote] += weights[uid]
-        tied = abs(scores['LEFT'] - scores['RIGHT']) < 1e-12
+                scores[vote] += weights[uid] * (crowd_weight if uid == 'crowd' else 1.0)
+        margin = abs(scores['LEFT'] - scores['RIGHT'])
+        tied = margin < 1e-12
         side = random.choice(('LEFT', 'RIGHT')) if tied else max(scores, key=scores.get)
         return self.append('decision', id=uuid4().hex, slot=slot, signature=signature,
                            left=left, right=right, votes=votes, weights=weights,
                            scores=scores, side=side, strategy_version=2,
                            mode='cold_start' if cold_start else 'win_rate',
+                           random_tiebreak=tied, voters=voters, margin=margin,
                            expert_counts={'LEFT': expert_left, 'RIGHT': expert_right},
-                           expert_side=expert_side, crowd_side=crowd, random_tiebreak=tied)
+                           expert_side=expert_side, crowd_side=crowd)
 
 
 def fetch_predictions(history):

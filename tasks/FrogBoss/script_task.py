@@ -177,16 +177,22 @@ class ScriptTask(RightActivity, FrogBossAssets, GeneralBattleAssets):
             case Strategy.Dashen:
                 click_image = self.get_dashen(count_left, count_right)
             case Strategy.Oas:
+                options = self.config.model.frog_boss.frog_boss_config
                 signature = fingerprint(self.device.image)
                 predictions = fetch_predictions(self.oas_history)
                 logger.info('frog_oas predictions(%s): %s' % (
                     len(predictions),
                     format_sources({p['uid']: p['side'] for p in predictions}) or '-'))
                 try:
-                    decision = self.oas_history.choose(signature, count_left, count_right, predictions)
+                    decision = self.oas_history.choose(
+                        signature, count_left, count_right, predictions,
+                        crowd_weight=options.oas_crowd_weight,
+                        window=options.oas_reliability_window)
                 except ValueError as exc:
                     raise GameStuckError(str(exc)) from exc
-                logger.info(f'frog_oas decision: mode={decision["mode"]} side={decision["side"]} scores={decision["scores"]} tiebreak={decision["random_tiebreak"]}')
+                logger.info(f'frog_oas decision: mode={decision["mode"]} side={decision["side"]} '
+                            f'voters={decision["voters"]} margin={decision["margin"]:.2f} '
+                            f'scores={decision["scores"]} tiebreak={decision["random_tiebreak"]}')
                 logger.info(f'frog_oas votes: {format_sources(decision["votes"])}')
                 if decision.get('weights'):
                     logger.info('frog_oas weights: '

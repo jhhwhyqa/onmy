@@ -18,7 +18,7 @@ class OasTests(unittest.TestCase):
             path = Path(directory) / 'history.jsonl'
             store = OasHistory(path)
             decision = store.choose('0' * 512, 20, 10, [
-                {'uid': 'a', 'side': 'LEFT'}, {'uid': 'b', 'side': 'RIGHT'}])
+                {'uid': 'a', 'side': 'LEFT'}, {'uid': 'b', 'side': 'RIGHT'}], crowd_weight=1)
             self.assertEqual(store.reliability('a'), .5)
             self.assertEqual(store.choose('0' * 512, 10, 20, [])['id'], decision['id'])
             self.assertIsNone(store.settle('1' * 512, 'LEFT'))
@@ -30,7 +30,7 @@ class OasTests(unittest.TestCase):
             self.assertAlmostEqual(reloaded.reliability('b'), self.smoothed(0, 1))
             self.assertAlmostEqual(reloaded.reliability('crowd'), self.smoothed(1, 1))
             second = reloaded.choose('1' * 512, 10, 20, [
-                {'uid': 'a', 'side': 'LEFT'}, {'uid': 'b', 'side': 'LEFT'}])
+                {'uid': 'a', 'side': 'LEFT'}, {'uid': 'b', 'side': 'LEFT'}], crowd_weight=1)
             self.assertAlmostEqual(second['scores']['LEFT'],
                                    self.smoothed(1, 1) + self.smoothed(0, 1))
             self.assertAlmostEqual(second['scores']['RIGHT'], self.smoothed(1, 1))
@@ -43,7 +43,8 @@ class OasTests(unittest.TestCase):
     def test_fallback_and_missing_data(self):
         with tempfile.TemporaryDirectory() as directory:
             store = OasHistory(Path(directory) / 'history.jsonl')
-            self.assertEqual(store.choose('0' * 512, 1, 2, [])['side'], 'RIGHT')
+            # 冷启动且没有大神表态时，大众票兜底（显式把 crowd 当信源）
+            self.assertEqual(store.choose('0' * 512, 1, 2, [], crowd_weight=1)['side'], 'RIGHT')
             self.assertEqual(store.reliability('crowd'), .5)
             with patch('tasks.FrogBoss.frog_oas.random.choice', return_value='LEFT'):
                 self.assertEqual(store.choose('1' * 512, 0, 0, [])['side'], 'LEFT')
@@ -52,11 +53,11 @@ class OasTests(unittest.TestCase):
         predictions = [{'uid': str(i), 'side': 'LEFT' if i < 6 else 'RIGHT'} for i in range(9)]
         with tempfile.TemporaryDirectory() as directory:
             store = OasHistory(Path(directory) / 'history.jsonl')
-            agreed = store.choose('0' * 512, 20, 10, predictions)
+            agreed = store.choose('0' * 512, 20, 10, predictions, crowd_weight=1)
             self.assertEqual(agreed['side'], 'LEFT')
             self.assertEqual(agreed['scores'], {'LEFT': 2, 'RIGHT': 0})
             with patch('tasks.FrogBoss.frog_oas.random.choice', return_value='RIGHT') as choose:
-                opposed = store.choose('1' * 512, 10, 20, predictions)
+                opposed = store.choose('1' * 512, 10, 20, predictions, crowd_weight=1)
                 self.assertEqual(opposed['scores'], {'LEFT': 1, 'RIGHT': 1})
                 self.assertEqual(opposed['side'], 'RIGHT')
                 choose.assert_called_once_with(('LEFT', 'RIGHT'))
@@ -210,6 +211,42 @@ class OasTests(unittest.TestCase):
         for text, expected in cases:
             with self.subTest(text=text[:26]):
                 self.assertEqual(parse_side(text), expected)
+
+    def test_crowd_is_not_a_source_by_default(self):
+        with tempfile.TemporaryDirectory() as directory:
+            store = OasHistory(Path(directory) / 'history.jsonl')
+            decision = store.choose('0' * 512, 20, 10, [{'uid': 'a', 'side': 'LEFT'}])
+            self.assertEqual(decision['crowd_side'], 'LEFT')      # 仍然记录大众票
+            self.assertNotIn('crowd', decision['votes'])          # 但不作为信源
+            self.assertEqual(decision['voters'], 1)
+            self.assertEqual(decision['margin'], 1.0)
+            # 换一个阵容签名，否则会命中上一局冻结的同 slot 决策
+            with_crowd = store.choose('1' * 512, 20, 10, [], crowd_weight=1)
+            self.assertIn('crowd', with_crowd['votes'])
+            self.assertEqual(with_crowd['crowd_side'], 'LEFT')
+
+    def test_reliability_window_only_counts_recent_results(self):
+        with tempfile.TemporaryDirectory() as directory:
+            store = OasHistory(Path(directory) / 'history.jsonl')
+            # 三局：a 先错两次、后对一次
+            for index, winner in enumerate(('RIGHT', 'RIGHT', 'LEFT')):
+                store.append('decision', id=f'd{index}', slot=f'2026-09-30:{6 + index}',
+                             side='LEFT', votes={'a': 'LEFT'})
+                store.append('result', id=f'd{index}', winner=winner,
+                             outcomes={'a': winner == 'LEFT'})
+            self.assertAlmostEqual(store.reliability('a'), self.smoothed(1, 3))          # 全历史 1/3
+            self.assertAlmostEqual(store.reliability('a', window=1), self.smoothed(1, 1))  # 只看最近 1 局
+            self.assertAlmostEqual(store.reliability('a', window=2), self.smoothed(1, 2))  # 最近 2 局：一错一对
+
+    def test_tie_still_bets_randomly(self):
+        """奖励远高于押注成本：平票也要押（随机），不弃权。"""
+        with tempfile.TemporaryDirectory() as directory:
+            store = OasHistory(Path(directory) / 'history.jsonl')
+            with patch('tasks.FrogBoss.frog_oas.random.choice', return_value='RIGHT') as choose:
+                decision = store.choose('0' * 512, 5, 5, [])
+            self.assertEqual(decision['side'], 'RIGHT')
+            self.assertTrue(decision['random_tiebreak'])
+            choose.assert_called_once()
 
     def test_ambiguous_text_and_signature(self):
         self.assertEqual(parse_side('本场押红'), 'LEFT')
