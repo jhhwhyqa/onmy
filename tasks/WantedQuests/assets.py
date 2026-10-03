@@ -1,5 +1,6 @@
 from module.atom.image import RuleImage
 from module.atom.click import RuleClick
+from module.atom.scatter import RuleScatter
 from module.atom.long_click import RuleLongClick
 from module.atom.swipe import RuleSwipe
 from module.atom.ocr import RuleOcr
@@ -17,6 +18,8 @@ class WantedQuestsAssets:
 	I_WQC_UNLOCK = RuleImage(roi_front=(1086,510,21,26), roi_back=(1073,500,44,48), threshold=0.8, method="Template matching", file="./tasks/WantedQuests/chanllenge/chanllenge_wqc_unlock.png")
 	# 挑战 
 	I_WQC_FIRE = RuleImage(roi_front=(1088,582,85,49), roi_back=(1058,550,147,139), threshold=0.7, method="Template matching", file="./tasks/WantedQuests/chanllenge/chanllenge_wqc_fire.png")
+	# 部分秘闻战斗结束后的剧情对话 
+	I_WQC_BATTLE_END_TALKS = RuleImage(roi_front=(524,560,41,29), roi_back=(472,529,141,82), threshold=0.8, method="Template matching", file="./tasks/WantedQuests/chanllenge/chanllenge_wqc_battle_end_talks.png")
 
 
 	# Image Rule Assets
