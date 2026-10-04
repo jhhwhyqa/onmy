@@ -14,12 +14,15 @@ class Strategy(str, Enum):
     Minority = 'frog_minority'
     Bilibili = 'frog_bilibili'
     Dashen = 'frog_dashen'
+    Solo = 'frog_solo'
     AlwaysRed = 'frog_always_red'
     AlwaysBlue = 'frog_always_blue'
 
 class FrogBossConfig(ConfigBase):
     before_end_frog: Time = Field(default=Time(0, 15, 0), description='before_end_frog_help')
     strategy_frog: Strategy = Field(default=Strategy.Majority, description='strategy_frog_help')
+    # frog_solo 专用：只跟这位博主（网易大神 UID）下注
+    solo_uid: str = Field(default='', description='solo_uid_help')
 
 class FrogBoss(ConfigBase):
     scheduler: Scheduler = Field(default_factory=Scheduler)
