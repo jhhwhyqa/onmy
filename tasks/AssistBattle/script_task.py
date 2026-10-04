@@ -46,20 +46,20 @@ class ScriptTask(
         total = len(results)
         push_content.append(f"本次执行任务共{total}个账号：")
         for result in results:
-            # 账号取前4位，服务器取后4位，角色名取后2位
-            message = f"{result['account'][:4] + ('**' if len(result['account']) > 4 else '')}-{'安卓' if result['apple_or_android'] else '苹果'}-{str(result['svr'])[-4:]:　>4}-{'**' + result['character'][-2:]}"
-            if self.conf.assist_battle_config.evozone_enable:
-                message += f"-觉醒{result['evozone_done']}次"
-            if self.conf.assist_battle_config.realmraid_enable:
-                message += f"-个突{result['realmraid_done']}次"
-            if self.conf.assist_battle_config.find_jade_enable:
-                if (
-                    result['jade_flag'] != self.FIND_JADE_NONE
-                    or not self.conf.assist_battle_config.find_jade_push_clear_enable
-                ):
+            if (
+                result['jade_flag'] != self.FIND_JADE_NONE
+                or not self.conf.assist_battle_config.find_jade_push_clear_enable
+            ):
+                # 账号取前4位，服务器取后4位，角色名取后2位
+                message = f"{result['account'][:4] + ('**' if len(result['account']) > 4 else '')}-{'安卓' if result['apple_or_android'] else '苹果'}-{str(result['svr'])[-4:]:　>4}-{'**' + result['character'][-2:]}"
+                if self.conf.assist_battle_config.evozone_enable:
+                    message += f"-觉醒{result['evozone_done']}次"
+                if self.conf.assist_battle_config.realmraid_enable:
+                    message += f"-个突{result['realmraid_done']}次"
+                if self.conf.assist_battle_config.find_jade_enable:
                     message += f"-{result['jade_flag']}"
-            logger.info(message)
-            push_content.append(message)
+                logger.info(message)
+                push_content.append(message)
         # 未开启协战则不推送总进度
         if (
             self.conf.assist_battle_config.evozone_enable
