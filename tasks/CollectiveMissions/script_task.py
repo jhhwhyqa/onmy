@@ -53,18 +53,15 @@ class ScriptTask(GameUi, CollectiveMissionsAssets):
         raise TaskEnd
 
     def select_and_update_cur_mission(self, mission: MC) -> bool:
-        """尝试选择对应任务并更新当前任务, 若选择失败(无法切换)则会停留在当前任务
         :return: 成功选择返回True
         """
-        pre_mission = ''
-        switch_fail_cnt, max_retry = 0, random.randint(2, 3)  # 点了没反应, 可能之前已经做了其他任务导致无法切换
-        switch_cnt, max_switch = 0, random.randint(12, 15)  # 尝试最多15次内能中奖找到对应任务
+        # 兜底: 万一 OCR 一直认不出目标(例如 魂/灵 这类混字), 别把任务永远卡在这里
+        deadline = time.time() + 10 * 60
+        switch_cnt = 0
+        miss_switch = 0
         while True:
-            if switch_fail_cnt >= max_retry:
-                logger.warning(f'Cannot switch next mission, stop select and try run')
-                return False
-            if switch_cnt >= max_switch:
-                logger.warning(f'Cannot find target mission: {mission.value}, exit')
+            if time.time() >= deadline:
+                logger.warning(f'Cannot find target mission {mission.value} in 10min, exit')
                 return False
             self.screenshot()
             # 识别当前任务
@@ -72,23 +69,43 @@ class ScriptTask(GameUi, CollectiveMissionsAssets):
             try:
                 detect_mission = MC(mission_text)
                 logger.info(f"Current: {detect_mission.value}, target: {mission.value}")
-                self.current_mission = detect_mission
                 if detect_mission == mission:
+                    self.current_mission = detect_mission
                     logger.info(f"Success select mission[{mission_text}]")
                     return True
-            except ValueError as e:
+            except ValueError:
                 logger.warning(f'Unknown {mission_text}, skip')
-            logger.info("Try switch to next mission")
-            switch_fail_cnt = 0 if pre_mission != mission_text else (switch_fail_cnt + 1)
-            pre_mission = mission_text
+            logger.info(f"Try switch to next mission [{switch_cnt}]")
             if self.appear_then_click(self.I_CM_SWITCH, interval=0.6):
                 sleep(random.uniform(0.6, 1.2))
                 switch_cnt += 1
+                miss_switch = 0
                 self.device.click_record_clear()
+            else:
+                # 找不到刷新按钮说明当前不在任务列表页, 别在这里空转到卡死检测
+                miss_switch += 1
+                if miss_switch >= 5:
+                    logger.warning('Cannot find switch button, stop select')
+                    return False
+                sleep(0.5)
+
+    def click_until_appear(self, click, stop, timeout: float = 15, interval: float = 1.5) -> bool:
+        timeout_timer = Timer(timeout).start()
+        while not timeout_timer.reached():
+            self.screenshot()
+            if self.appear(stop):
+                return True
+            if isinstance(click, RuleImage):
+                self.appear_then_click(click, interval=interval)
+            else:
+                self.click(click, interval=interval)
+        logger.warning(f'{stop.name} not appear in {timeout}s, stop clicking')
+        return False
 
     def _donate(self):
         """捐材料"""
-        self.ui_click(self.C_CM_1, self.I_CM_PRESENT, interval=1.5)
+        if not self.click_until_appear(self.C_CM_1, self.I_CM_PRESENT, interval=1.5):
+            return
         logger.info('Start to donate')
         # 判断哪一个的材料最多
         self.screenshot()
@@ -142,7 +159,8 @@ class ScriptTask(GameUi, CollectiveMissionsAssets):
 
     def _soul(self):
         """提交御魂"""
-        self.ui_click(self.C_CM_1, self.I_SL_SUBMIT)
+        if not self.click_until_appear(self.C_CM_1, self.I_SL_SUBMIT, interval=1):
+            return
         while 1:
             self.screenshot()
             number_text = self.O_SL_NUMBER.ocr(self.device.image)
@@ -152,7 +170,7 @@ class ScriptTask(GameUi, CollectiveMissionsAssets):
             if self.ocr_appear(self.O_SL_LEVEL):
                 # 如果没有识别到这个，那就说明没有御魂可以提交了，要退出
                 logger.warning('No soul can be submit')
-                self.ui_click(self.I_UI_BACK_RED, self.I_CM_RECORDS)
+                self.click_until_appear(self.I_UI_BACK_RED, self.I_CM_RECORDS, interval=1)
                 return False
             if self.click(self.L_SL_LONG, interval=2.5):
                 time.sleep(1)
@@ -165,7 +183,8 @@ class ScriptTask(GameUi, CollectiveMissionsAssets):
     def _feed(self):
         """提交N卡"""
         logger.info('Start to feed N')
-        self.ui_click(self.C_CM_1, self.I_FEED_HEAP)
+        if not self.click_until_appear(self.C_CM_1, self.I_FEED_HEAP, interval=1):
+            return
         logger.info('Submit to feed N')
         click_list = random.sample([self.L_FEED_CLICK_1, self.L_FEED_CLICK_2, self.L_FEED_CLICK_3, self.L_FEED_CLICK_4], 2)
         while 1:
