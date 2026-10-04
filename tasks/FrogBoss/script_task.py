@@ -21,62 +21,12 @@ from tasks.Component.GeneralBattle.assets import GeneralBattleAssets
 from tasks.Component.config_base import TimeDelta
 from tasks.FrogBoss.assets import FrogBossAssets
 from tasks.FrogBoss.config import Strategy
-from tasks.FrogBoss.record_reader import read_record_rows
-from tasks.FrogBoss.oas_sources import DASHEN_SOURCES, format_sources
-from tasks.FrogBoss.frog_oas import OasHistory, fetch_predictions, fingerprint
 
 
 class ScriptTask(RightActivity, FrogBossAssets, GeneralBattleAssets):
-    @cached_property
-    def oas_history(self):
-        instance = re.sub(r'[^\w.-]', '_', self.config.config_name)
-        return OasHistory(Path('data/frog_oas') / f'{instance}.jsonl')
-
-    def record_oas_history_page(self):
-        if self.config.model.frog_boss.frog_boss_config.strategy_frog != Strategy.Oas:
-            return
-        timer = Timer(10).start()
-        while not timer.reached():
-            self.screenshot()
-            if self.appear(self.I_FROG_LOG_CHECK):
-                break
-            self.appear_then_click(self.I_FROG_LOG, interval=2)
-        else:
-            raise GameStuckError('FrogBoss record page did not open')
-        try:
-            # Read only the currently visible rows; never scroll the record page.
-            readings = []
-            for _ in range(2):
-                self.screenshot()
-                if not self.appear(self.I_FROG_LOG_CHECK):
-                    break
-                readings.append(read_record_rows(self.device.image, self))
-            if len(readings) != 2 or readings[0] != readings[1]:
-                self.oas_history.append('unverified_result', reason='unstable_record_page')
-                logger.warning('FrogBoss record page readings were not stable')
-            else:
-                for stamp, won, side in dict.fromkeys(readings[0]):
-                    result = self.oas_history.settle_record(stamp, won, selected_side=side)
-                    if result is None:
-                        logger.info(f'frog_oas record: no pended decision, time={stamp}, '
-                                    f'won={won}, selected={side}')
-                    else:
-                        logger.info(f'frog_oas record result: winner={result["winner"]} '
-                                    f'({format_sources(result.get("outcomes", {}))}), '
-                                    f'time={stamp}, won={won}, selected={side}')
-        finally:
-            timer = Timer(10).start()
-            while not timer.reached():
-                self.screenshot()
-                if not self.appear(self.I_FROG_LOG_CHECK) and self.appear(self.I_FROG_CHECK):
-                    break
-                self.appear_then_click(self.I_FROG_LOG_CLOSE, interval=2)
-            else:
-                raise GameStuckError('FrogBoss record page did not close')
-
     def enter_frog_boss(self):
         self.screenshot()
-        if self.appear(self.I_FROG_CHECK) or self.appear(self.I_FROG_LOG_CHECK):
+        if self.appear(self.I_FROG_CHECK):
             return
         self.enter(self.I_FROG_BOSS_ENTER)
         if not self.wait_until_appear(self.I_FROG_CHECK, wait_time=10):
@@ -84,18 +34,9 @@ class ScriptTask(RightActivity, FrogBossAssets, GeneralBattleAssets):
 
     def run(self):
         self.enter_frog_boss()
-        history_checked = False
         # 进入主界面
         while 1:
             self.screenshot()
-
-            if not history_checked and self.config.model.frog_boss.frog_boss_config.strategy_frog == Strategy.Oas:
-                if (self.appear(self.I_FROG_LOG_CHECK) or self.appear(self.I_BETTED)
-                        or self.appear(self.I_FROG_BOSS_REST)
-                        or (self.appear(self.I_BET_LEFT) and self.appear(self.I_BET_RIGHT))):
-                    self.record_oas_history_page()
-                    history_checked = True
-                    continue
 
             # 已经下注
             if self.appear(self.I_BETTED):
@@ -176,35 +117,6 @@ class ScriptTask(RightActivity, FrogBossAssets, GeneralBattleAssets):
                 click_image = self.I_BET_LEFT if count_left > count_right else self.I_BET_RIGHT
             case Strategy.Dashen:
                 click_image = self.get_dashen(count_left, count_right)
-            case Strategy.Oas:
-                options = self.config.model.frog_boss.frog_boss_config
-                signature = fingerprint(self.device.image)
-                predictions = fetch_predictions(self.oas_history)
-                logger.info('frog_oas predictions(%s): %s' % (
-                    len(predictions),
-                    format_sources({p['uid']: p['side'] for p in predictions}) or '-'))
-                try:
-                    decision = self.oas_history.choose(
-                        signature, count_left, count_right, predictions,
-                        crowd_weight=options.oas_crowd_weight,
-                        window=options.oas_reliability_window)
-                except ValueError as exc:
-                    raise GameStuckError(str(exc)) from exc
-                logger.info(f'frog_oas decision: mode={decision["mode"]} side={decision["side"]} '
-                            f'voters={decision["voters"]} margin={decision["margin"]:.2f} '
-                            f'scores={decision["scores"]} tiebreak={decision["random_tiebreak"]}')
-                logger.info(f'frog_oas votes: {format_sources(decision["votes"])}')
-                if decision.get('weights'):
-                    logger.info('frog_oas weights: '
-                                f'{format_sources({k: round(v, 3) for k, v in decision["weights"].items()})}')
-                # Fetching may span a round transition; never click a stale frame.
-                self.screenshot()
-                from tasks.FrogBoss.frog_oas import same_lineup
-                if not same_lineup(signature, fingerprint(self.device.image)):
-                    raise GameStuckError('FrogBoss lineup changed while fetching predictions')
-                if not (self.appear(self.I_BET_LEFT) and self.appear(self.I_BET_RIGHT)):
-                    raise GameStuckError('FrogBoss betting closed while fetching predictions')
-                click_image = self.I_BET_LEFT if decision['side'] == 'LEFT' else self.I_BET_RIGHT
             case Strategy.AlwaysRed:
                 click_image = self.I_BET_LEFT
             case Strategy.AlwaysBlue:
@@ -388,7 +300,7 @@ class ScriptTask(RightActivity, FrogBossAssets, GeneralBattleAssets):
         count_uper_left = 0  # 统计博主投注左侧红方次数
         count_uper_right = 0  # 统计博主投注右侧蓝方次数
 
-        for user in DASHEN_SOURCES:
+        for user in uids:
             uid = user['id']
             name = user['name']
             feed_id = get_feed_id(uid)

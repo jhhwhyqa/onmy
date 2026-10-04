@@ -1077,9 +1077,7 @@
     },
     "frog_boss_config": {
       "before_end_frog": "00:15:00",
-      "strategy_frog": "frog_majority",
-      "oas_crowd_weight": 0.0,
-      "oas_reliability_window": 0
+      "strategy_frog": "frog_majority"
     }
   },
   "float_parade": {
