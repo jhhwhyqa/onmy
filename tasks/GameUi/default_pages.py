@@ -31,6 +31,7 @@ from tasks.Restart.assets import RestartAssets
 from tasks.RyouToppa.assets import RyouToppaAssets
 from tasks.AssistBattle.assets import AssistBattleAssets
 from module.logger import logger
+from tasks.WeeklyTrifles.assets import WeeklyTriflesAssets
 
 
 def random_click(
@@ -232,6 +233,19 @@ page_guild.connect(
 )
 page_main.connect(
     page_guild, GameUiAssets.I_MAIN_GOTO_GUILD, key="page_main->page_guild"
+)
+
+# 摸鱼行动页面。
+page_touch_fish = Page(WeeklyTriflesAssets.I_CHECK_TOUCH_FISH, category="global")
+page_guild.connect(
+    page_touch_fish,
+    WeeklyTriflesAssets.I_GUILD_GOTO_TF,
+    key="page_guild->page_touch_fish",
+)
+page_touch_fish.connect(
+    page_main,
+    WeeklyTriflesAssets.I_WT_TF_GOTO_MAIN,
+    key="page_touch_fish->page_main",
 )
 
 page_shirin = Page(GameUiAssets.I_CHECK_SHRIN, category="global")
