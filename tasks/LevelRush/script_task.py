@@ -20,7 +20,7 @@ from tasks.GameUi.page import (
     page_mall,
     page_team,
     page_daily,
-    page_friends,
+    page_summon,
 )
 from tasks.LevelRush.page import (
     page_rookie_act,
@@ -136,6 +136,7 @@ class ScriptTask(
             self._get_rookie_reward()
             self.config.level_rush.level_rush_config.level_7_mark = True
             self.config.save()
+        self.goto_page(page_main)
         # 过剧情解锁十五章
         if not (
             self.config.level_rush.level_rush_config.exploration_chapter_max_15_enable
@@ -249,7 +250,10 @@ class ScriptTask(
             if self.appear(ExperienceYoukaiAssets.I_EXP_WIN):
                 self.click(random_click(ltrb=(True, False, False, False)), interval=1.5)
                 continue
-            if self.get_current_page(page_main) == page_main:
+            if self.get_current_page() == page_bind_phone:
+                self.goto_page(page_main)
+                continue
+            if self.get_current_page() == page_main:
                 logger.info(f"First exp youkai finished")
                 break
             if self.appear(self.I_CHECK_TEAM):
@@ -638,6 +642,9 @@ class ScriptTask(
             if self.get_current_page() == page_exploration:
                 self.appear_then_click(self.I_YELLOW_BACK_BUTTON, interval=1)
                 continue
+            if self.get_current_page() == page_summon:
+                self.goto_page(page_main)
+                continue
             if self.appear_then_click(self.I_TOWN_BACK_MAIN, interval=1):
                 continue
             if self.appear(self.I_SKIP_TO_30):
@@ -784,7 +791,7 @@ class ScriptTask(
             if self.get_current_page() == page_rookie_act:
                 self.goto_page(page_main)
                 continue
-            if self.appear_then_click(self.I_GUIDE_FAN, interval=1):
+            if self.appear_then_click(self.I_GUIDE_FAN, interval=1.5):
                 continue
             if self.appear_then_click(self.I_SKIP_TALK, interval=1):
                 self.device.click_record_clear()

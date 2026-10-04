@@ -50,4 +50,6 @@ page_bind_phone.connect(
     LevelRushAssets.I_PHONE_BIND,
     key="page_bind_phone->page_main",
 )
-page_main.add_enter_failure_hooks(LevelRushAssets.I_PHONE_BIND_CANCEL)
+page_main.add_enter_failure_hooks(
+    LevelRushAssets.I_PHONE_BIND_CANCEL, LevelRushAssets.I_PHONE_BIND_CANCEL
+)
