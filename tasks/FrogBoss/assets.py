@@ -48,20 +48,6 @@ class FrogBossAssets:
 	I_FROG_BOSS_REST = RuleImage(roi_front=(510,274,169,64), roi_back=(492,260,220,113), threshold=0.8, method="Template matching", file="./tasks/FrogBoss/fb/fb_frog_boss_rest.png")
 	# 竞猜主页面 
 	I_FROG_CHECK = RuleImage(roi_front=(664,31,148,65), roi_back=(551,4,371,145), threshold=0.8, method="Template matching", file="./tasks/FrogBoss/fb/fb_frog_check.png")
-	# 进入记录页面 
-	I_FROG_LOG = RuleImage(roi_front=(1171,624,43,41), roi_back=(1157,601,83,89), threshold=0.8, method="Template matching", file="./tasks/FrogBoss/fb/fb_frog_log.png")
-	#  
-	I_FROG_LOG_CHECK = RuleImage(roi_front=(549,31,192,52), roi_back=(469,0,371,145), threshold=0.8, method="Template matching", file="./tasks/FrogBoss/fb/fb_frog_log_check.png")
-	# 上一局胜 
-	I_FROG_LAST_WIN = RuleImage(roi_front=(178,210,61,49), roi_back=(148,147,114,123), threshold=0.8, method="Template matching", file="./tasks/FrogBoss/fb/fb_frog_last_win.png")
-	# 上一局败 
-	I_FROG_LAST_LOSE = RuleImage(roi_front=(178,210,61,49), roi_back=(148,147,114,123), threshold=0.8, method="Template matching", file="./tasks/FrogBoss/fb/fb_frog_last_lose.png")
-	# 关闭记录 
-	I_FROG_LOG_CLOSE = RuleImage(roi_front=(1188,99,43,41), roi_back=(1166,73,83,89), threshold=0.8, method="Template matching", file="./tasks/FrogBoss/fb/fb_frog_log_close.png")
-	# 上一局选择红色 
-	I_FROG_LAST_SELECT_RED = RuleImage(roi_front=(342,149,36,38), roi_back=(327,120,70,77), threshold=0.8, method="Template matching", file="./tasks/FrogBoss/fb/fb_frog_last_select_red.png")
-	# 上一句选择蓝色 
-	I_FROG_LAST_SELECT_BLUE = RuleImage(roi_front=(342,149,36,38), roi_back=(327,120,70,77), threshold=0.8, method="Template matching", file="./tasks/FrogBoss/fb/fb_frog_last_select_blue.png")
 
 
 	# Ocr Rule Assets
