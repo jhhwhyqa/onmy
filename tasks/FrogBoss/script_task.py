@@ -274,19 +274,23 @@ class ScriptTask(RightActivity, FrogBossAssets, GeneralBattleAssets):
             return crowd
 
         deadline = self.solo_deadline()
-        logger.info(f'frog_solo: 只跟 {uid}，本轮最晚等到 {deadline:%H:%M:%S}')
+        first_check = True
         while True:
-            side = self.fetch_solo_bet(uid)
+            side = self.fetch_solo_bet(uid)      # 顺带把博主昵称缓存下来（日志里显示昵称）
+            name = self.solo_nick()
+            if first_check:
+                logger.info(f'frog_solo: 只跟 {name}，本轮最晚等到 {deadline:%H:%M:%S}')
+                first_check = False
             if side == 'LEFT':
-                logger.info(f'frog_solo: {uid} 押红，跟随')
+                logger.info(f'frog_solo: {name} 押红，跟随')
                 return self.I_BET_LEFT
             if side == 'RIGHT':
-                logger.info(f'frog_solo: {uid} 押蓝，跟随')
+                logger.info(f'frog_solo: {name} 押蓝，跟随')
                 return self.I_BET_RIGHT
             if datetime.now() >= deadline:
-                logger.warning(f'frog_solo: {uid} 到截止时间仍未表态，随大流')
+                logger.warning(f'frog_solo: {name} 到截止时间仍未表态，随大流')
                 return crowd
-            logger.info(f'frog_solo: {uid} 本轮还没表态，{SOLO_RECHECK_SECONDS // 60} 分钟后再看')
+            logger.info(f'frog_solo: {name} 本轮还没表态，{SOLO_RECHECK_SECONDS // 60} 分钟后再看')
             self.wait_until_recheck(SOLO_RECHECK_SECONDS)
 
     @staticmethod
@@ -310,13 +314,46 @@ class ScriptTask(RightActivity, FrogBossAssets, GeneralBattleAssets):
                 return
             sleep(5)
 
+    def solo_nick(self) -> str:
+        """配置里那位博主的大神昵称（日志里显示它而不是 uid）。
+
+        昵称就在 `getSomeOneFeeds` 的响应里（`result.userInfos[0].user.nick`），
+        不用额外请求；一次运行内只查一次，查不到就退回 uid。
+        """
+        uid = (self.config.model.frog_boss.frog_boss_config.solo_uid or '').strip()
+        if not uid:
+            return '(未填写UID)'
+        cached = getattr(self, '_solo_nick', None)
+        if cached:
+            return cached
+        self._solo_nick = uid          # 先放 uid，防止查不到时反复请求
+        try:
+            response = requests.get(
+                'https://inf.ds.163.com/v1/web/feed/basic/getSomeOneFeeds'
+                f'?feedTypes=1,2,3,4,6,7,10,11&someOneUid={uid}', timeout=5)
+            user_infos = response.json()['result'].get('userInfos') or []
+            nick = user_infos[0]['user'].get('nick') if user_infos else None
+            if nick:
+                self._solo_nick = nick
+                logger.info(f'frog_solo: 博主昵称 = {nick}')
+        except Exception as exc:
+            logger.warning(f'frog_solo: 查询博主昵称失败，日志里用 UID 代替（{exc}）')
+        return self._solo_nick
+
     def fetch_solo_bet(self, uid: str) -> str or None:
         """拉指定博主最新一条动态，返回 'LEFT'/'RIGHT'；本轮没发或说不清返回 None。"""
         try:
             response = requests.get(
                 'https://inf.ds.163.com/v1/web/feed/basic/getSomeOneFeeds'
                 f'?feedTypes=1,2,3,4,6,7,10,11&someOneUid={uid}', timeout=5)
-            feeds = response.json()['result']['feeds']
+            result = response.json()['result']
+            user_infos = result.get('userInfos') or []
+            if user_infos and not getattr(self, '_solo_nick', None):
+                nick = user_infos[0]['user'].get('nick')
+                if nick:
+                    self._solo_nick = nick          # 顺手拿昵称，供日志显示
+                    logger.info(f'frog_solo: 博主昵称 = {nick}')
+            feeds = result['feeds']
             if not feeds:
                 logger.info('frog_solo: 该博主没有动态')
                 return None
