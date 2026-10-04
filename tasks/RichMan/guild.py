@@ -124,7 +124,11 @@ class Guild(Buy, GameUi, RichManAssets):
             logger.warning('No skin ticket can buy')
             return False
         # 购买功勋商店皮肤券
-        self.buy_more(self.I_GUILD_SKIN, number)
+        if number == 5:
+            # 直接点击最大，防止ocr出错
+            self.buy_more(self.I_GUILD_SKIN)
+        else:
+            self.buy_more(self.I_GUILD_SKIN, number)
         time.sleep(0.5)
         return True
 

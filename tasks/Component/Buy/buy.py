@@ -131,8 +131,6 @@ class Buy(BaseTask, BuyAssets):
                 if not ocr_timer.reached():
                     continue
                 ocr_timer.reset()
-                time.sleep(0.5)
-                self.screenshot()
                 current = self.O_BUY_NUMBER.ocr(self.device.image)
                 if current >= number:
                     break
