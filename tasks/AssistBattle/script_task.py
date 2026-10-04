@@ -16,6 +16,7 @@ from tasks.WantedQuests.assets import WantedQuestsAssets
 from tasks.WantedQuests.config import CooperationType
 from tasks.AssistBattle.assets import AssistBattleAssets
 from tasks.AssistBattle.config import AssistBattleConfig
+from tasks.RichMan.mall.consignment import Consignment
 
 
 class ScriptTask(
@@ -23,6 +24,7 @@ class ScriptTask(
     RealmRaidScriptTask,
     DailyTriflesScriptTask,
     KekkaiUtilizeScriptTask,
+    Consignment,
     AssistBattleAssets,
 ):
 
@@ -163,8 +165,10 @@ class ScriptTask(
             self.conf.assist_battle_config.consignment_enable
             and date.today().weekday() == SUNDAY
         ):
+            self.config.rich_man.consignment.enable = True
+            self.config.rich_man.consignment.buy_sale_ticket = True
             self.goto_page(page_mall, confirm_wait=2.5)
-            Consignment.execute_consignment()
+            self.execute_consignment()
             self.goto_page(page_main)
 
         # 结界寄养
