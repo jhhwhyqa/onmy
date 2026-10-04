@@ -1,8 +1,10 @@
 # This Python file uses the following encoding: utf-8
 # @author runhey
 # github https://github.com/runhey
+from time import sleep
+
 from cached_property import cached_property
-from datetime import datetime
+from datetime import datetime, timedelta
 import requests
 import re
 import json
@@ -21,6 +23,75 @@ from tasks.Component.GeneralBattle.assets import GeneralBattleAssets
 from tasks.Component.config_base import TimeDelta
 from tasks.FrogBoss.assets import FrogBossAssets
 from tasks.FrogBoss.config import Strategy
+
+
+# 博主动态里判断押注方向的正则（Dashen / Solo 共用）
+RED_REGEX = re.compile(r'(押红|押左|压红|压左|红方|红色|我红|我左|红优|左|红六|红七|红八|红九|红十|91开|82开|73开|64开)')
+BLUE_REGEX = re.compile(r'(押蓝|押右|压蓝|压右|蓝方|蓝色|我蓝|我右|蓝优|右|蓝六|蓝七|蓝八|蓝九|蓝十|19开|28开|37开|46开)')
+# frog_solo：博主没表态时每隔多久重查一次
+SOLO_RECHECK_SECONDS = 300
+
+# frog_solo 解析博主动态用：方向等价类（左=红、右=蓝）
+DIR_LEFT_CLASS = r'左(?:边|面|方)?|红(?:色|方|队)?'
+DIR_RIGHT_CLASS = r'右(?:边|面|方)?|蓝(?:色|方|队)?'
+# ① 方向"双写"（左红 / 右蓝 / 右(蓝) / 左边红方）—— 博主的表态几乎都这么写，最可靠
+#    只认「左…红」「右…蓝」两种同向组合：避免「红红火火」被当成表态，
+#    也避免「红蓝37开」这类比率写法被当成表态
+BET_PAIR_REGEX = re.compile(
+    r'(?:(左(?:边|面|方)?)[\s（(【\[]*(红(?:色|方|队)?)'
+    r'|(右(?:边|面|方)?)[\s（(【\[]*(蓝(?:色|方|队)?))')
+# ② 第一人称 / 推荐式表态：我押、我选、推荐…（比普通动词可靠）
+BET_PRONOUN_REGEX = re.compile(
+    r'(?:我|本|推荐|建议)\s*(?:押|压|选|买)?\s*(' + DIR_LEFT_CLASS + r'|' + DIR_RIGHT_CLASS + r')')
+# ③ 普通表态：押红 / 压蓝（「队友全压红了」这类描述句也会命中，所以排在 ①② 之后）
+#    排除「想压右边」「可能会选左」这类假设/描述句：动词前一个字是这些修饰词就不算表态
+BET_VERB_REGEX = re.compile(
+    r'(?<![想能会可要该被])[押压]\s*(' + DIR_LEFT_CLASS + r'|' + DIR_RIGHT_CLASS + r')')
+# ④ 时间锚点：10点场 / 18:00 / 10:00~12:00点 / 10-12点场 / 22点局
+BET_ANCHOR_REGEX = re.compile(
+    r'(?:\d{1,2}\s*[:：]\s*\d{2}(?:\s*[-~～]\s*\d{1,2}\s*[:：]\s*\d{2})?'
+    r'|\d{1,2}\s*[-~～]\s*\d{1,2}\s*(?:点|时)'
+    r'|\d{1,2}\s*(?:点|时))'
+    r'\s*(?:场|局|场次)?\s*[，,：:、；;。\s]*')
+# 锚点后允许出现方向词的字数（「22:00 右(蓝)」= 2 字，「10点场 左边」= 3 字）
+BET_ANCHOR_WINDOW = 6
+
+
+def dir_side_of(token: str):
+    """方向词 → 'LEFT'/'RIGHT'（左=红、右=蓝）。"""
+    if not token:
+        return None
+    if token[0] in '左红':
+        return 'LEFT'
+    if token[0] in '右蓝':
+        return 'RIGHT'
+    return None
+
+
+def parse_bet_text(body_text: str):
+    flat = re.sub(r'\s+', ' ', re.sub(r'#.*?#', ' ', body_text))
+    pair = BET_PAIR_REGEX.search(flat)
+    if pair:
+        return 'LEFT' if pair.group(1) else 'RIGHT'
+    for regex in (BET_PRONOUN_REGEX, BET_VERB_REGEX):
+        sides = [s for s in (dir_side_of(m.group(1)) for m in regex.finditer(flat)) if s]
+        if sides:
+            return sides[0] if len(set(sides)) == 1 else None
+    for match in BET_ANCHOR_REGEX.finditer(flat):
+        window = flat[match.end():match.end() + BET_ANCHOR_WINDOW]
+        left = bool(re.search(DIR_LEFT_CLASS, window))
+        right = bool(re.search(DIR_RIGHT_CLASS, window))
+        if left != right:
+            return 'LEFT' if left else 'RIGHT'
+    red_span = RED_REGEX.search(flat)
+    blue_span = BLUE_REGEX.search(flat)
+    red = red_span.start() if red_span else 9999
+    blue = blue_span.start() if blue_span else 9999
+    if red < blue:
+        return 'LEFT'
+    if blue < red:
+        return 'RIGHT'
+    return None
 
 
 class ScriptTask(RightActivity, FrogBossAssets, GeneralBattleAssets):
@@ -117,6 +188,8 @@ class ScriptTask(RightActivity, FrogBossAssets, GeneralBattleAssets):
                 click_image = self.I_BET_LEFT if count_left > count_right else self.I_BET_RIGHT
             case Strategy.Dashen:
                 click_image = self.get_dashen(count_left, count_right)
+            case Strategy.Solo:
+                click_image = self.get_solo(count_left, count_right)
             case Strategy.AlwaysRed:
                 click_image = self.I_BET_LEFT
             case Strategy.AlwaysBlue:
@@ -192,15 +265,91 @@ class ScriptTask(RightActivity, FrogBossAssets, GeneralBattleAssets):
         """
         pass
 
+    def get_solo(self, count_left, count_right) -> RuleImage:
+        cfg = self.config.model.frog_boss.frog_boss_config
+        uid = (cfg.solo_uid or '').strip()
+        crowd = self.I_BET_LEFT if count_left > count_right else self.I_BET_RIGHT
+        if not uid:
+            logger.warning('frog_solo: solo_uid 为空，直接随大流')
+            return crowd
+
+        deadline = self.solo_deadline()
+        logger.info(f'frog_solo: 只跟 {uid}，本轮最晚等到 {deadline:%H:%M:%S}')
+        while True:
+            side = self.fetch_solo_bet(uid)
+            if side == 'LEFT':
+                logger.info(f'frog_solo: {uid} 押红，跟随')
+                return self.I_BET_LEFT
+            if side == 'RIGHT':
+                logger.info(f'frog_solo: {uid} 押蓝，跟随')
+                return self.I_BET_RIGHT
+            if datetime.now() >= deadline:
+                logger.warning(f'frog_solo: {uid} 到截止时间仍未表态，随大流')
+                return crowd
+            logger.info(f'frog_solo: {uid} 本轮还没表态，{SOLO_RECHECK_SECONDS // 60} 分钟后再看')
+            self.wait_until_recheck(SOLO_RECHECK_SECONDS)
+
+    @staticmethod
+    def solo_deadline() -> datetime:
+        now = datetime.now()
+        day = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        for hour in range(10, 24, 2):
+            start = day.replace(hour=hour)
+            if now < start:
+                return start - timedelta(minutes=5)
+        # 已过 22 点场的开始时间 → 22 点场到 24 点（次日 0 点）结束
+        return day + timedelta(days=1) - timedelta(minutes=5)
+
+    def wait_until_recheck(self, seconds: float) -> None:
+        """等待下一次查询博主动态；期间保持截图，下注入口消失就提前结束等待。"""
+        timer = Timer(seconds).start()
+        while not timer.reached():
+            self.screenshot()
+            if not (self.appear(self.I_BET_LEFT) and self.appear(self.I_BET_RIGHT)):
+                logger.warning('frog_solo: 下注入口已消失（盘口可能切换），提前结束等待')
+                return
+            sleep(5)
+
+    def fetch_solo_bet(self, uid: str) -> str or None:
+        """拉指定博主最新一条动态，返回 'LEFT'/'RIGHT'；本轮没发或说不清返回 None。"""
+        try:
+            response = requests.get(
+                'https://inf.ds.163.com/v1/web/feed/basic/getSomeOneFeeds'
+                f'?feedTypes=1,2,3,4,6,7,10,11&someOneUid={uid}', timeout=5)
+            feeds = response.json()['result']['feeds']
+            if not feeds:
+                logger.info('frog_solo: 该博主没有动态')
+                return None
+            response = requests.get(
+                f'https://inf.ds.163.com/v1/web/feed/basic/facade?feedId={feeds[0]["id"]}', timeout=5)
+            feed = response.json()['result']['feed']
+            body_text = json.loads(feed['content'])['body']['text']
+            create_time = feed['createTime']
+        except Exception as exc:
+            logger.warning(f'frog_solo: 拉取博主动态失败 {exc}')
+            return None
+
+        post_time = datetime.fromtimestamp(create_time / 1000)
+        now = datetime.now()
+        # 只认落在当前盘口时段内的动态（与 Dashen 的 is_time_valid 同一套判断）
+        if not any(start <= post_time.hour < end and start <= now.hour < end
+                   for start, end in ((10, 12), (12, 14), (14, 16), (16, 18),
+                                      (18, 20), (20, 22), (22, 24))):
+            logger.info(f'frog_solo: 最新动态 {post_time:%H:%M} 不在当前盘口时段内')
+            return None
+
+        side = parse_bet_text(body_text)
+        if side is None:
+            logger.info(f'frog_solo: 动态里没看出押哪边：{body_text[:60]}')
+        return side
+
     def get_dashen(self, count_left, count_right) -> RuleImage:
         """
         获取博主的策略选择，整合多个博主的投注策略，并返回最终的下注建议
         :return: 'left' 或 'right' 的下注目标
         """
         logger.info('Fetching strategy from multiple Dashen UPer')
-        # 定义正则表达式
-        red_regex = re.compile(r'(押红|押左|压红|压左|红方|红色|我红|我左|红优|左|红六|红七|红八|红九|红十|91开|82开|73开|64开)')
-        blue_regex = re.compile(r'(押蓝|押右|压蓝|压右|蓝方|蓝色|我蓝|我右|蓝优|右|蓝六|蓝七|蓝八|蓝九|蓝十|19开|28开|37开|46开)')
+        red_regex, blue_regex = RED_REGEX, BLUE_REGEX
 
         # 获取 feedId 的函数
         def get_feed_id(uid):

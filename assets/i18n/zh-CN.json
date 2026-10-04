@@ -295,5 +295,7 @@
   "teammate_timeout_seconds": "等待队友时间（秒）",
   "pick_timeout_seconds": "等待下一轮选人时间（秒）",
   "battle_timeout_seconds": "等待整局结束时间（秒）",
-  "completion_count": "完成次数"
+  "completion_count": "完成次数",
+  "solo_uid": "只跟随的博主(大神UID)",
+  "solo_uid_help": "只跟随该博主下注,不填则跟随所有博主下注"
 }
