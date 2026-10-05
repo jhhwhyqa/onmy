@@ -7,6 +7,7 @@ from pathlib import Path
 from time import sleep
 
 import difflib
+import numpy as np
 from datetime import time, datetime, timedelta
 from module.atom.image import RuleImage
 from ppocronnx.predict_system import BoxedResult
@@ -659,23 +660,95 @@ class ScriptTask(GameUi, Summon, DailyTriflesAssets):
     STORAGE_VALUE_NOISE = re.compile(r'[^0-9.万亿]')
     # 清洗后再取第一个合法数值，丢掉 `..`、`万` 开头之类的残渣
     STORAGE_VALUE_PATTERN = re.compile(r'\d+(?:\.\d+)?[万亿]?')
+    # 仓库计数只会是整数：小数点只可能是图标碎屑（实测海蛇皮 53 被读成 `9.53`），
+    # 于是小数点当分隔符、取**最后一段**数字 —— 计数是右对齐的，真值一定在最后。
+    STORAGE_VALUE_DIGITS = re.compile(r'\d+')
+    STORAGE_VALUE_THOUSANDS = re.compile(r'[,，]')
 
     @classmethod
-    def clean_storage_value(cls, value):
+    def clean_storage_value(cls, value, allow_decimal: bool = True):
         """清洗纳物库 OCR 结果。
 
-        - 仓库计数用的是 `Digit` 模式，`ocr()` 直接返回 int，本身已经是纯数字，原样保留；
-        - 标题栏金币/体力/勾玉用的是 `Single` 模式，返回 str，只保留 0-9、小数点、万、亿，
-          再取第一个合法数值：`_2856` -> `2856`，`L40` -> `40`，`9.0万` -> `9.0万`；
-          一个数字都没有时视为识别失败，返回空串。
+        Args:
+            value: OCR 原始结果；`Single` 模式返回 str，`Digit` 模式返回 int。
+            allow_decimal: 是否允许出现小数。
+                - 标题栏金币/体力/勾玉确实会有 `1.4万` / `9.0万` 这种值 -> True（默认）；
+                - 仓库计数恒为整数，出现小数点必然是图标碎屑 -> False，
+                  此时只保留数字并取最后一段（如 `9.53` -> `53`、`L40` -> `40`）。
+
+        Returns:
+            清洗后的值：允许小数时返回可能带 万/亿 的字符串，否则返回纯数字字符串；
+            一个数字都没有时视为识别失败，返回空串。
         """
+
         if isinstance(value, (int, float)):
             return value
         if not value:
             return ''
+        if not allow_decimal:
+            # 千分位逗号先去掉（`1,052` -> `1052`）；其余非数字字符都当分段（小数点、冒号、空格……）
+            text = cls.STORAGE_VALUE_THOUSANDS.sub('', str(value))
+            digits = cls.STORAGE_VALUE_DIGITS.findall(text)
+            if not digits:
+                return ''
+            last = digits[-1]
+            # 计数右对齐、恒为整数，真值不可能有前导零。一旦出现，说明小数点/冒号把真值
+            # 从中间断开了（如 `1: 53` 可能是 153 被断开），取最后一段就丢了高位。
+            # 这里只告警、不静默吞掉；真正的修复要看像素列剖面有没有断口（见笔记）。
+            if len(last) > 1 and last.startswith('0'):
+                logger.warning(
+                    f'计数清洗 {value!r} 取最后一段得 {last!r}，含前导零，'
+                    f'疑似真值被断开（可能丢高位）'
+                )
+            return last
         cleaned = cls.STORAGE_VALUE_NOISE.sub('', str(value))
         matched = cls.STORAGE_VALUE_PATTERN.search(cleaned)
         return matched.group(0) if matched else ''
+
+    # 计数框相对图标「右下角」向上扩的像素数。
+    # 位数多的数字游戏会自动缩小字号、字顶上移，不扩会切掉字顶；
+    # 只能向上扩、不能向下 —— 两位数（大字号）的底边距框底只剩 1~2px，整体上移会切下缘。
+    COUNT_TOP_EXPAND = 2
+
+    # 判定「这一列有内容」的像素阈值。规则用 cf_hsv 过滤后底色是纯黑（0），
+    # 只有文字是亮的，所以 20 足够排除背景、又不会漏掉暗一点的字。
+    OCR_CONTENT_MIN_PIXEL = 20
+
+    @classmethod
+    def trim_ocr_margin(cls, image, pad: int = 2):
+        """裁掉 OCR 图左右两侧的空白列。
+
+        标题栏的 ROI 是按「图标右边到下一个图标」划的，数字只占其中一段，
+        左侧会留下一大片纯黑。整框识别时这片空白会让模型偶发丢字符 ——
+        设备侧体力 `3.4万` 被读成 ` .4万`，清洗后成了 `4万`（少 3 万，差一个数量级）。
+        裁掉空白后同一张图稳定读成 `3.4万`（score 0.855 -> 0.994）。
+
+        对仓库计数是空操作（计数框左边紧挨图标美术，本来就没有空白列），
+        实测 35 个用例结果完全不变，所以那边不套它。
+        """
+        cols = np.where((image.max(axis=2) > cls.OCR_CONTENT_MIN_PIXEL).sum(axis=0) > 0)[0]
+        if len(cols) == 0:
+            return image
+        left = max(0, int(cols[0]) - pad)
+        right = min(image.shape[1], int(cols[-1]) + 1 + pad)
+        return image[:, left:right]
+
+    def read_title_value(self, ocr_rule, image) -> str:
+        """读标题栏资源数值。
+
+        不能直接用 `ocr_rule.ocr()`：需要在「按 roi 裁剪」之后、「识别」之前
+        插一步裁空白（原因见 `trim_ocr_margin`）。阈值与后处理仍沿用规则自身设置；
+        裁完读不出来时退回标准的 `ocr_rule.ocr()`，保留原有兜底行为。
+        """
+        x, y, w, h = ocr_rule.roi
+        crop = ocr_rule.pre_process(image[y:y + h, x:x + w])
+        crop = self.trim_ocr_margin(crop)
+        if crop.size:
+            result, score = ocr_rule.model.ocr_single_line(crop)
+            if score >= ocr_rule.score:
+                return ocr_rule.after_process(result)
+            logger.info(f'{ocr_rule.name} 裁边后识别分数 {score:.2f} 低于阈值，退回整框识别')
+        return ocr_rule.ocr(image, log=False)
 
     def run_storage_stats(self) -> dict:
         """纳物库统计
@@ -701,11 +774,20 @@ class ScriptTask(GameUi, Summon, DailyTriflesAssets):
         logger.info(f'纳物库截图已保存至 {png_file}')
 
         # 2. 标题栏上的三个资源：金币 / 体力 / 勾玉
-        stats = {
-            '金币': self.clean_storage_value(self.O_GOLD_COUNT.ocr(self.device.image)),
-            '体力': self.clean_storage_value(self.O_SUSHI_COUNT.ocr(self.device.image)),
-            '勾玉': self.clean_storage_value(self.O_JADE_COUNT.ocr(self.device.image)),
-        }
+        # 这三项允许小数与 万/亿（`1.4万`、`9.0万`）；OCR 原始值与清洗后不同时打日志。
+        # 实测只存清洗结果时，噪声来源（如海蛇皮被读成 `9.53`）无法事后定位，所以补上原始值。
+        # 走 read_title_value（裁掉 roi 里的空白列）而不是直接 ocr()，原因见 trim_ocr_margin。
+        stats = {}
+        for name, ocr_rule in (
+            ('金币', DailyTriflesAssets.O_GOLD_COUNT),
+            ('体力', DailyTriflesAssets.O_SUSHI_COUNT),
+            ('勾玉', DailyTriflesAssets.O_JADE_COUNT),
+        ):
+            raw = self.read_title_value(ocr_rule, self.device.image)
+            cleaned = self.clean_storage_value(raw)
+            if str(raw) != str(cleaned):
+                logger.info(f'{name} OCR 原始 {raw!r} -> 清洗后 {cleaned!r}')
+            stats[name] = cleaned
 
         # 3. 仓库内的资源：先用图片规则定位图标，再按位置算出计数区做 OCR
         # 每项第三个元素是计数用的 OCR 规则（Digit 模式，返回 int）：
@@ -715,16 +797,14 @@ class ScriptTask(GameUi, Summon, DailyTriflesAssets):
         items = (
             ('蓝票', DailyTriflesAssets.I_BLUE_TICKET, low),
             ('金蛇皮', DailyTriflesAssets.I_GOLD_SKIN, high),
-            ('逢魔皮', DailyTriflesAssets.I_DEMON_SKIN, high),
+            ('逢魔皮', DailyTriflesAssets.I_DEMON_SKIN, low),
             ('现世符咒', DailyTriflesAssets.I_PRESENT_WORLD_TICKET, low),
-            ('海蛇皮', DailyTriflesAssets.I_SEA_SKIN, high),
+            ('海蛇皮', DailyTriflesAssets.I_SEA_SKIN, low),
             ('御札', DailyTriflesAssets.I_RETURN_SOUL, low),
         )
 
         # 一次性预取所有模板的匹配结果，减少 RPC 次数
         self.prepare_appear_cache([rule for _, rule, _ in items])
-        # 只向上扩、底边不动，避免切到大字号（如两位数）的下缘。
-        count_top_expand = 2
         for name, rule, ocr_rule in items:
             if not self.appear(rule):
                 # 页面上确实没有这个资源（例如现世符咒已用完）→ 记为 0，不再漏掉这个键；
@@ -737,16 +817,21 @@ class ScriptTask(GameUi, Summon, DailyTriflesAssets):
             roi_w, roi_h = declared[0][2], declared[0][3]
             count_roi = [
                 x + w - roi_w,
-                y + h - count_top_expand,
+                y + h - self.COUNT_TOP_EXPAND,
                 roi_w,
-                roi_h + count_top_expand,
+                roi_h + self.COUNT_TOP_EXPAND,
             ]
             ocr_rule.roi = count_roi
             ocr_rule.area = count_roi
             try:
-                stats[name] = self.clean_storage_value(ocr_rule.ocr(self.device.image))
+                raw = ocr_rule.ocr(self.device.image)
             finally:
                 ocr_rule.roi, ocr_rule.area = declared
+            # 仓库计数恒为整数：小数点只可能是图标碎屑，按 allow_decimal=False 清洗
+            cleaned = self.clean_storage_value(raw, allow_decimal=False)
+            if str(raw) != str(cleaned):
+                logger.info(f'{name} OCR 原始 {raw!r} -> 清洗后 {cleaned!r}')
+            stats[name] = cleaned
 
         logger.info(f'纳物库统计结果: {stats}')
 
