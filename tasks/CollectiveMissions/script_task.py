@@ -53,8 +53,7 @@ class ScriptTask(GameUi, CollectiveMissionsAssets):
         raise TaskEnd
 
     def select_and_update_cur_mission(self, mission: MC) -> bool:
-        :return: 成功选择返回True
-        """
+        """刷新任务列表, 直到刷出目标任务并选中。"""
         # 兜底: 万一 OCR 一直认不出目标(例如 魂/灵 这类混字), 别把任务永远卡在这里
         deadline = time.time() + 10 * 60
         switch_cnt = 0
@@ -90,6 +89,7 @@ class ScriptTask(GameUi, CollectiveMissionsAssets):
                 sleep(0.5)
 
     def click_until_appear(self, click, stop, timeout: float = 15, interval: float = 1.5) -> bool:
+        """点 click 直到 stop 出现, 带超时; 失配时放弃并返回 False。"""
         timeout_timer = Timer(timeout).start()
         while not timeout_timer.reached():
             self.screenshot()
