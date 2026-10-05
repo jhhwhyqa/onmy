@@ -332,8 +332,8 @@ class ScriptTask(WQExplore, SecretScriptTask, WantedQuestsAssets):
             )
             if not wq_info:
                 continue
-            # 跳过高层秘闻
-            if wq_info.dest[-1] in {"捌", "玖", "拾", "番外"}:
+            # 跳过高层秘闻，暂时将"捌"划入可挑战范围
+            if wq_info.dest[-1] in {"玖", "拾", "番外"}:
                 logger.warning('This secret layer is too high, skip')
                 continue
             # 跳过已经执行过的(例:都是探索第5层4只怪, 上次计算需要打2次但是这次还是打2次, 肯定出问题了也不需要执行了)
