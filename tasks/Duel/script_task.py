@@ -214,8 +214,11 @@ class ScriptTask(GameUi, GeneralBattle, SwitchSoul, DuelAssets, SwitchOnmyoji):
                 logger.warning('Duel battle timeout[>15 minutes], exit')
                 self.duel_exit_battle()
                 continue
-            if ret is None and not battle_operated:  # 进行战斗前的操作
-                self.ui_click(self.O_BATTLE_HAND, self.O_BATTLE_AUTO, interval=0.8)
+            if (
+                ret is None and not battle_operated and self.appear(self.O_BATTLE_HAND)
+            ):  # 进行战斗前的操作
+                self.ui_click_until_disappear(self.O_BATTLE_HAND, interval=0.8)
+                self.wait_until_appear(self.O_BATTLE_AUTO, timeout=10)
                 self.green_mark(
                     self.conf.duel_config.green_enable, self.conf.duel_config.green_mark
                 )
