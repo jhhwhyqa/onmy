@@ -187,6 +187,10 @@ class GameUiAssets:
 	I_CHECK_ASSIT_BATTLE = RuleImage(roi_front=(856,109,31,30), roi_back=(856,109,31,30), threshold=0.8, method="Template matching", file="./tasks/GameUi/page/page_check_assit_battle.png")
 	# 组队界面标志备用 
 	I_CHECK_TEAM_TITLE = RuleImage(roi_front=(97,27,67,35), roi_back=(81,0,140,82), threshold=0.8, method="Template matching", file="./tasks/GameUi/page/page_check_team_title.png")
+	# 庭院前往纳物库 
+	I_MAIN_GOTO_STORAGE = RuleImage(roi_front=(320,620,49,40), roi_back=(285,597,120,100), threshold=0.8, method="Template matching", file="./tasks/GameUi/page/page_main_goto_storage.png")
+	# 纳物库标志 
+	I_CHECK_STORAGE = RuleImage(roi_front=(84,14,104,45), roi_back=(84,14,104,45), threshold=0.8, method="Template matching", file="./tasks/GameUi/page/page_check_storage.png")
 
 
 	# Image Rule Assets

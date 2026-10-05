@@ -321,6 +321,15 @@ page_main.connect(
     page_summon, GameUiAssets.I_MAIN_GOTO_SUMMON, key="page_main->page_summon"
 )
 
+# 纳物库页。
+page_storage = Page(GameUiAssets.I_CHECK_STORAGE, category="global")
+page_storage.connect(
+    page_main, GlobalGameAssets.I_UI_BACK_YELLOW, key="page_storage->page_main"
+)
+page_main.connect(
+    page_storage, GameUiAssets.I_MAIN_GOTO_STORAGE, key="page_main->page_storage"
+)
+
 # 町中主页。
 page_town = Page(GameUiAssets.I_CHECK_TOWN, category="global")
 page_town.connect(page_main, GameUiAssets.I_TOWN_GOTO_MAIN, key="page_town->page_main")

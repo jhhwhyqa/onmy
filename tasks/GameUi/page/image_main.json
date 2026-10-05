@@ -268,5 +268,23 @@
     "method": "Template matching",
     "threshold": 0.8,
     "description": "组队界面标志备用"
+  },
+  {
+    "itemName": "main_goto_storage",
+    "imageName": "page_main_goto_storage.png",
+    "roiFront": "320,620,49,40",
+    "roiBack": "285,597,120,100",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "庭院前往纳物库"
+  },
+  {
+    "itemName": "check_storage",
+    "imageName": "page_check_storage.png",
+    "roiFront": "84,14,104,45",
+    "roiBack": "84,14,104,45",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "纳物库标志"
   }
 ]

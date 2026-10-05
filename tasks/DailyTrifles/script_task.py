@@ -2,6 +2,8 @@
 # @author runhey
 # github https://github.com/runhey
 import copy
+import json
+from pathlib import Path
 from time import sleep
 
 import difflib
@@ -19,6 +21,7 @@ from tasks.DailyTrifles.page import (
 from tasks.GameUi.game_ui import GameUi
 from tasks.GameUi.page import (
     page_main,
+    page_storage,
     page_summon,
     page_guild,
     page_mall,
@@ -30,6 +33,7 @@ from tasks.DailyTrifles.config import DailyTriflesConfig
 from tasks.DailyTrifles.assets import DailyTriflesAssets
 from tasks.Component.Summon.summon import Summon
 
+from module.base.utils import save_image
 from module.logger import logger
 from module.exception import TaskEnd
 from module.base.timer import Timer
@@ -57,6 +61,9 @@ class ScriptTask(GameUi, Summon, DailyTriflesAssets):
         # 商店签到 or 购买寿司
         if con.store_sign or con.buy_sushi_count > 0:
             self.run_store()
+        # 纳物库统计
+        if con.storage_stats:
+            self.run_storage_stats()
         self.config.save()
         self.plan_next_dt()
         raise TaskEnd('DailyTrifles')
@@ -645,6 +652,112 @@ class ScriptTask(GameUi, Summon, DailyTriflesAssets):
         ):
             return False
         return True
+
+    # 标题栏三条规则是 Single 模式，值可能带 万/亿/小数点，需要按白名单清洗。
+    # 数字是叠画在图标右下角上的，OCR 会把图标边缘一起读进来，
+    # 实测出现过 `_2856` / `L2` / `L40` / `LD265` 这类前缀噪声，一律按无效字符丢弃。
+    STORAGE_VALUE_NOISE = re.compile(r'[^0-9.万亿]')
+    # 清洗后再取第一个合法数值，丢掉 `..`、`万` 开头之类的残渣
+    STORAGE_VALUE_PATTERN = re.compile(r'\d+(?:\.\d+)?[万亿]?')
+
+    @classmethod
+    def clean_storage_value(cls, value):
+        """清洗纳物库 OCR 结果。
+
+        - 仓库计数用的是 `Digit` 模式，`ocr()` 直接返回 int，本身已经是纯数字，原样保留；
+        - 标题栏金币/体力/勾玉用的是 `Single` 模式，返回 str，只保留 0-9、小数点、万、亿，
+          再取第一个合法数值：`_2856` -> `2856`，`L40` -> `40`，`9.0万` -> `9.0万`；
+          一个数字都没有时视为识别失败，返回空串。
+        """
+        if isinstance(value, (int, float)):
+            return value
+        if not value:
+            return ''
+        cleaned = cls.STORAGE_VALUE_NOISE.sub('', str(value))
+        matched = cls.STORAGE_VALUE_PATTERN.search(cleaned)
+        return matched.group(0) if matched else ''
+
+    def run_storage_stats(self) -> dict:
+        """纳物库统计
+
+        进入纳物库后截图存档到 ./log/storage_stats/{实例名}/{日期}/，
+        再用 stats/image.json 的模板定位各资源图标，以图标「右下角」为锚点算出计数区做 OCR，
+        结果经 clean_storage_value() 清洗后与截图同名前缀落盘为 json。
+        """
+        logger.hr('storage stats', 2)
+        self.goto_page(page_storage)
+        self.ui_click_until_disappear(self.I_SWITCH_TO_RESOURCE, interval=0.5)
+        self.screenshot()
+
+        # 1. 截图存档：./log/storage_stats/{实例名}/{日期}/{时间戳}.png
+        # 同一天的所有运行落在同一个日期文件夹里；日期与文件名取同一次 now，避免跨零点错位。
+        instance = re.sub(r'[^\w.-]', '_', self.config.config_name)
+        now = datetime.now()
+        folder = Path('./log/storage_stats') / instance / now.strftime('%Y-%m-%d')
+        folder.mkdir(parents=True, exist_ok=True)
+        timestamp = now.strftime('%Y-%m-%d_%H-%M-%S')
+        png_file = folder / f'{timestamp}.png'
+        save_image(self.device.image, str(png_file))
+        logger.info(f'纳物库截图已保存至 {png_file}')
+
+        # 2. 标题栏上的三个资源：金币 / 体力 / 勾玉
+        stats = {
+            '金币': self.clean_storage_value(self.O_GOLD_COUNT.ocr(self.device.image)),
+            '体力': self.clean_storage_value(self.O_SUSHI_COUNT.ocr(self.device.image)),
+            '勾玉': self.clean_storage_value(self.O_JADE_COUNT.ocr(self.device.image)),
+        }
+
+        # 3. 仓库内的资源：先用图片规则定位图标，再按位置算出计数区做 OCR
+        # 每项第三个元素是计数用的 OCR 规则（Digit 模式，返回 int）：
+        # 默认用短的 LOW（60x24，够放 4 位数），位数可能更多的资源用长的 HIGH（80x24）。
+        low = DailyTriflesAssets.O_COMMON_COUNT_LOW
+        high = DailyTriflesAssets.O_COMMON_COUNT_HIGH
+        items = (
+            ('蓝票', DailyTriflesAssets.I_BLUE_TICKET, low),
+            ('金蛇皮', DailyTriflesAssets.I_GOLD_SKIN, high),
+            ('逢魔皮', DailyTriflesAssets.I_DEMON_SKIN, high),
+            ('现世符咒', DailyTriflesAssets.I_PRESENT_WORLD_TICKET, low),
+            ('海蛇皮', DailyTriflesAssets.I_SEA_SKIN, high),
+            ('御札', DailyTriflesAssets.I_RETURN_SOUL, low),
+        )
+
+        # 一次性预取所有模板的匹配结果，减少 RPC 次数
+        self.prepare_appear_cache([rule for _, rule, _ in items])
+        # 只向上扩、底边不动，避免切到大字号（如两位数）的下缘。
+        count_top_expand = 2
+        for name, rule, ocr_rule in items:
+            if not self.appear(rule):
+                # 页面上确实没有这个资源（例如现世符咒已用完）→ 记为 0，不再漏掉这个键；
+                logger.info(f'纳物库中未找到资源 {name}，记为 0')
+                stats[name] = '0'
+                continue
+
+            x, y, w, h = rule.roi_front
+            declared = (list(ocr_rule.roi), list(ocr_rule.area))
+            roi_w, roi_h = declared[0][2], declared[0][3]
+            count_roi = [
+                x + w - roi_w,
+                y + h - count_top_expand,
+                roi_w,
+                roi_h + count_top_expand,
+            ]
+            ocr_rule.roi = count_roi
+            ocr_rule.area = count_roi
+            try:
+                stats[name] = self.clean_storage_value(ocr_rule.ocr(self.device.image))
+            finally:
+                ocr_rule.roi, ocr_rule.area = declared
+
+        logger.info(f'纳物库统计结果: {stats}')
+
+        # 4. 统计结果与截图同名前缀落盘
+        json_file = png_file.with_suffix('.json')
+        with open(json_file, 'w', encoding='utf-8') as f:
+            json.dump(stats, f, ensure_ascii=False, indent=2)
+        logger.info(f'纳物库统计结果已保存至 {json_file}')
+
+        self.goto_page(page_main)
+        return stats
 
 
 if __name__ == '__main__':

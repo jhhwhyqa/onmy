@@ -313,5 +313,7 @@
   "run_mode_help": "公开匹配随机队友: 创建公开房间, 等随机路人进房后开战\n不公开单刷: 创建仅邀请房间, 不等队友直接点击挑战",
   "public_team": "公开匹配随机队友",
   "solo": "不公开单刷",
-  "lbs_config": "LBS活动配置"
+  "lbs_config": "LBS活动配置",
+  "storage_stats": "纳物库统计",
+  "storage_stats_help": "纳物库资源统计, 会同时保存图片和文件在log目录"
 }

@@ -420,7 +420,8 @@
       "draw_mystery_pattern": false,
       "luck_msg": false,
       "store_sign": false,
-      "buy_sushi_count": -1
+      "buy_sushi_count": -1,
+      "storage_stats": false
     },
     "guild_donate": {
       "enable": false,
