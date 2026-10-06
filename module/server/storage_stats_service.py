@@ -42,7 +42,7 @@ class StorageStatsError(Exception):
         self.message = message
 
 
-def _safe_path(*parts: str) -> Path:
+def safe_path(*parts: str) -> Path:
     """把若干路径片段拼到 STORAGE_STATS_ROOT 下，并校验名称合法且没有越界。
 
     Args:
@@ -84,24 +84,43 @@ def _check_date(day: str) -> str:
     return day
 
 
-def _iter_latest_runs(instance_dir: Path) -> dict[str, tuple[str, Path]]:
-    """扫描实例目录，返回 `日期 -> (时间戳, 该日期最后一次的 json 路径)`。
+def iter_snapshots(instance_dir: Path) -> list[tuple[str, str, Path]]:
+    """列出实例目录下的全部快照，按时间戳升序。
 
-    递归扫描是为了同时兼容 `{实例}/{日期}/{时间戳}.json` 与 `{实例}/{时间戳}.json` 两种布局；
-    日期与排序都取自文件名里的时间戳，文件名不符合约定的 json 直接跳过。
+    递归扫描是为了同时兼容 `{实例}/{日期}/{时间戳}.json` 与 `{实例}/{时间戳}.json`
+    两种布局；日期与排序都取自文件名里的时间戳，文件名不符合约定的 json 直接跳过。
+
+    这里刻意返回**同一天的多次运行**（而不是只留最后一次），因为清理服务需要知道
+    哪些快照是不可达的死数据；读取路径请用 `_iter_latest_runs`。
+
+    Args:
+        instance_dir: 实例目录。
+
+    Returns:
+        `[(日期, 时间戳, json 路径), ...]`，按时间戳升序。
     """
 
-    latest: dict[str, tuple[str, Path]] = {}
+    snapshots: list[tuple[str, str, Path]] = []
     if not instance_dir.is_dir():
-        return latest
+        return snapshots
     for path in instance_dir.rglob("*.json"):
         match = _STAMP_RE.match(path.stem)
         if not match:
             continue
-        day = match.group("date")
-        current = latest.get(day)
-        if current is None or path.stem > current[0]:
-            latest[day] = (path.stem, path)
+        snapshots.append((match.group("date"), path.stem, path))
+    snapshots.sort(key=lambda item: item[1])
+    return snapshots
+
+
+def _iter_latest_runs(instance_dir: Path) -> dict[str, tuple[str, Path]]:
+    """扫描实例目录，返回 `日期 -> (时间戳, 该日期最后一次的 json 路径)`。
+
+    升序遍历 `iter_snapshots` 后直接覆盖，等价于「取时间戳最大的那次」。
+    """
+
+    latest: dict[str, tuple[str, Path]] = {}
+    for day, stamp, path in iter_snapshots(instance_dir):
+        latest[day] = (stamp, path)
     return latest
 
 
@@ -148,7 +167,7 @@ def daily_series(instance: str) -> dict[str, Any]:
         StorageStatsError: 实例目录不存在。
     """
 
-    instance_dir = _safe_path(instance)
+    instance_dir = safe_path(instance)
     if not instance_dir.is_dir():
         raise StorageStatsError(404, "instance_not_found", f"实例不存在: {instance}")
     latest = _iter_latest_runs(instance_dir)
@@ -167,7 +186,7 @@ def daily_latest(instance: str, day: str) -> dict[str, Any]:
     """
 
     _check_date(day)
-    instance_dir = _safe_path(instance)
+    instance_dir = safe_path(instance)
     if not instance_dir.is_dir():
         raise StorageStatsError(404, "instance_not_found", f"实例不存在: {instance}")
     latest = _iter_latest_runs(instance_dir).get(day)
@@ -184,7 +203,7 @@ def latest_image_path(instance: str, day: str) -> Path:
     """
 
     _check_date(day)
-    instance_dir = _safe_path(instance)
+    instance_dir = safe_path(instance)
     if not instance_dir.is_dir():
         raise StorageStatsError(404, "instance_not_found", f"实例不存在: {instance}")
     latest = _iter_latest_runs(instance_dir).get(day)
