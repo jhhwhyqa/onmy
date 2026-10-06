@@ -22,6 +22,8 @@ _EQ_LINE_RE = re.compile(r"^═{15,}\s*$")
 _EQ_TITLE_LINE_RE = re.compile(r"^═{10,}\s+(?P<title>.*?)\s+═{10,}\s*$")
 _TITLE_LINE_RE = re.compile(r"^─{10,}\s*(?P<title>.*?)\s*─{10,}\s*$")
 _TASK_ENDED_RE = re.compile(r"^(?P<title>.+?)\s+task ended\b", re.IGNORECASE)
+# script.py 在任务 run() 返回后打的收尾行，才是任务真正的结束时刻。
+_SCHEDULER_END_TASK_RE = re.compile(r"Scheduler:\s*End task\s+`(?P<title>[^`]+)`", re.IGNORECASE)
 _BATTLE_TITLE = "GENERAL BATTLE START"
 _START_TITLE = "START"
 _SIX_REALMS_TITLE = "SIXREALMS"
@@ -162,6 +164,12 @@ class LogStatsParser:
         return matched.group("title").strip() if matched else None
 
     @staticmethod
+    def _extract_scheduler_end_title(line: str) -> str | None:
+        message = line.rsplit("|", 1)[-1].strip()
+        matched = _SCHEDULER_END_TASK_RE.search(message)
+        return matched.group("title").strip() if matched else None
+
+    @staticmethod
     def _is_battle_boundary(line: str) -> bool:
         matched = _TITLE_LINE_RE.match(line.strip())
         if not matched:
@@ -282,6 +290,10 @@ class LogStatsParser:
         if task_ended_title is not None:
             self._handle_task_ended(task_ended_title)
 
+        scheduler_end_title = self._extract_scheduler_end_title(line)
+        if scheduler_end_title is not None:
+            self._handle_scheduler_task_end(scheduler_end_title, ts)
+
     def _consume_runtime_timestamp(self, ts: datetime) -> None:
         runtime = self.runtime
         runtime.region_last = ts
@@ -305,6 +317,24 @@ class LogStatsParser:
         if self._normalize_title(title) != self._normalize_title(self._active_task.name):
             return
         self._close_active_battle()
+
+    def _handle_scheduler_task_end(self, title: str, ts: datetime) -> None:
+        """用调度器的收尾行给任务时长收口。
+
+        任务时长原本是 [start_time, last_time]，而 last_time 会一路刷新到**下一个任务
+        边界出现**为止，于是「本任务真正跑完 → 下一个任务开始」之间的空闲（等待、
+        切配置、脚本间隙）也被算进本任务。
+
+        `Scheduler: End task` 是 script.py 里 `self.run(...)` 返回之后打的，代表任务
+        真实结束时刻，用它钉住 last_time 即可把空闲排除在外。
+        """
+        if self._active_task is None:
+            return
+        if self._normalize_title(title) != self._normalize_title(self._active_task.name):
+            return
+        self._active_task.last_time = ts
+        self._close_active_battle()
+        self._close_active_task()
 
     def _close_active_battle(self) -> None:
         if self._active_task is None or self._active_battle is None:
