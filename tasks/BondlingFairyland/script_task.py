@@ -732,9 +732,10 @@ class ScriptTask(
         click_count = 0
         while 1:
             self.screenshot()
-            if not self.appear(self.I_BALL_FIRE, threshold=0.7):
-                # 单人挑战等待动画，防止识别到I_BALL_FIRE为exit_matcher
-                sleep(0.5)
+            # 以实际进入战斗页面为准
+            if not self.appear(self.I_BALL_FIRE, threshold=0.7) and self.is_in_battle(
+                False
+            ):
                 return True
             # 盘子少于10个停止,略过具体数量防止ocr识别错误导致退出
             if self.appear_then_click(self.I_C_PLATE_LESS, interval=1):
