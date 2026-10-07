@@ -91,6 +91,16 @@ class ScriptTask(
         bondling_mode = self.config.bondling_fairyland.bondling_config.bondling_mode
         cap_again = bondling_mode in [BondlingMode.MODE3, BondlingMode.MODE4]
         clicked = False
+        # 队员延后结算点击(4s±1s), 避免比队长先结算被踢出房间导致重新组队
+        if (
+            self.config.bondling_fairyland.bondling_config.user_status
+            == UserStatus.MEMBER
+            and context.last_page != page_battle_result
+        ):
+            delay = random.uniform(3, 5)
+            logger.info(f'Member delay settle: {delay:.2f}s')
+            sleep(delay)
+            self.screenshot()
         if cap_again:
             # 开启连续结契需要重置点击记录(连点10次)
             if self.appear_then_click(self.I_CAP_AGAIN, interval=1):
