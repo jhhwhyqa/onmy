@@ -4,44 +4,35 @@
     "roiFront": "512,14,95,32",
     "roiBack": "468,0,175,61",
     "mode": "Single",
-    "method": "cf_hsv(000096,ff28ff)",
+    "method": "Default",
     "keyword": "",
     "description": "金币数量"
   },
   {
     "itemName": "sushi_count",
-    "roiFront": "723,14,95,32",
+    "roiFront": "743,14,79,31",
     "roiBack": "670,0,175,61",
     "mode": "Single",
-    "method": "cf_hsv(000096,ff28ff)",
+    "method": "Default",
     "keyword": "",
     "description": "体力数量"
   },
   {
     "itemName": "jade_count",
-    "roiFront": "923,15,95,32",
+    "roiFront": "929,15,89,32",
     "roiBack": "873,0,175,61",
     "mode": "Single",
-    "method": "cf_hsv(000096,ff28ff)",
+    "method": "Default",
     "keyword": "",
     "description": "勾玉数量"
   },
   {
-    "itemName": "common_count_low",
-    "roiFront": "705,461,60,24",
-    "roiBack": "705,461,60,24",
+    "itemName": "common_count",
+    "roiFront": "931,148,78,31",
+    "roiBack": "931,148,78,31",
     "mode": "Single",
-    "method": "cf_hsv(000096,ff28ff)",
+    "method": "Default",
     "keyword": "",
-    "description": "仓库内较小数的通用计数识别，通过计算获取坐标"
-  },
-  {
-    "itemName": "common_count_high",
-    "roiFront": "687,461,80,24",
-    "roiBack": "687,461,80,24",
-    "mode": "Single",
-    "method": "cf_hsv(000096,ff28ff)",
-    "keyword": "",
-    "description": "仓库内较大数的通用计数识别，通过计算获取坐标"
+    "description": "通用数量识别"
   }
 ]

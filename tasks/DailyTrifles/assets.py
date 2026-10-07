@@ -142,25 +142,21 @@ class DailyTriflesAssets:
 	I_DEMON_SKIN = RuleImage(roi_front=(679,292,93,70), roi_back=(253,163,544,432), threshold=0.8, method="Template matching", file="./tasks/DailyTrifles/stats/stats_demon_skin.png")
 	# 现世符咒 
 	I_PRESENT_WORLD_TICKET = RuleImage(roi_front=(274,294,93,70), roi_back=(253,163,544,432), threshold=0.8, method="Template matching", file="./tasks/DailyTrifles/stats/stats_present_world_ticket.png")
-	# 海蛇皮 
-	I_SEA_SKIN = RuleImage(roi_front=(578,291,93,70), roi_back=(253,163,544,432), threshold=0.8, method="Template matching", file="./tasks/DailyTrifles/stats/stats_sea_skin.png")
 	# 御札 
-	I_RETURN_SOUL = RuleImage(roi_front=(476,394,93,70), roi_back=(253,163,544,432), threshold=0.8, method="Template matching", file="./tasks/DailyTrifles/stats/stats_return_soul.png")
+	I_RETURN_SOUL = RuleImage(roi_front=(477,394,93,68), roi_back=(252,165,543,430), threshold=0.8, method="Template matching", file="./tasks/DailyTrifles/stats/stats_return_soul.png")
 	# 切换到资源页面 
 	I_SWITCH_TO_RESOURCE = RuleImage(roi_front=(115,433,107,43), roi_back=(51,179,191,397), threshold=0.9, method="Template matching", file="./tasks/DailyTrifles/stats/stats_switch_to_resource.png")
 
 
 	# Ocr Rule Assets
 	# 金币数量 
-	O_GOLD_COUNT = RuleOcr(roi=(512,14,95,32), area=(468,0,175,61), mode="Single", method="cf_hsv(000096,ff28ff)", keyword="", name="gold_count")
+	O_GOLD_COUNT = RuleOcr(roi=(512,14,95,32), area=(468,0,175,61), mode="Single", method="Default", keyword="", name="gold_count")
 	# 体力数量 
-	O_SUSHI_COUNT = RuleOcr(roi=(723,14,95,32), area=(670,0,175,61), mode="Single", method="cf_hsv(000096,ff28ff)", keyword="", name="sushi_count")
+	O_SUSHI_COUNT = RuleOcr(roi=(743,14,79,31), area=(670,0,175,61), mode="Single", method="Default", keyword="", name="sushi_count")
 	# 勾玉数量 
-	O_JADE_COUNT = RuleOcr(roi=(923,15,95,32), area=(873,0,175,61), mode="Single", method="cf_hsv(000096,ff28ff)", keyword="", name="jade_count")
-	# 仓库内较小数的通用计数识别，通过计算获取坐标 
-	O_COMMON_COUNT_LOW = RuleOcr(roi=(705,461,60,24), area=(705,461,60,24), mode="Single", method="cf_hsv(000096,ff28ff)", keyword="", name="common_count_low")
-	# 仓库内较大数的通用计数识别，通过计算获取坐标 
-	O_COMMON_COUNT_HIGH = RuleOcr(roi=(687,461,80,24), area=(687,461,80,24), mode="Single", method="cf_hsv(000096,ff28ff)", keyword="", name="common_count_high")
+	O_JADE_COUNT = RuleOcr(roi=(929,15,89,32), area=(873,0,175,61), mode="Single", method="Default", keyword="", name="jade_count")
+	# 通用数量识别 
+	O_COMMON_COUNT = RuleOcr(roi=(931,148,78,31), area=(931,148,78,31), mode="Single", method="Default", keyword="", name="common_count")
 
 
 	# Image Rule Assets

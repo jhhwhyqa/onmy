@@ -36,19 +36,10 @@
     "description": "现世符咒"
   },
   {
-    "itemName": "sea_skin",
-    "imageName": "stats_sea_skin.png",
-    "roiFront": "578,291,93,70",
-    "roiBack": "253,163,544,432",
-    "method": "Template matching",
-    "threshold": 0.8,
-    "description": "海蛇皮"
-  },
-  {
     "itemName": "return_soul",
     "imageName": "stats_return_soul.png",
-    "roiFront": "476,394,93,70",
-    "roiBack": "253,163,544,432",
+    "roiFront": "477,394,93,68",
+    "roiBack": "252,165,543,430",
     "method": "Template matching",
     "threshold": 0.8,
     "description": "御札"
