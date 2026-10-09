@@ -114,6 +114,8 @@ class RestartAssets:
 	I_GOTO_BIND = RuleImage(roi_front=(976,461,68,70), roi_back=(976,461,68,70), threshold=0.8, method="Template matching", file="./tasks/Restart/login/login_goto_bind.png")
 	# 取消绑定 
 	I_CANCEL_BIND = RuleImage(roi_front=(462,470,129,67), roi_back=(462,470,129,67), threshold=0.8, method="Template matching", file="./tasks/Restart/login/login_cancel_bind.png")
+	# 取消更新新引擎 
+	I_LOGIN_CANCEL_UPDATE_ENGINE = RuleImage(roi_front=(482,419,101,37), roi_back=(482,419,101,37), threshold=0.8, method="Template matching", file="./tasks/Restart/login/login_login_cancel_update_engine.png")
 
 
 	# Ocr Rule Assets
@@ -125,5 +127,7 @@ class RestartAssets:
 	O_LOGIN_ANIMATION_SKIP = RuleOcr(roi=(1110,35,100,45), area=(1135,40,70,35), mode="Single", method="Default", keyword="跳过", name="login_animation_skip")
 	# 登录指定角色，默认第一个 
 	O_LOGIN_SPECIFIC_SERVE = RuleOcr(roi=(110,120,350,600), area=(110,120,350,600), mode="Full", method="Default", keyword="", name="login_specific_serve")
+	# 取消更新新引擎 
+	O_CANCEL_UPDATE = RuleOcr(roi=(466,418,133,44), area=(466,418,133,44), mode="Single", method="Default", keyword="暂不更新", name="cancel_update")
 
 

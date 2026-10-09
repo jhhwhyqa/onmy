@@ -196,5 +196,14 @@
     "method": "Template matching",
     "threshold": 0.8,
     "description": "取消绑定"
+  },
+  {
+    "itemName": "login_cancel_update_engine",
+    "imageName": "login_login_cancel_update_engine.png",
+    "roiFront": "482,419,101,37",
+    "roiBack": "482,419,101,37",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "取消更新新引擎"
   }
 ]
