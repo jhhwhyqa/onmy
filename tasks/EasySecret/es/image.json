@@ -1,0 +1,29 @@
+[
+  {
+    "itemName": "check_secret",
+    "imageName": "es_check_secret.png",
+    "roiFront": "162,32,63,34",
+    "roiBack": "142,0,100,100",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "秘闻选择页面"
+  },
+  {
+    "itemName": "es_enter",
+    "imageName": "es_es_enter.png",
+    "roiFront": "1159,623,71,39",
+    "roiBack": "1144,592,100,100",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "进入对应秘闻"
+  },
+  {
+    "itemName": "es_fire",
+    "imageName": "es_es_fire.png",
+    "roiFront": "1071,573,62,34",
+    "roiBack": "1057,550,100,100",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "挑战秘闻"
+  }
+]

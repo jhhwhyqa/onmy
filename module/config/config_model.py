@@ -82,6 +82,7 @@ from tasks.FindJade.config import FindJade
 from tasks.MemoryScrolls.config import MemoryScrolls
 from tasks.AssistBattle.config import AssistBattle
 from tasks.LevelRush.config import LevelRush
+from tasks.EasySecret.config import EasySecret
 
 # ----------------------------------------------------------------------------------------------------------------------
 
@@ -160,6 +161,7 @@ class ConfigModel(ConfigBase):
     memory_scrolls: MemoryScrolls = Field(default_factory=MemoryScrolls)
     assist_battle: AssistBattle = Field(default_factory=AssistBattle)
     level_rush: LevelRush = Field(default_factory=LevelRush)
+    easy_secret: EasySecret = Field(default_factory=EasySecret)
 
     # 这些是每周任务
     true_orochi: TrueOrochi = Field(default_factory=TrueOrochi)

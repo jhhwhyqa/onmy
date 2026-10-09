@@ -1,0 +1,29 @@
+[
+  {
+    "itemName": "layer_1",
+    "roiFront": "293,133,500,520",
+    "roiBack": "293,133,500,520",
+    "mode": "Full",
+    "method": "Default",
+    "keyword": "壹",
+    "description": "秘闻壹层，标记未暂未挑战（右边界 793：必须盖住右列卡片的层数行，否则会把「壹·xx」截成「$壹」甚至整字漏检）"
+  },
+  {
+    "itemName": "secret_title",
+    "roiFront": "513,53,263,53",
+    "roiBack": "513,53,263,53",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "秘闻标题"
+  },
+  {
+    "itemName": "layer_list",
+    "roiFront": "148,100,170,545",
+    "roiBack": "148,100,170,545",
+    "mode": "Full",
+    "method": "Default",
+    "keyword": "",
+    "description": "秘闻详情页左侧层数列表（只取层数名/未解锁那一列）。行距约 140px，层数名在上、未解锁在其下方约 60px"
+  }
+]

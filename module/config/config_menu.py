@@ -55,6 +55,7 @@ class ConfigMenu:
             "MemoryScrolls",
             "AssistBattle",
             "LevelRush",
+            "EasySecret",
         ]
         # 阴阳寮
         self.menu["Guild"] = [
