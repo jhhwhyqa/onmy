@@ -639,19 +639,10 @@
     "description": "未获取绑定奖励"
   },
   {
-    "itemName": "device_permission_confirm",
-    "imageName": "lr_device_permission_confirm.png",
-    "roiFront": "669,383,174,51",
-    "roiBack": "669,383,174,51",
-    "method": "Template matching",
-    "threshold": 0.8,
-    "description": "设备获取通讯录权限确定按钮"
-  },
-  {
     "itemName": "check_add",
     "imageName": "lr_check_add.png",
-    "roiFront": "94,640,32,56",
-    "roiBack": "94,640,32,56",
+    "roiFront": "95,640,32,56",
+    "roiBack": "95,640,32,56",
     "method": "Template matching",
     "threshold": 0.8,
     "description": "添加好友页面标志"

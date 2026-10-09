@@ -191,19 +191,10 @@
   {
     "itemName": "cancel_bind",
     "imageName": "login_cancel_bind.png",
-    "roiFront": "462,470,129,67",
-    "roiBack": "462,470,129,67",
+    "roiFront": "461,471,129,68",
+    "roiBack": "461,471,129,68",
     "method": "Template matching",
     "threshold": 0.8,
     "description": "取消绑定"
-  },
-  {
-    "itemName": "login_cancel_update_engine",
-    "imageName": "login_login_cancel_update_engine.png",
-    "roiFront": "482,419,101,37",
-    "roiBack": "482,419,101,37",
-    "method": "Template matching",
-    "threshold": 0.8,
-    "description": "取消更新新引擎"
   }
 ]

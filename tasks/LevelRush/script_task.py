@@ -353,8 +353,8 @@ class ScriptTask(
             while 1:
                 sleep(1.2)
                 self.screenshot()
-                if self.appear_then_click(
-                    self.I_DEVICE_PERMISSION_CONFIRM, interval=1.2
+                if self.ocr_appear_click(
+                    self.O_DEVICE_PERMISSION_CONFIRM, interval=1.2
                 ):
                     continue
                 if self.appear_then_click(self.I_UI_CONFIRM, interval=1.2):

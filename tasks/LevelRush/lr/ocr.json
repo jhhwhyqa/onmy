@@ -43,5 +43,14 @@
     "method": "Default",
     "keyword": "",
     "description": "当前体力较低的情况"
+  },
+  {
+    "itemName": "device_permission_confirm",
+    "roiFront": "545,459,185,36",
+    "roiBack": "364,438,531,88",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "确定",
+    "description": "设备获取通讯录权限确定按钮"
   }
 ]

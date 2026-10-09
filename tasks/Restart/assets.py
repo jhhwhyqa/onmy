@@ -113,9 +113,7 @@ class RestartAssets:
 	# 前往绑定按钮 
 	I_GOTO_BIND = RuleImage(roi_front=(976,461,68,70), roi_back=(976,461,68,70), threshold=0.8, method="Template matching", file="./tasks/Restart/login/login_goto_bind.png")
 	# 取消绑定 
-	I_CANCEL_BIND = RuleImage(roi_front=(462,470,129,67), roi_back=(462,470,129,67), threshold=0.8, method="Template matching", file="./tasks/Restart/login/login_cancel_bind.png")
-	# 取消更新新引擎 
-	I_LOGIN_CANCEL_UPDATE_ENGINE = RuleImage(roi_front=(482,419,101,37), roi_back=(482,419,101,37), threshold=0.8, method="Template matching", file="./tasks/Restart/login/login_login_cancel_update_engine.png")
+	I_CANCEL_BIND = RuleImage(roi_front=(461,471,129,68), roi_back=(461,471,129,68), threshold=0.8, method="Template matching", file="./tasks/Restart/login/login_cancel_bind.png")
 
 
 	# Ocr Rule Assets

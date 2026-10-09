@@ -1,5 +1,6 @@
 from module.atom.image import RuleImage
 from module.atom.click import RuleClick
+from module.atom.scatter import RuleScatter
 from module.atom.long_click import RuleLongClick
 from module.atom.swipe import RuleSwipe
 from module.atom.ocr import RuleOcr
@@ -160,10 +161,8 @@ class LevelRushAssets:
 	I_BIND_BUTTON = RuleImage(roi_front=(976,597,146,36), roi_back=(976,597,146,36), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_bind_button.png")
 	# 未获取绑定奖励 
 	I_BIND_REWARD_EXSIT = RuleImage(roi_front=(684,596,30,40), roi_back=(684,596,30,40), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_bind_reward_exsit.png")
-	# 设备获取通讯录权限确定按钮 
-	I_DEVICE_PERMISSION_CONFIRM = RuleImage(roi_front=(669,383,174,51), roi_back=(669,383,174,51), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_device_permission_confirm.png")
 	# 添加好友页面标志 
-	I_CHECK_ADD = RuleImage(roi_front=(94,640,32,56), roi_back=(94,640,32,56), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_check_add.png")
+	I_CHECK_ADD = RuleImage(roi_front=(95,640,32,56), roi_back=(95,640,32,56), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_check_add.png")
 	# 已领取推送奖励 
 	I_PUSH_REWARD_ALREADY_GET = RuleImage(roi_front=(561,501,169,58), roi_back=(561,501,169,58), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_push_reward_already_get.png")
 
@@ -179,6 +178,8 @@ class LevelRushAssets:
 	O_CURRENT_CHAPTER = RuleOcr(roi=(1057,452,121,40), area=(1057,450,215,103), mode="Single", method="Default", keyword="", name="current_chapter")
 	# 当前体力较低的情况 
 	O_CURRENT_SUSHI_LOW = RuleOcr(roi=(881,0,181,53), area=(881,0,181,53), mode="Single", method="Default", keyword="", name="current_sushi_low")
+	# 设备获取通讯录权限确定按钮 
+	O_DEVICE_PERMISSION_CONFIRM = RuleOcr(roi=(545,459,185,36), area=(364,438,531,88), mode="Single", method="Default", keyword="确定", name="device_permission_confirm")
 
 
 	# Swipe Rule Assets

@@ -177,23 +177,11 @@ class LoginService(
                     self.C_LOGIN_ANIMATION_CENTER, interval=5
                 ):  # 点击屏幕中央触发跳过显示
                     skip_click_mx_cnt -= 1
-            if self.appear(
-                self.I_LOGIN_CANCEL_UPDATE_ENGINE,
-                interval=0.8,
-            ):
-                logger.info('Cancel update appear')
-                continue
-            if self.appear_then_click(
-                self.I_LOGIN_CANCEL_UPDATE_ENGINE,
-                interval=0.8,
-            ):
-                logger.info('Cancel update new engine')
-                continue
             if self.ocr_appear_click(
                 self.O_CANCEL_UPDATE,
                 interval=0.8,
             ):
-                logger.info('Ocr cancel update new engine')
+                logger.info('Cancel update new engine')
                 continue
             if self.ocr_appear_click(self.O_LOGIN_ENTER_GAME, interval=3):
                 skip_login_animation = False  # 进入登录页面后不再处理登录动画逻辑
