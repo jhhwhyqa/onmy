@@ -116,5 +116,7 @@ class RestartAssets:
 	O_LOGIN_ANIMATION_SKIP = RuleOcr(roi=(1110,35,100,45), area=(1135,40,70,35), mode="Single", method="Default", keyword="跳过", name="login_animation_skip")
 	# 登录指定角色，默认第一个 
 	O_LOGIN_SPECIFIC_SERVE = RuleOcr(roi=(110,120,350,600), area=(110,120,350,600), mode="Full", method="Default", keyword="", name="login_specific_serve")
+	# 取消更新新引擎 
+	O_CANCEL_UPDATE = RuleOcr(roi=(466,418,133,44), area=(466,418,133,44), mode="Single", method="Default", keyword="暂不更新", name="cancel_update")
 
 
