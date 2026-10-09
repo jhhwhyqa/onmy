@@ -37,11 +37,11 @@
   },
   {
     "itemName": "cancel_update",
-    "roiFront": "466,418,133,44",
-    "roiBack": "466,418,133,44",
-    "mode": "Single",
+    "roiFront": "465,418,133,44",
+    "roiBack": "465,418,133,44",
+    "mode": "Full",
     "method": "Default",
-    "keyword": "暂不更新",
+    "keyword": "更新",
     "description": "取消更新新引擎"
   }
 ]
