@@ -67,6 +67,10 @@ class ScriptTask(DokanScriptTask, ZombieGuildAssets):
     # ------------------------------------------------------------- QQ 门控
 
     def run(self):
+        # 基类是在 super().run() 里（before_run 之后）才给 self.conf 赋值，而 QQ 门控要用到它，
+        # 所以这里先按基类同样的方式取一次，否则 self.conf 还是类属性 None。
+        # （super().run() 里会再赋一次，幂等，不影响后续流程。）
+        self.conf = getattr(self.config.model, self.CONFIG_KEY)
         # QQ 群消息未放行时，check_qq_gate 已经安排好下次运行时间
         if not self.check_qq_gate():
             raise TaskEnd('ZombieGuild')
