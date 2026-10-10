@@ -1,11 +1,20 @@
 [
   {
-    "itemName": "dokan_rightpad_name",
+    "itemName": "dokan_map",
+    "roiFront": "270,130,740,460",
+    "roiBack": "270,130,740,460",
+    "mode": "Full",
+    "method": "Default",
+    "keyword": "万",
+    "description": "道馆地图里找文字：万"
+  },
+  {
+    "itemName": "dokan_center_people_number",
     "roiFront": "0,0,0,0",
     "roiBack": "0,0,0,0",
-    "mode": "Single",
+    "mode": "Full",
     "method": "Default",
     "keyword": "",
-    "description": "查找道馆时,右侧边栏中的寮名称"
+    "description": "查找道馆时,中间卡片上防守人数"
   }
 ]
