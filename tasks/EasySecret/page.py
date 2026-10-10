@@ -1,4 +1,4 @@
-from tasks.GameUi.page import Page, page_secret_zones
+from tasks.GameUi.page import Page, page_secret_zones, page_main
 from tasks.GlobalGame.assets import GlobalGameAssets
 from tasks.EasySecret.assets import EasySecretAssets
 

@@ -169,9 +169,9 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, EasySecretAssets):
                 if scroll_count >= self.max_scroll:
                     logger.info('Reach the bottom of the secret list, exit')
                     return True
-                # swipe 被 interval 节流时返回 False 且**不会真的滑动**，
-                # 所以只能在实际滑动了才计数，否则会凭空攒够 max_scroll 提前退出。
+
                 if self.swipe(EasySecretAssets.S_ES_SWIPE_DOWN, interval=1):
+                    self.device.click_record_clear()
                     scroll_count += 1
                 time.sleep(0.4)
                 continue
