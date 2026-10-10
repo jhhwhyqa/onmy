@@ -146,8 +146,8 @@
   {
     "itemName": "get_reward",
     "imageName": "res_get_reward.png",
-    "roiFront": "464,231,339,44",
-    "roiBack": "464,231,339,44",
+    "roiFront": "522,249,240,26",
+    "roiBack": "469,218,339,80",
     "method": "Template matching",
     "threshold": 0.8,
     "description": "description"
