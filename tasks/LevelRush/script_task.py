@@ -21,6 +21,7 @@ from tasks.GameUi.page import (
     page_team,
     page_daily,
     page_summon,
+    page_mall_recommend,
 )
 from tasks.LevelRush.page import (
     page_rookie_act,
@@ -117,6 +118,18 @@ class ScriptTask(
                 condition=LevelRushAssets.O_CLICK_BLANK_CLOSE,
                 action=LevelRushAssets.O_CLICK_BLANK_CLOSE,
             ),
+        )
+        page_mall_recommend.add_enter_failure_hooks(
+            conditional_action(
+                condition=LevelRushAssets.I_SECRET_MALL,
+                action=LevelRushAssets.I_SECRET_MALL,
+            )
+        )
+        page_daily.add_enter_failure_hooks(
+            conditional_action(
+                condition=LevelRushAssets.O_CLICK_ANYWHERE_CONTINUE,
+                action=LevelRushAssets.O_CLICK_ANYWHERE_CONTINUE,
+            )
         )
 
     def run(self):

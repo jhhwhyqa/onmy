@@ -655,5 +655,14 @@
     "method": "Template matching",
     "threshold": 0.8,
     "description": "已领取推送奖励"
+  },
+  {
+    "itemName": "secret_mall",
+    "imageName": "lr_secret_mall.png",
+    "roiFront": "327,540,94,20",
+    "roiBack": "284,515,189,69",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "神秘商人对话"
   }
 ]

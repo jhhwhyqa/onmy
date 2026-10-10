@@ -165,6 +165,8 @@ class LevelRushAssets:
 	I_CHECK_ADD = RuleImage(roi_front=(95,640,32,56), roi_back=(95,640,32,56), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_check_add.png")
 	# 已领取推送奖励 
 	I_PUSH_REWARD_ALREADY_GET = RuleImage(roi_front=(561,501,169,58), roi_back=(561,501,169,58), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_push_reward_already_get.png")
+	# 神秘商人对话 
+	I_SECRET_MALL = RuleImage(roi_front=(327,540,94,20), roi_back=(284,515,189,69), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_secret_mall.png")
 
 
 	# Ocr Rule Assets
