@@ -1,49 +1,100 @@
 # This Python file uses the following encoding: utf-8
-"""僵尸寮配置：沿用道馆（`tasks/Dokan`）的全部配置项，另加 QQ 群消息门控。
+# @brief    Configurations for Ryou Dokan Toppa (阴阳竂道馆突破配置)
+# @author   jackyhwei
+# @note     draft version without full test
+# github    https://github.com/roarhill/oas
+from datetime import datetime
 
-- 求寮参数沿用道馆同名同义字段：`dokan_config.find_dokan_refresh_count`（刷新次数）、
-  `dokan_config.min_people_num`（人数下限）、`attack_count_config`（今日次数记账）、
-  `dokan_owner_*` / `dokan_member_*`（两套阵容与御魂）等
-- 福利寮名单不在配置里，直接维护 `tasks/ZombieGuild/福利寮名单.txt`
-"""
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, Field, field_validator
 
-from tasks.Dokan.config import Dokan
+from tasks.Component.GeneralBattle.config_general_battle import GeneralBattleConfig
+from tasks.Component.SwitchSoul.switch_soul_config import SwitchSoulConfig
+from tasks.Component.config_base import ConfigBase, Time, dynamic_hide
+from tasks.Component.config_scheduler import Scheduler
+
+
+class AttackAccountConfig(BaseModel):
+    # 当天可攻击次数,用以记录当天运行历史,用作状态恢复,不用配置
+    remain_attack_count: int = Field(default=2, description='remain_attack_count_help')
+    # remain_attack_count 值记录的时间,不用配置
+    attack_date: str = Field(default='2023-01-01', description='attack_date_help')
+    # 每日最大挑战次数(1-2,默认2次)
+    daily_attack_count: int = Field(default=2, description='daily_attack_count_help')
+
+    hide_fields = dynamic_hide('remain_attack_count', 'attack_date')
+
+    def init_attack_count(self, callback=None):
+        today = datetime.now().strftime("%Y-%m-%d")
+        if today != self.attack_date:
+            self.attack_date = today
+            self.remain_attack_count = 2
+        if not callback:
+            return
+        callback()
+
+    def set_attack_count(self, count=2, callback=None):
+        if count < 0:
+            return
+        self.attack_date = datetime.now().strftime("%Y-%m-%d")
+        self.remain_attack_count = count
+        if not callback:
+            return
+        callback()
+
+    def del_attack_count(self, count, callback=None):
+        today = datetime.now().strftime("%Y-%m-%d")
+        if today != self.attack_date:
+            self.attack_date = today
+            self.remain_attack_count = 2
+        self.remain_attack_count -= count
+        if not callback:
+            return
+        callback()
+
+
+class DokanConfig(BaseModel):
+    dokan_run_time: Time = Field(Time(hour=20, minute=0, second=0), description='dokan_run_time_help')
+    # 攻击优先顺序: 见习=0,初级=1...
+    dokan_attack_priority: int = Field(default=0, description='dokan_attack_priority_help')
+    # 只在周一到周四开启道馆
+    monday_to_thursday: bool = Field(default=True, description='monday_to_thursday_help')
+    # 任务结束时推送本次运行的结算截图；关闭时仍保存截图
+    push_reward_images: bool = Field(default=True, description='push_reward_images_help')
+    # 道馆最小人数限制
+    min_people_num: int = Field(default=-1, description='min_people_num_help')
+    # 超过此刷新次数后将最低防守人数减半，最多刷新20次
+    find_dokan_refresh_count: int = Field(default=7, description='find_dokan_refresh_count_help')
 
 
 class QQMessageConfig(BaseModel):
-    enable: bool = Field(default=False, title='启用QQ群消息检查',
-                         description='用QQ群公告判断福利寮是否开启；未启用时直接按福利寮名单搜索')
-    group_id: str = Field(default='', title='监听群号')
-    member_id: str = Field(default='', title='监听成员QQ号', description='按QQ号筛选，不使用昵称或群名片')
-    keywords: str = Field(default='', title='放行关键词',
-                          description='多个关键词用换行或英文竖线分隔，包含任意一个即满足')
-    excluded_keywords: str = Field(default='', title='排除关键词',
-                                   description='同一条消息包含任意排除词时不放行；换行或英文竖线分隔')
-    retry_minutes: int = Field(default=3, ge=1, le=1440, title='未匹配后等待分钟数')
-    max_checks: int = Field(default=10, ge=1, le=1000, title='每天最大未匹配次数',
-                            description='未匹配或接口失败才计次；匹配不消耗次数，重启或立即执行不清零')
-    reset_today_checks: bool = Field(default=False, title='重置当天检查次数为0次',
-                                     description='勾选保存后立即清零当天的未匹配次数；保存后自动恢复关闭')
-    callback_secret: str = Field(default='', title='事件上报签名密钥（可选）',
-                                 description='仅使用历史查询时留空；实时上报时与NapCat HTTP客户端Token一致')
-    history_api_url: str = Field(default='', title='群历史消息API地址',
-                                 description='NapCat HTTP服务端地址，例如 http://127.0.0.1:3000；不要填WebUI管理端口')
-    history_api_token: str = Field(default='', title='历史消息API访问令牌',
-                                   description='填写NapCat HTTP服务端的Token，不是WebUI登录密码')
-    history_page_size: int = Field(default=100, ge=1, le=500, title='每页历史消息数量')
-    history_max_pages: int = Field(default=5, ge=1, le=20, title='每次最多读取历史页数',
-                                   description='分页有上限；未读到匹配消息时仍按未放行重试')
+    qq_message_enable: bool = Field(default=False, description='qq_message_enable_help')
+    welfare_plugin_url: str = Field(default='', description='welfare_plugin_url_help')
+    welfare_plugin_token: str = Field(default='', description='welfare_plugin_token_help')
+    qq_query_start_time: Time = Field(default=Time(hour=20), description='qq_query_start_time_help')
+    qq_query_end_time: Time = Field(default=Time(hour=22), description='qq_query_end_time_help')
+    qq_poll_interval: int = Field(default=60, ge=1, le=86400, description='qq_poll_interval_help')
 
-    model_config = ConfigDict(validate_assignment=True)
 
-    @field_validator('reset_today_checks', mode='before')
+class DokanBattleConfig(GeneralBattleConfig):
+    continuous_battle: bool = True
+
+    @field_validator('continuous_battle', mode='after')
     @classmethod
-    def keep_reset_action_off(cls, value):
-        """一次性操作只由配置保存入口执行，读取/复制配置不能重复触发。"""
-        return False
+    def validate_continuous_battle(cls, v):
+        return True
 
 
-class ZombieGuild(Dokan):
-    """道馆的全部配置 + QQ 群消息门控。"""
-    qq_message_config: QQMessageConfig = Field(default_factory=QQMessageConfig, title='QQ群消息检查')
+class TaskNotifyConfig(BaseModel):
+    """任务级通知开关；推送渠道沿用仓库全局的 script.error.notify_config（见 task_notify.py）。"""
+
+    enable: bool = Field(default=False, description='task_notify_enable_help')
+
+
+class ZombieGuild(ConfigBase):
+    scheduler: Scheduler = Field(default_factory=Scheduler)
+    dokan_config: DokanConfig = Field(default_factory=DokanConfig)
+    qq_message_config: QQMessageConfig = Field(default_factory=QQMessageConfig)
+    notification_config: TaskNotifyConfig = Field(default_factory=TaskNotifyConfig)
+    dokan_member_battle_conf: DokanBattleConfig = Field(default_factory=DokanBattleConfig)
+    dokan_member_switch_soul: SwitchSoulConfig = Field(default_factory=SwitchSoulConfig)
+    attack_count_config: AttackAccountConfig = Field(default_factory=AttackAccountConfig)
