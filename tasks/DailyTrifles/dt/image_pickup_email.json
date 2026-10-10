@@ -38,8 +38,8 @@
   {
     "itemName": "harvest_mail_confirm",
     "imageName": "dt_harvest_mail_confirm.png",
-    "roiFront": "687,543,168,64",
-    "roiBack": "687,543,168,64",
+    "roiFront": "697,549,132,54",
+    "roiBack": "679,544,168,64",
     "method": "Template matching",
     "threshold": 0.8,
     "description": "确认收取邮件"
