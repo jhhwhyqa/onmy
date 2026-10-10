@@ -86,19 +86,6 @@ class AssistBattle(ConfigBase):
             )
         return value
 
-    @model_serializer()
-    def serializer_model(self) -> Dict[str, Any]:
-        data = {}
-        for key, value in self.__dict__.items():
-            if isinstance(value, list):
-                for index, item in enumerate(value):
-                    data[f'{key}_{index + 1}'] = item.model_dump()
-            else:
-                data[key] = (
-                    value.model_dump() if isinstance(value, BaseModel) else value
-                )
-        return data
-
     # 隐藏用不到的last_complete_time字段
     @model_serializer()
     def serializer_model(self, info) -> Dict[str, Any]:
