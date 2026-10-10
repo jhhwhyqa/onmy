@@ -11,7 +11,8 @@ class EasySecretConfig(BaseModel):
     # 最多挑战到第几层（不挑战下一层）
     max_layer: int = Field(default=5, description='max_layer_help')
     # 需要跳过的高难度秘闻标题，逗号或换行分隔
-    skip_secrets: str = Field(default='', description='skip_secrets_help')
+    # 默认跳过「呱士无双」：它有手动教程，不适合速刷
+    skip_secrets: str = Field(default='呱士无双', description='skip_secrets_help')
     # 单次运行最多挑战多少次，0 表示不限制
     battle_limit: int = Field(default=0, description='battle_limit_help')
 

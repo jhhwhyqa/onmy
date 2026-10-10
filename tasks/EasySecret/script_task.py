@@ -233,9 +233,13 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, EasySecretAssets):
             attempt: 第几次尝试。用来在候选点之间轮换 —— 万一点下去游戏没响应，
                 下一次换个点再试（而不是在同一个点上反复撞）。
 
+        跳过名单里的秘闻（见 ``skip_secrets``）在这里就被丢掉，连点都不点 ——
+        否则「进去 -> 跳过 -> 退出来」会反复撞上同一张卡，把 ``skip_limit`` 攒满
+        直接判任务失败。
+
         Returns:
             tuple[str, int, int, str] | None:
-                ``(卡片名字, 点击 x, 点击 y, 命中的「壹」文本)``；没有「壹」时 None。
+                ``(卡片名字, 点击 x, 点击 y, 命中的「壹」文本)``；没有可点的「壹」时 None。
         """
         rule = EasySecretAssets.O_LAYER_1
         results = rule.detect_and_ocr(self.device.image, logDisplay=False)
@@ -260,17 +264,27 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, EasySecretAssets):
                 )
             )
 
-        lx, ly, lw, lh, text = boxes[indices[0]]
-
-        # 名字行 = 正上方（0 < dy < 60）且横向有重叠的那一个框
-        name = ''
-        name_box = None
-        for bx, by, bw, bh, btext in boxes:
-            if bx + bw < lx or bx > lx + lw:
+        # 每个「壹」框配一个「正上方（0 < dy < 60）且横向有重叠」的名字行
+        candidates = []
+        for index in indices:
+            lx, ly, lw, lh, text = boxes[index]
+            name = ''
+            name_box = None
+            for bx, by, bw, bh, btext in boxes:
+                if bx + bw < lx or bx > lx + lw:
+                    continue
+                if 0 < ly - by < 60 and (name_box is None or by > name_box[1]):
+                    name = btext
+                    name_box = (bx, by, bw, bh)
+            # 名字读不出来时不敢乱丢（宁可进去后用详情页标题再判一次）
+            if name and self.should_skip(name):
+                logger.info(f'Ignore skipped secret [{name}]')
                 continue
-            if 0 < ly - by < 60 and (name_box is None or by > name_box[1]):
-                name = btext
-                name_box = (bx, by, bw, bh)
+            candidates.append((name, lx, ly, lw, lh, name_box, text))
+
+        if not candidates:
+            return None
+        name, lx, ly, lw, lh, name_box, text = candidates[0]
 
         # 候选点击点，全部落在卡片内部（层数行 / 名字行 / 两行之间）
         points = [(lx + lw // 2, ly + lh // 2)]
@@ -559,10 +573,23 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, EasySecretAssets):
         return [name.strip() for name in re.split(r'[,，\n]', raw) if name.strip()]
 
     def should_skip(self, title: str) -> bool:
-        """标题是否在跳过名单里（用包含匹配 —— 标题 OCR 会带噪声字符）。"""
+        """标题是否命中跳过名单（容忍 OCR 丢字 / 带噪声字符）。
+
+        OCR 实测把「呱士无双」读成「士无双」（丢首字）、把「花赠我心人」读成
+        「。花赠我心人！」（带噪声），所以先试子串，再按**汉字重合度**兜底。
+        """
         if not title:
             return False
-        return any(name in title for name in self.skip_secrets())
+        title_chars = set(re.sub(r'[^\u4e00-\u9fff]', '', title))
+        if not title_chars:
+            return False
+        for name in self.skip_secrets():
+            if name in title:
+                return True
+            name_chars = set(name)
+            if len(name_chars & title_chars) / len(name_chars) >= 0.6:
+                return True
+        return False
 
     def switch_soul(self):
         """切换御魂"""
