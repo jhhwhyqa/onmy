@@ -1,6 +1,6 @@
 import re
 
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from time import sleep
 
 from module.atom.image import RuleImage
@@ -118,12 +118,6 @@ class ScriptTask(
                 condition=LevelRushAssets.O_CLICK_BLANK_CLOSE,
                 action=LevelRushAssets.O_CLICK_BLANK_CLOSE,
             ),
-        )
-        page_mall_recommend.add_enter_failure_hooks(
-            conditional_action(
-                condition=LevelRushAssets.I_SECRET_MALL,
-                action=LevelRushAssets.I_SECRET_MALL,
-            )
         )
         page_daily.add_enter_failure_hooks(
             conditional_action(
@@ -328,6 +322,11 @@ class ScriptTask(
 
     def _get_store_sign_reward(self):
         "领取第一天商店签到的20勾玉"
+        if date.today().weekday() in [2, 5]:
+            if self.appear_then_click(self.I_MAIN_GOTO_MALL, interval=1.2):
+                logger.info(f"Wait for secret mall talk to skip")
+                self.wait_until_appear(self.I_SECRET_MALL, wait_time=5)
+                self.ui_click_until_disappear(self.I_SECRET_MALL)
         self.config.daily_trifles.done_record.store_sign_dt = datetime(2023, 1, 1)
         self.run_store_sign()
         self.goto_page(page_main)
