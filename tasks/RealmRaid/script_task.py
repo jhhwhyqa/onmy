@@ -27,6 +27,9 @@ from module.atom.click import RuleClick
 class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RealmRaidAssets):
     medal_grid: ImageGrid = None
     init_tickets: int = -1
+    # 连续"刷新后仍无人可打"的止损次数：结界刷新次数有限，而识别一旦失效就会一直
+    # 判定无人可打；不设上限会一路点到防连点（GameTooManyClickError）把任务崩掉。
+    refresh_no_progress_limit = 3
 
     def _handle_result(self, context: BattleContext, config: GeneralBattleConfig) -> BattleAction:
         if config.quick_exit:
@@ -89,6 +92,8 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RealmRaidAssets):
         # 开始循环
         success = True
         last_battle = True  # 记录上一次战斗的结果
+        # 刷新止损计数：连续多次"刷完还是没人可打"就退出，避免无脑刷新触发防连点
+        refresh_no_progress = 0
         # 更改循环顺序
         while 1:
             self.screenshot()
@@ -101,6 +106,13 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RealmRaidAssets):
                 # 已经没有可以挑战的了，只能刷新
                 if con.raid_config.when_attack_fail == WhenAttackFail.CONTINUE:
                     logger.info('No one can attack and then refresh')
+                    refresh_no_progress += 1
+                    if refresh_no_progress > self.refresh_no_progress_limit:
+                        logger.warning(
+                            f'连续刷新 {refresh_no_progress - 1} 次后仍无人可打，退出本次任务'
+                        )
+                        success = False
+                        break
                     if self.check_refresh():
                         continue
                     else:
@@ -110,6 +122,8 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RealmRaidAssets):
                     logger.info('No one can attack, break')
                     success = False
                     break
+            # 有目标可打 → 说明刷新起了作用，止损计数归零
+            refresh_no_progress = 0
             # 判断是不是左上角第一个
             lock_before = con.general_battle_config.lock_team_enable
             handled_first_target = False
@@ -350,8 +364,11 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RealmRaidAssets):
                 image[y:y+h, x:x+w, ...] = 0
         # -----------------------------------------------------
         target = self.order_medal.find_anyone(image)
+        # 诊断：区分"匹配服务没返回结果"与"返回了但位置没落进任何格子"
+        logger.info(f'[realm_raid] find_anyone -> {target.name if target else None}')
         if target:
             center = target.front_center()
+            logger.info(f'[realm_raid] matched {target.name} box={target.roi_front} center={center}')
             for i, click in enumerate(self.partition):
                 x1, x2, y1, y2 = click.roi_front[0], click.roi_front[0] + click.roi_front[2], \
                                  click.roi_front[1], click.roi_front[1] + click.roi_front[3]
