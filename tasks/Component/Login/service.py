@@ -125,13 +125,6 @@ class LoginService(
             if self.appear_then_click(self.I_LOGIN_YELLOW_CLOSE, interval=0.6):
                 logger.info("Close yellow close")
                 continue
-            if self.appear_then_click(self.I_LOGIN_LOGIN_GOTO_BIND_PHONE):
-                while 1:
-                    self.screenshot()
-                    if self.appear_then_click(self.I_LOGIN_LOGIN_CANCEL_BIND_PHONE):
-                        logger.info("Close bind phone")
-                        break
-                continue
             from tasks.Component.GeneralInvite.assets import GeneralInviteAssets as gia
 
             if self.appear_then_click(gia.I_I_REJECT, interval=0.8):
@@ -185,7 +178,12 @@ class LoginService(
             ):
                 logger.info('Cancel update new engine')
                 continue
-            if self.ocr_appear_click(self.O_LOGIN_ENTER_GAME, interval=3):
+            from tasks.Component.SwitchAccount.assets import SwitchAccountAssets
+
+            # 显示服务器再点击进入游戏
+            if SwitchAccountAssets.O_SA_LOGIN_FORM_SVR_NAME.ocr(
+                self.device.image
+            ) and self.ocr_appear_click(self.O_LOGIN_ENTER_GAME, interval=3):
                 skip_login_animation = False  # 进入登录页面后不再处理登录动画逻辑
                 self.wait_until_appear(self.I_LOGIN_SPECIFIC_SERVE, True, wait_time=5)
                 continue
