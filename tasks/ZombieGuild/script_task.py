@@ -13,7 +13,7 @@ from uuid import uuid4
 from datetime import datetime
 
 from module.base.timer import Timer
-from module.exception import TaskEnd
+from module.exception import GamePageUnknownError, TaskEnd
 from module.logger import logger
 from tasks.ZombieGuild.task_notify import resolve_task_notifier
 from tasks.Component.GeneralBattle.config_general_battle import GeneralBattleConfig
@@ -45,6 +45,9 @@ DOKAN_REWARD_CAPTURE_DELAY = 1.0
 DOKAN_NEXT_SELECTION_TIMEOUT = 120.0
 DOKAN_NEXT_SELECTION_POLL_INTERVAL = 2.0
 MAX_WELFARE_DOKAN_REFRESH_COUNT = 20
+# 主循环里连续识别不到任何页面多久后开始自愈, 以及自愈尝试次数上限(见 run 的 None 分支)
+DOKAN_UNKNOWN_PAGE_TIMEOUT = 10.0
+DOKAN_UNKNOWN_PAGE_RETRY = 3
 
 class ScriptTask(GameUi, SwitchSoul, GeneralBattle, DokanAssets):
     _reuse_image_match_results: bool = True  # 仅道馆启用同帧识别结果和相同规则副本的复用。
@@ -54,6 +57,8 @@ class ScriptTask(GameUi, SwitchSoul, GeneralBattle, DokanAssets):
     found_dokan_cnt: int = 0  # 已经寻找道馆的次数
     second_dokan_ready: bool = False
     conf: ZombieGuild = None
+    # 连续"N 轮在道馆页没有任何可操作标记"就回地图页自愈（见 run_on_dokan 的兜底）
+    dokan_no_marker_limit: int = 10
 
     def _register_custom_pages(self) -> None:
         page_battle_result = self.navigator.resolve_page(pages.page_battle_result)
@@ -287,17 +292,43 @@ class ScriptTask(GameUi, SwitchSoul, GeneralBattle, DokanAssets):
         # 初始化相关动态参数,从配置文件读取相关记录,如果没有当天的记录则设置为默认值
         self.conf.attack_count_config.init_attack_count(callback=self.config.save)
         unknown_page_timer = Timer(10)
+        unknown_none_timer = Timer(DOKAN_UNKNOWN_PAGE_TIMEOUT)
+        unknown_none_retry = 0
         self.goto_page(pages.page_dokan_map)
         refresh_limit_reached = False
         try:
             while True:
                 self.screenshot()
                 self._capture_dokan_reward_if_visible()
-                current_page = self.get_current_page()
+                # fallback=True: 作用域内没命中时再全量扫一遍注册页面。
+                # 导航器(goto_page)就是这么识别的, 主循环只扫 {global, zombie_guild},
+                # 所以曾出现"导航刚报到达道馆地图、循环立刻识别成 None"的不对称。
+                current_page = self.get_current_page(fallback=True)
+                if current_page is not None:
+                    # 识别到页面说明已经脱离未知界面, 重置自愈计时与次数
+                    unknown_none_retry = 0
+                    unknown_none_timer.reset()
                 match current_page:
                     case None:
                         self.device.click_record_clear()
                         self.device.stuck_record_clear()
+                        # 识别不到任何页面: 可能只是场景切换的过场/加载帧, 先等一下。
+                        # 但持续识别不到说明卡在了未知界面(弹窗、误入的其它页面等),
+                        # 此时不能一直 sleep 空转——原实现会把整个调度队列永久卡住而不报错。
+                        # 这里交给导航器恢复: 它会先尝试关闭未知界面再重新导航到道馆地图,
+                        # 连续多次都恢复不了则抛 GamePageUnknownError, 让任务以报错结束。
+                        if not unknown_none_timer.started():
+                            unknown_none_timer.start()
+                        elif unknown_none_timer.reached():
+                            unknown_none_timer = Timer(DOKAN_UNKNOWN_PAGE_TIMEOUT)
+                            unknown_none_retry += 1
+                            logger.warning(
+                                f'[dokan] 持续识别不到任何页面, 尝试恢复 '
+                                f'{unknown_none_retry}/{DOKAN_UNKNOWN_PAGE_RETRY}'
+                            )
+                            if unknown_none_retry >= DOKAN_UNKNOWN_PAGE_RETRY:
+                                raise GamePageUnknownError('Dokan cannot detect current page')
+                            self.goto_page(pages.page_dokan_map)
                         time.sleep(0.5)
                     case pages.page_dokan_map:
                         self.run_on_dokan_map()
