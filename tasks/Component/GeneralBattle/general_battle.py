@@ -11,6 +11,7 @@ from enum import Enum
 from tasks.GameUi.default_pages import random_click
 from typing import Callable, Union
 
+from module.atom.click import RuleClick
 from module.atom.gif import RuleGif
 from module.atom.image import RuleImage
 from module.atom.ocr import RuleOcr
@@ -657,6 +658,32 @@ class GeneralBattle(GeneralBuff, GeneralBattleAssets):
             self.random_click_swipt()
         return BattleAction.CONTINUE
 
+    def _reward_random_click_ltrb(self) -> tuple[bool, bool, bool, bool]:
+        """返回奖励页随机点击允许的区域开关，依次对应 (左, 上, 右, 下)。
+
+        子任务可覆写此方法，屏蔽会误触功能按钮的方位。例如部分页面右侧竖排了
+        "阵容助手 / 个人 / 阴阳寮 / 队伍预设 / 式神录" 等功能入口，卡顿时随机点到
+        右侧会误入其它页面，导致战斗页面丢失。返回值必须至少有一个方位为 `True`。
+
+        Returns:
+            tuple[bool, bool, bool, bool]: (左, 上, 右, 下) 四个区域的启用开关。
+        """
+
+        return (True, False, True, False)
+
+    def _reward_random_click(self) -> RuleClick:
+        """构造奖励页使用的安全随机点击点。
+
+        Returns:
+            RuleClick: 按 `_reward_random_click_ltrb()` 选出的随机点击区域。
+        """
+
+        ltrb = self._reward_random_click_ltrb()
+        if not any(ltrb):
+            logger.warning("No reward random click area enabled, fallback to default")
+            ltrb = (True, False, True, False)
+        return random_click(ltrb=ltrb)
+
     def _handle_result(self, context: BattleContext, config: GeneralBattleConfig) -> BattleAction:
         """处理结算页面逻辑。
 
@@ -691,7 +718,7 @@ class GeneralBattle(GeneralBuff, GeneralBattleAssets):
         self.appear_then_click(self.I_GB_SKIN_CONFIRM, interval=0.8)
         if context.last_page != page_reward:
             self.device.click_record_clear()
-        self.click(random_click(), interval=0.8)
+        self.click(self._reward_random_click(), interval=0.8)
         return BattleAction.CONTINUE
 
     def _handle_missing_battle_page(self, context: BattleContext, config: GeneralBattleConfig,

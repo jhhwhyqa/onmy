@@ -33,6 +33,16 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RealmRaidAssets):
     medal_grid: ImageGrid = None
     init_tickets: int = -1
 
+    def _reward_random_click_ltrb(self) -> tuple[bool, bool, bool, bool]:
+        """个人突破奖励页的随机点击只允许左侧区域。
+
+        突破页面右侧竖排了 "阵容助手 / 个人 / 阴阳寮 / 队伍预设 / 式神录" 等功能入口，
+        战斗结算卡顿时默认随机点击会有一半概率落在右侧，从而误触 "阵容助手" 进入
+        另一个页面，导致战斗页面丢失。这里屏蔽右侧（以及上下），只保留左侧安全区。
+        """
+
+        return (True, False, False, False)
+
     def _handle_result(
         self, context: BattleContext, config: GeneralBattleConfig
     ) -> BattleAction:
