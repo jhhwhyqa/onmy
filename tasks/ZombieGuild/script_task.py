@@ -382,6 +382,11 @@ class ScriptTask(GameUi, SwitchSoul, GeneralBattle, DokanAssets):
 
     def run_on_dokan_map(self):
         """道馆地图页面逻辑处理"""
+        # 诊断：确认"运行这一刻"到底哪张识别图命中（拿旧截图测通不代表现场能命中）
+        logger.info(
+            f'[dokan-debug] map: finding={self.appear(self.I_RYOU_DOKAN_FINDING_DOKAN)}, '
+            f'found={self.appear(self.I_RYOU_DOKAN_FOUND_DOKAN)}'
+        )
         if self.appear(self.I_RYOU_DOKAN_FINDING_DOKAN):  # 道馆未开启
             retrying_skipped_owner = self.second_dokan_ready
             if self.found_dokan_cnt > 0 and not retrying_skipped_owner:
