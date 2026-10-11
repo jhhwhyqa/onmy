@@ -284,6 +284,7 @@ class LoginAccount(BaseTask, SwitchAccountAssets):
         self.O_SA_ACCOUNT_ACCOUNT_SELECTED.keyword = accountInfo.account
         self.O_SA_LOGIN_FORM_USER_CENTER_ACCOUNT.keyword = accountInfo.account
         while 1:
+            time.sleep(0.8)
             self.screenshot()
             # 处于 选择服务器界面 直接点击空白区域退出该界面 进入切换账号流程
             if self.appear(self.I_SA_CHECK_SELECT_SVR_1) or self.appear(
