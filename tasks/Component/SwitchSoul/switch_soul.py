@@ -252,16 +252,22 @@ class SwitchSoul(BaseTask, SwitchSoulAssets):
                 break
             if self.appear_then_click(self.I_SOU_SWITCH_SURE, interval=0.8):
                 continue
-            if self.ocr_appear_click_by_rule(self.O_SS_TEAM_NAME, self.I_SOU_CLICK_PRESENT, interval=1.5):
+            if self.appear_then_click(self.I_CHECK_BLOCK, interval=3):
+                continue
+            if self.ocr_appear_click_by_rule(
+                self.O_SS_TEAM_NAME, self.I_SOU_CLICK_PRESENT, interval=1.5
+            ):
                 cnt_click += 1
                 continue
         logger.info(f'Switch soul_one group {groupName} team {teamName}')
 
-    def ocr_appear_click_by_rule(self,
-                                 target: RuleOcr,
-                                 action: Union[RuleClick, RuleLongClick] = None,
-                                 interval: float = None,
-                                 duration: float = None) -> bool:
+    def ocr_appear_click_by_rule(
+        self,
+        target: RuleOcr,
+        action: Union[RuleClick, RuleLongClick] = None,
+        interval: float = None,
+        duration: float = None,
+    ) -> bool:
         """
         ocr识别目标，如果目标存在，则触发动作
         :param target:
