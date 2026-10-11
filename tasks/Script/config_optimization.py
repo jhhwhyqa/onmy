@@ -31,4 +31,5 @@ class Optimization(BaseModel):
     close_emulator_limit_time: Time = Field(default=Time(minute=30), description='close_emulator_limit_time_help')
     emulator_startup_lead_time: Time = Field(default=Time(minute=2), description='emulator_startup_lead_time_help')
     schedule_rule: ScheduleRule = Field(default=ScheduleRule.FILTER, description='schedule_rule_help')
+    random_click_delay_enable: bool = Field(default=True, description='random_click_delay_enable_help')
 

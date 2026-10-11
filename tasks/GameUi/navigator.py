@@ -29,6 +29,7 @@ from tasks.GameUi.common import (
     infer_tasks_category_from_parts,
     infer_tasks_category_from_path,
 )
+from tasks.GameUi.default_pages import set_random_click_delay_enable
 from tasks.GameUi.matcher import collect_rule_images
 from tasks.GameUi.page_definition import Page, Transition, sort_pages_by_priority
 from tasks.GameUi.registry import PageRegistry
@@ -71,6 +72,10 @@ class GameUi(ChessBattleNavigationMixin, BaseTask, GameUiAssets):
         """
 
         super().__init__(config, device)
+        # 按脚本设置刷新随机点击延迟开关（脚本设置 -> 优化设置）
+        set_random_click_delay_enable(
+            self.config.script.optimization.random_click_delay_enable
+        )
         PageRegistry.load_all_pages()
         # 当前任务的导航 session，持有页面快照和运行期状态。
         self.navigator = NavigatorSession(task_category=self._infer_task_category())

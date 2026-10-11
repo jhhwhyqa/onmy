@@ -31,7 +31,8 @@
       "close_game_limit_time": "00:30:00",
       "close_emulator_limit_time": "00:30:00",
       "emulator_startup_lead_time": "00:02:00",
-      "schedule_rule": "Filter"
+      "schedule_rule": "Filter",
+      "random_click_delay_enable": true
     }
   },
   "restart": {

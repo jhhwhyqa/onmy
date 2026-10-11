@@ -34,6 +34,21 @@ from module.logger import logger
 from tasks.WeeklyTrifles.assets import WeeklyTriflesAssets
 
 
+# 随机点击延迟开关，由 GameUi 在任务启动时按脚本设置刷新
+random_click_delay_enable: bool = True
+
+
+def set_random_click_delay_enable(enable: bool) -> None:
+    """刷新随机点击延迟开关。
+
+    Args:
+        enable: 是否在随机点击前附加随机等待。
+    """
+
+    global random_click_delay_enable
+    random_click_delay_enable = bool(enable)
+
+
 def random_click(
     low: int | None = None,
     high: int | None = None,
@@ -49,9 +64,10 @@ def random_click(
     Returns:
         单个 `RuleClick`，或一个由多个 `RuleClick` 组成的列表。
     """
-    random_sleep = max(0, random.gauss(0.3, 0.1))
-    time.sleep(random_sleep)
-    logger.info(f"random click sleep time: {random_sleep:.2f}s")
+    if random_click_delay_enable:
+        random_sleep = max(0, random.gauss(0.3, 0.1))
+        time.sleep(random_sleep)
+        logger.info(f"random click sleep time: {random_sleep:.2f}s")
 
     click_area_list = [
         GeneralBattleAssets.C_RANDOM_LEFT,

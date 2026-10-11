@@ -323,5 +323,7 @@
   "skip_secrets": "跳过的高难度秘闻",
   "skip_secrets_help": "填写要跳过的秘闻标题，多个用逗号或换行分隔。默认已填「呱士无双」（有手动教程）。",
   "battle_limit": "挑战次数上限",
-  "battle_limit_help": "单次运行最多挑战多少次战斗，防止把体力一次用光；默认 0，即不限制。"
+  "battle_limit_help": "单次运行最多挑战多少次战斗，防止把体力一次用光；默认 0，即不限制。",
+  "random_click_delay_enable": "随机点击附加延迟",
+  "random_click_delay_enable_help": "结算/奖励等界面随机点击前附加 0~0.4 秒的随机等待，避免点击间隔过于规律；关闭后立即点击，可加快结算流程"
 }
