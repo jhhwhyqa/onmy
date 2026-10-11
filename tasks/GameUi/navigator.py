@@ -25,11 +25,15 @@ from tasks.ActivityShikigami.assets import ActivityShikigamiAssets
 from tasks.GameUi.action import ActionSequence, ConditionalAction
 from tasks.GameUi.assets import GameUiAssets
 from tasks.GameUi.chess_battle import ChessBattleNavigationMixin
-from tasks.GameUi.common import infer_tasks_category_from_parts, infer_tasks_category_from_path
+from tasks.GameUi.common import (
+    infer_tasks_category_from_parts,
+    infer_tasks_category_from_path,
+)
 from tasks.GameUi.matcher import collect_rule_images
 from tasks.GameUi.page_definition import Page, Transition, sort_pages_by_priority
 from tasks.GameUi.registry import PageRegistry
 from tasks.GameUi.session import NavigatorSession
+from tasks.Restart.assets import RestartAssets
 from tasks.SixRealms.assets import SixRealmsAssets
 from tasks.base_task import BaseTask
 
@@ -41,6 +45,8 @@ class GameUi(ChessBattleNavigationMixin, BaseTask, GameUiAssets):
 
     # 全局未知页关闭动作，所有任务共享。
     DEFAULT_UNKNOWN_CLOSERS = [
+        RestartAssets.I_LOGIN_LOGIN_CANCEL_BIND_PHONE,
+        RestartAssets.I_CANCEL_BIND,
         GlobalGameAssets.I_UI_BACK_RED,
         GlobalGameAssets.I_CHAT_CLOSE_BUTTON,
         ActivityShikigamiAssets.I_SKIP_BUTTON,
@@ -108,7 +114,9 @@ class GameUi(ChessBattleNavigationMixin, BaseTask, GameUiAssets):
 
         return {"global", self.navigator.task_category, destination.category}
 
-    def _navigation_graph_categories(self, destination: Page, current: Page | None) -> set[str]:
+    def _navigation_graph_categories(
+        self, destination: Page, current: Page | None
+    ) -> set[str]:
         """获取导航时允许参与建图的分类集合。
 
         Args:
@@ -190,7 +198,9 @@ class GameUi(ChessBattleNavigationMixin, BaseTask, GameUiAssets):
         """
 
         pages = self.navigator.all_pages(categories)
-        return GameUi._detect_pages(self, pages, skip_first_screenshot=skip_first_screenshot)
+        return GameUi._detect_pages(
+            self, pages, skip_first_screenshot=skip_first_screenshot
+        )
 
     def _detect_current_page_with_fallback(
         self,
@@ -243,12 +253,18 @@ class GameUi(ChessBattleNavigationMixin, BaseTask, GameUiAssets):
 
         self.maybe_screenshot(skip_first_screenshot)
         GameUi._prepare_page_rule_image_cache(self, pages)
-        indexed_candidates = [(index, page) for index, page in enumerate(pages) if self.match_page_once(page)]
+        indexed_candidates = [
+            (index, page)
+            for index, page in enumerate(pages)
+            if self.match_page_once(page)
+        ]
         if not indexed_candidates:
             return None
 
         self.screenshot()
-        GameUi._prepare_page_rule_image_cache(self, [page for _, page in indexed_candidates])
+        GameUi._prepare_page_rule_image_cache(
+            self, [page for _, page in indexed_candidates]
+        )
         for page in sort_pages_by_priority(indexed_candidates):
             if self.match_page_once(page):
                 self.navigator.current_page = page
@@ -292,7 +308,13 @@ class GameUi(ChessBattleNavigationMixin, BaseTask, GameUiAssets):
             return str(getattr(action, "__name__", action.__class__.__name__))
         return repr(action)
 
-    def _execute_action(self, action, *, interval: float | None = None, skip_first_screenshot: bool = True) -> bool:
+    def _execute_action(
+        self,
+        action,
+        *,
+        interval: float | None = None,
+        skip_first_screenshot: bool = True,
+    ) -> bool:
         """统一执行动作对象。
 
         Args:
@@ -309,13 +331,19 @@ class GameUi(ChessBattleNavigationMixin, BaseTask, GameUiAssets):
         if isinstance(action, ConditionalAction):
             if not action.condition.evaluate(self):
                 return False
-            return self._execute_action(action.action, interval=interval, skip_first_screenshot=False)
+            return self._execute_action(
+                action.action, interval=interval, skip_first_screenshot=False
+            )
 
         if isinstance(action, ActionSequence):
             if not action.actions:
                 return False
             results = [
-                self._execute_action(item, interval=interval, skip_first_screenshot=(index == 0 and skip_first_screenshot))
+                self._execute_action(
+                    item,
+                    interval=interval,
+                    skip_first_screenshot=(index == 0 and skip_first_screenshot),
+                )
                 for index, item in enumerate(action.actions)
             ]
             if action.success_index < len(results):
@@ -329,13 +357,17 @@ class GameUi(ChessBattleNavigationMixin, BaseTask, GameUiAssets):
                 skip_first_screenshot=skip_first_screenshot,
             )
 
-        if callable(action) and not isinstance(action, (RuleImage, RuleGif, RuleOcr, RuleList, RuleClick)):
+        if callable(action) and not isinstance(
+            action, (RuleImage, RuleGif, RuleOcr, RuleList, RuleClick)
+        ):
             result = self._invoke_callable(action)
             if isinstance(result, bool):
                 return result
             if result is None:
                 return False
-            return self._execute_action(result, interval=interval, skip_first_screenshot=False)
+            return self._execute_action(
+                result, interval=interval, skip_first_screenshot=False
+            )
 
         if isinstance(action, RuleList):
             return self.list_appear_click(action, interval=interval or 0.8)
@@ -360,7 +392,9 @@ class GameUi(ChessBattleNavigationMixin, BaseTask, GameUiAssets):
         """
 
         for index, hook in enumerate(hooks):
-            self._execute_action(hook, interval=interval, skip_first_screenshot=(index == 0))
+            self._execute_action(
+                hook, interval=interval, skip_first_screenshot=(index == 0)
+            )
 
     def _mark_page_entered(self, page: Page) -> None:
         """记录最近一次已触发进入成功 hook 的页面。
@@ -383,7 +417,9 @@ class GameUi(ChessBattleNavigationMixin, BaseTask, GameUiAssets):
         self._run_hooks(page.on_enter_success)
         self._mark_page_entered(page)
 
-    def _allowed_pages_for_navigation(self, destination: Page, current: Page | None) -> dict[str, Page]:
+    def _allowed_pages_for_navigation(
+        self, destination: Page, current: Page | None
+    ) -> dict[str, Page]:
         """构建本轮导航允许访问的页面集合。
 
         Args:
@@ -436,7 +472,12 @@ class GameUi(ChessBattleNavigationMixin, BaseTask, GameUiAssets):
                 next_page = transition.destination
                 if next_page.key not in allowed_pages:
                     continue
-                next_cost = cost + next_page.cost + transition.cost + self.navigator.penalty_of(transition)
+                next_cost = (
+                    cost
+                    + next_page.cost
+                    + transition.cost
+                    + self.navigator.penalty_of(transition)
+                )
                 if next_cost >= best_cost.get(next_page.key, float("inf")):
                     continue
                 best_cost[next_page.key] = next_cost
@@ -456,7 +497,9 @@ class GameUi(ChessBattleNavigationMixin, BaseTask, GameUiAssets):
         path.reverse()
         return path
 
-    def _refresh_current_page(self, destination: Page, skip_first_screenshot: bool) -> Page | None:
+    def _refresh_current_page(
+        self, destination: Page, skip_first_screenshot: bool
+    ) -> Page | None:
         """优先确认缓存当前页，失败后再执行作用域识别与全量兜底。
 
         Args:
@@ -468,7 +511,9 @@ class GameUi(ChessBattleNavigationMixin, BaseTask, GameUiAssets):
         """
 
         current = self.navigator.current_page
-        if current is not None and self.confirm_page(current, skip_first_screenshot=skip_first_screenshot):
+        if current is not None and self.confirm_page(
+            current, skip_first_screenshot=skip_first_screenshot
+        ):
             return current
         return self._detect_current_page_with_fallback(
             skip_first_screenshot=skip_first_screenshot,
@@ -512,7 +557,9 @@ class GameUi(ChessBattleNavigationMixin, BaseTask, GameUiAssets):
         action_timer = Timer(6.0).start()
         action_done = False
         while not action_timer.reached():
-            if self._execute_action(transition.action, interval=0.8, skip_first_screenshot=False):
+            if self._execute_action(
+                transition.action, interval=0.8, skip_first_screenshot=False
+            ):
                 action_done = True
                 break
 
@@ -536,9 +583,7 @@ class GameUi(ChessBattleNavigationMixin, BaseTask, GameUiAssets):
             self.device.click(
                 x=click_x,
                 y=click_y,
-                control_name=(
-                    f"TOWN_FALLBACK_{self._action_name(transition.action)}"
-                ),
+                control_name=(f"TOWN_FALLBACK_{self._action_name(transition.action)}"),
             )
             action_done = True
 
@@ -548,7 +593,9 @@ class GameUi(ChessBattleNavigationMixin, BaseTask, GameUiAssets):
             self._run_hooks(destination.on_enter_failure)
             self._run_hooks(transition.on_enter_failure)
             penalty = self.navigator.add_penalty(transition)
-            logger.warning(f"Transition failed before leaving {source}: {transition.key}, penalty={penalty:.1f}")
+            logger.warning(
+                f"Transition failed before leaving {source}: {transition.key}, penalty={penalty:.1f}"
+            )
             self.navigator.current_page = self._detect_current_page_with_fallback(
                 skip_first_screenshot=False,
                 categories=self._navigation_detect_categories(destination),
@@ -569,7 +616,9 @@ class GameUi(ChessBattleNavigationMixin, BaseTask, GameUiAssets):
         self._run_hooks(destination.on_enter_failure)
         self._run_hooks(transition.on_enter_failure)
         penalty = self.navigator.add_penalty(transition)
-        logger.warning(f"Transition cannot reach {destination}: {transition.key}, penalty={penalty:.1f}")
+        logger.warning(
+            f"Transition cannot reach {destination}: {transition.key}, penalty={penalty:.1f}"
+        )
         self.navigator.current_page = self._detect_current_page_with_fallback(
             skip_first_screenshot=False,
             categories=self._navigation_detect_categories(destination),
@@ -586,7 +635,9 @@ class GameUi(ChessBattleNavigationMixin, BaseTask, GameUiAssets):
             当前截图命中的页面名称列表。
         """
 
-        pages = self.navigator.all_pages(self._navigation_detect_categories(destination))
+        pages = self.navigator.all_pages(
+            self._navigation_detect_categories(destination)
+        )
         self.screenshot()
         return [page.name for page in pages if self.match_page_once(page)]
 
@@ -598,7 +649,9 @@ class GameUi(ChessBattleNavigationMixin, BaseTask, GameUiAssets):
         """
 
         self.navigator.unknown_close_history.append(message)
-        self.navigator.unknown_close_history = self.navigator.unknown_close_history[-10:]
+        self.navigator.unknown_close_history = self.navigator.unknown_close_history[
+            -10:
+        ]
 
     def _log_navigation_timeout(
         self,
@@ -618,11 +671,17 @@ class GameUi(ChessBattleNavigationMixin, BaseTask, GameUiAssets):
             last_repeated_failure_close_result: 最近一次“三连失败后主动关闭”的结果摘要。
         """
 
-        current = self.navigator.current_page.name if self.navigator.current_page else "None"
-        allowed_categories = sorted(self._navigation_graph_categories(destination, self.navigator.current_page))
+        current = (
+            self.navigator.current_page.name if self.navigator.current_page else "None"
+        )
+        allowed_categories = sorted(
+            self._navigation_graph_categories(destination, self.navigator.current_page)
+        )
         penalties = {
             key: value
-            for key, value in sorted(self.navigator.edge_penalties.items(), key=lambda item: item[0])
+            for key, value in sorted(
+                self.navigator.edge_penalties.items(), key=lambda item: item[0]
+            )
             if value > 0
         }
         check_results = self._collect_page_check_results(destination)
@@ -637,12 +696,16 @@ class GameUi(ChessBattleNavigationMixin, BaseTask, GameUiAssets):
             "Repeated transition failure: "
             f"key={repeated_failure_transition_key}, count={repeated_failure_count}"
         )
-        logger.warning(f"Last repeated-failure close result: {last_repeated_failure_close_result}")
+        logger.warning(
+            f"Last repeated-failure close result: {last_repeated_failure_close_result}"
+        )
         logger.warning(f"Edge penalties: {penalties}")
         logger.warning(f"Unknown close history: {self.navigator.unknown_close_history}")
         raise GamePageUnknownError(f"Cannot goto page[{destination}]")
 
-    def get_current_page(self, skip_first_screenshot: bool = True, fallback: bool = False) -> Page | None:
+    def get_current_page(
+        self, skip_first_screenshot: bool = True, fallback: bool = False
+    ) -> Page | None:
         """获取当前稳定页面。
 
         Args:
@@ -656,7 +719,7 @@ class GameUi(ChessBattleNavigationMixin, BaseTask, GameUiAssets):
         if not fallback:
             return self._detect_current_page(
                 skip_first_screenshot=skip_first_screenshot,
-                categories=self._default_detect_categories()
+                categories=self._default_detect_categories(),
             )
         return self._detect_current_page_with_fallback(
             skip_first_screenshot=skip_first_screenshot,
@@ -669,7 +732,9 @@ class GameUi(ChessBattleNavigationMixin, BaseTask, GameUiAssets):
 
         return self.navigator.all_pages({category})
 
-    def detect_page_in(self, *targets: str | Page, include_global: bool = True) -> Page | None:
+    def detect_page_in(
+        self, *targets: str | Page, include_global: bool = True
+    ) -> Page | None:
         """在指定分类或显式页面集合内识别当前页面。"""
 
         category_set = {target for target in targets if isinstance(target, str)}
@@ -712,11 +777,16 @@ class GameUi(ChessBattleNavigationMixin, BaseTask, GameUiAssets):
 
         self.maybe_screenshot(skip_first_screenshot)
         logger.warning("Try switch to a supported page")
-        for action in [*self.navigator.local_unknown_closers, *self.DEFAULT_UNKNOWN_CLOSERS]:
+        for action in [
+            *self.navigator.local_unknown_closers,
+            *self.DEFAULT_UNKNOWN_CLOSERS,
+        ]:
             action_name = self._action_name(action)
             # 若最后3次执行的都是该动作，则跳过该动作尝试其他动作
-            if len(self.navigator.unknown_close_history) >= 3 and \
-                    self.navigator.unknown_close_history[-3:] == [action_name] * 3:
+            if (
+                len(self.navigator.unknown_close_history) >= 3
+                and self.navigator.unknown_close_history[-3:] == [action_name] * 3
+            ):
                 continue
             if self._execute_action(action, interval=1.5, skip_first_screenshot=False):
                 self._record_unknown_close_event(f"{action_name}")
@@ -744,7 +814,9 @@ class GameUi(ChessBattleNavigationMixin, BaseTask, GameUiAssets):
         rotation_check()
         return False
 
-    def _finalize_arrival(self, destination: Page, confirm_wait: float, start_time: float) -> bool:
+    def _finalize_arrival(
+        self, destination: Page, confirm_wait: float, start_time: float
+    ) -> bool:
         """统一处理到达目标页后的收尾动作。
 
         到达判定已由调用方完成（跳转边到达等待的两帧确认，或当前页刷新返回的两帧确认结果），
@@ -766,8 +838,13 @@ class GameUi(ChessBattleNavigationMixin, BaseTask, GameUiAssets):
         logger.attr(f'{time.time() - start_time:.1f}s', f"Page arrived {destination}")
         return True
 
-    def goto_page(self, destination: Page, confirm_wait: float = 0, skip_first_screenshot: bool = True,
-                  timeout: int = 30) -> bool | None:
+    def goto_page(
+        self,
+        destination: Page,
+        confirm_wait: float = 0,
+        skip_first_screenshot: bool = True,
+        timeout: int = 30,
+    ) -> bool | None:
         """导航到目标页面。
 
         Args:
@@ -783,7 +860,9 @@ class GameUi(ChessBattleNavigationMixin, BaseTask, GameUiAssets):
             GamePageUnknownError: 无法恢复到可导航状态或无法推进到目标页面时抛出。
         """
 
-        destination = self.navigator.resolve_page(destination) or self.navigator.add_page(destination)
+        destination = self.navigator.resolve_page(
+            destination
+        ) or self.navigator.add_page(destination)
         logger.hr(f"UI goto {destination}")
         start_time = time.time()
         progress_timer = Timer(timeout).start()
@@ -846,12 +925,22 @@ class GameUi(ChessBattleNavigationMixin, BaseTask, GameUiAssets):
                     )
                 continue
 
-            path_signature = (current.key, " -> ".join(transition.key for transition in path))
+            path_signature = (
+                current.key,
+                " -> ".join(transition.key for transition in path),
+            )
             if path_signature != last_progress_signature:
                 progress_timer.reset()
                 last_progress_signature = path_signature
             logger.info(f"Current page: {current}. Following path:")
-            logger.info(" -> ".join([current.name, *[transition.destination.name for transition in path]]))
+            logger.info(
+                " -> ".join(
+                    [
+                        current.name,
+                        *[transition.destination.name for transition in path],
+                    ]
+                )
+            )
 
             advanced = True
             for transition in path:
@@ -862,12 +951,23 @@ class GameUi(ChessBattleNavigationMixin, BaseTask, GameUiAssets):
                     else:
                         repeated_failure_transition_key = transition.key
                         repeated_failure_count = 1
-                    if repeated_failure_count % self.REPEATED_TRANSITION_FAILURE_THRESHOLD == 0:
-                        close_success = self.close_unknown_pages(skip_first_screenshot=False)
-                        logger.warning(f"Transition {transition.key} repeated failure close result: {close_success}")
+                    if (
+                        repeated_failure_count
+                        % self.REPEATED_TRANSITION_FAILURE_THRESHOLD
+                        == 0
+                    ):
+                        close_success = self.close_unknown_pages(
+                            skip_first_screenshot=False
+                        )
+                        logger.warning(
+                            f"Transition {transition.key} repeated failure close result: {close_success}"
+                        )
                         if close_success:
                             progress_timer.reset()
-                            last_progress_signature = ("close_unknown_after_repeated_failure", transition.key)
+                            last_progress_signature = (
+                                "close_unknown_after_repeated_failure",
+                                transition.key,
+                            )
                             reset_repeated_transition_failures()
                     break
                 progress_timer.reset()
