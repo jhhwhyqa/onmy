@@ -4,7 +4,7 @@ from tasks.ActivityShikigami.assets import ActivityShikigamiAssets
 from tasks.Component.GeneralInvite.assets import GeneralInviteAssets
 from tasks.Component.SwitchAccount.assets import SwitchAccountAssets
 from tasks.Exploration.assets import ExplorationAssets
-from tasks.GameUi.action import conditional_action, sequence
+from tasks.GameUi.action import conditional_action
 from tasks.GameUi.chess_battle import (
     handle_chess_battle_page,
     handle_chess_result_page,
@@ -156,9 +156,10 @@ page_daily.add_enter_failure_hooks(
     ),
     conditional_action(
         condition=lambda task: not task.appear(GameUiAssets.I_CHECK_MAIN),
-        action=lambda task: task.ui_click(
+        action=lambda task: task.ui_click_until_appear_or_timeout(
             click=random_click(ltrb=(False, False, False, True)),
             stop=GlobalGameAssets.I_UI_BACK_YELLOW,
+            timeout=8,
         ),
     ),
 )

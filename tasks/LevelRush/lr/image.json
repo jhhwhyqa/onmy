@@ -664,5 +664,14 @@
     "method": "Template matching",
     "threshold": 0.8,
     "description": "神秘商人对话"
+  },
+  {
+    "itemName": "lr_skip",
+    "imageName": "lr_lr_skip.png",
+    "roiFront": "1138,43,58,29",
+    "roiBack": "1075,25,189,69",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "跳过"
   }
 ]

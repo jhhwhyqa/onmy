@@ -105,31 +105,31 @@ class ScriptTask(
     conf: LevelRushConfig
 
     def before_run(self):
-        page_main.add_enter_failure_hooks(
-            conditional_action(
-                condition=LevelRushAssets.I_PHONE_BIND,
-                action=LevelRushAssets.I_PHONE_BIND,
-            ),
-            conditional_action(
-                condition=LevelRushAssets.I_PHONE_BIND_CANCEL,
-                action=LevelRushAssets.I_PHONE_BIND_CANCEL,
-            ),
-            conditional_action(
-                condition=LevelRushAssets.O_CLICK_BLANK_CLOSE,
-                action=LevelRushAssets.O_CLICK_BLANK_CLOSE,
-            ),
-        )
-        page_daily.add_enter_failure_hooks(
-            conditional_action(
-                condition=LevelRushAssets.O_CLICK_ANYWHERE_CONTINUE,
-                action=LevelRushAssets.O_CLICK_ANYWHERE_CONTINUE,
+        page_main_session = self.navigator.resolve_page(page_main)
+        if page_main_session is not None:
+            page_main_session.add_enter_failure_hooks(
+                conditional_action(
+                    condition=LevelRushAssets.O_CLICK_BLANK_CLOSE,
+                    action=LevelRushAssets.O_CLICK_BLANK_CLOSE,
+                ),
+                conditional_action(
+                    condition=LevelRushAssets.I_PHONE_BIND_CANCEL,
+                    action=LevelRushAssets.I_PHONE_BIND_CANCEL,
+                ),
             )
-        )
+        page_daily_session = self.navigator.resolve_page(page_daily)
+        if page_daily_session is not None:
+            # 过场/剧情页只能点"跳过"，且要排在通用随机点击兜底之前
+            skip_hook = conditional_action(
+                condition=LevelRushAssets.I_LR_SKIP,
+                action=LevelRushAssets.I_LR_SKIP,
+            )
+            if skip_hook not in page_daily_session.on_enter_failure:
+                page_daily_session.on_enter_failure.insert(0, skip_hook)
 
     def run(self):
         self.before_run()
         self.conf = self.config.model.level_rush
-        self.stop_flag = False
 
         # 七级前流程
         if not self.conf.level_rush_config.level_7_mark:
@@ -155,7 +155,7 @@ class ScriptTask(
         # 触发了跳过剧情就判定是否需要停止任务
         if (
             self.config.level_rush.level_rush_config.skip_to_30_stop_enable
-            and self.stop_flag
+            and self.config.level_rush.level_rush_config.skip_to_30_mark
         ):
             self.run_pickup_email()
             self._run_before_buy()
@@ -664,7 +664,6 @@ class ScriptTask(
                 if self._check_skip_enable():
                     self.config.level_rush.level_rush_config.skip_to_30_mark = True
                     self.config.save()
-                    self.stop_flag = True
                 continue
             if self.appear_then_click(self.I_RED_CLOSE, interval=1):
                 continue
