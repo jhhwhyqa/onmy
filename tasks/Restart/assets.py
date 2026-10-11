@@ -110,10 +110,6 @@ class RestartAssets:
 	I_RETURN_CHESS_CANCEL = RuleImage(roi_front=(432,400,181,69), roi_back=(400,370,240,120), threshold=0.8, method="Template matching", file="./tasks/Restart/login/login_return_chess_cancel.png")
 	# 关闭个性化推荐 
 	I_CLOSE_PERSONAL_RECOMMEND = RuleImage(roi_front=(359,575,225,69), roi_back=(359,575,225,69), threshold=0.8, method="Template matching", file="./tasks/Restart/login/login_close_personal_recommend.png")
-	# 前往绑定按钮 
-	I_GOTO_BIND = RuleImage(roi_front=(976,461,68,70), roi_back=(976,461,68,70), threshold=0.8, method="Template matching", file="./tasks/Restart/login/login_goto_bind.png")
-	# 取消绑定 
-	I_CANCEL_BIND = RuleImage(roi_front=(461,471,129,68), roi_back=(461,471,129,68), threshold=0.8, method="Template matching", file="./tasks/Restart/login/login_cancel_bind.png")
 
 
 	# Ocr Rule Assets

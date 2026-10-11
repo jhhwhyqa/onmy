@@ -22,7 +22,7 @@ from module.base.timer import Timer
 from module.exception import GamePageUnknownError, GameNotRunningError
 from module.logger import logger
 from tasks.ActivityShikigami.assets import ActivityShikigamiAssets
-from tasks.GameUi.action import ActionSequence, ConditionalAction
+from tasks.GameUi.action import ActionSequence, ConditionalAction, conditional_action
 from tasks.GameUi.assets import GameUiAssets
 from tasks.GameUi.chess_battle import ChessBattleNavigationMixin
 from tasks.GameUi.common import (
@@ -45,8 +45,11 @@ class GameUi(ChessBattleNavigationMixin, BaseTask, GameUiAssets):
 
     # 全局未知页关闭动作，所有任务共享。
     DEFAULT_UNKNOWN_CLOSERS = [
-        RestartAssets.I_LOGIN_LOGIN_CANCEL_BIND_PHONE,
-        RestartAssets.I_CANCEL_BIND,
+        conditional_action(
+            RestartAssets.I_LOGIN_LOGIN_ENSURE_BIND_PHONE,
+            RestartAssets.I_LOGIN_LOGIN_CANCEL_BIND_PHONE,
+        ),
+        RestartAssets.I_LOGIN_LOGIN_GOTO_BIND_PHONE,
         GlobalGameAssets.I_UI_BACK_RED,
         GlobalGameAssets.I_CHAT_CLOSE_BUTTON,
         ActivityShikigamiAssets.I_SKIP_BUTTON,

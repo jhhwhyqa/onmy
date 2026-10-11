@@ -342,24 +342,6 @@
     "description": "交替页面检查"
   },
   {
-    "itemName": "phone_bind",
-    "imageName": "lr_phone_bind.png",
-    "roiFront": "976,460,70,75",
-    "roiBack": "976,460,70,75",
-    "method": "Template matching",
-    "threshold": 0.8,
-    "description": "前往绑定"
-  },
-  {
-    "itemName": "phone_bind_cancel",
-    "imageName": "lr_phone_bind_cancel.png",
-    "roiFront": "474,476,100,51",
-    "roiBack": "474,476,100,51",
-    "method": "Template matching",
-    "threshold": 0.8,
-    "description": "取消绑定"
-  },
-  {
     "itemName": "normal_mode",
     "imageName": "lr_normal_mode.png",
     "roiFront": "986,601,108,44",

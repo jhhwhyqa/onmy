@@ -1,7 +1,9 @@
+from tasks.GameUi.action import conditional_action
 from tasks.GameUi.default_pages import page_main, page_daily, page_friends
 from tasks.GameUi.page_definition import Page
 from tasks.GlobalGame.assets import GlobalGameAssets
 from tasks.LevelRush.assets import LevelRushAssets
+from tasks.Restart.assets import RestartAssets
 
 # 新手活动页面
 page_rookie_act = Page(LevelRushAssets.I_CHECK_ROOKIE_ACT)
@@ -44,9 +46,19 @@ page_add_friends.connect(
 )
 
 # 绑定手机页面
-page_bind_phone = Page(LevelRushAssets.I_PHONE_BIND)
+page_bind_phone = Page(RestartAssets.I_LOGIN_LOGIN_GOTO_BIND_PHONE)
 page_bind_phone.connect(
     page_main,
-    LevelRushAssets.I_PHONE_BIND,
+    RestartAssets.I_LOGIN_LOGIN_GOTO_BIND_PHONE,
     key="page_bind_phone->page_main",
+)
+page_main.add_enter_failure_hooks(
+    conditional_action(
+        condition=RestartAssets.I_LOGIN_LOGIN_ENSURE_BIND_PHONE,
+        action=RestartAssets.I_LOGIN_LOGIN_CANCEL_BIND_PHONE,
+    ),
+    conditional_action(
+        condition=LevelRushAssets.O_CLICK_BLANK_CLOSE,
+        action=LevelRushAssets.O_CLICK_BLANK_CLOSE,
+    ),
 )

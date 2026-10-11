@@ -178,23 +178,5 @@
     "method": "Template matching",
     "threshold": 0.8,
     "description": "关闭个性化推荐"
-  },
-  {
-    "itemName": "goto_bind",
-    "imageName": "login_goto_bind.png",
-    "roiFront": "976,461,68,70",
-    "roiBack": "976,461,68,70",
-    "method": "Template matching",
-    "threshold": 0.8,
-    "description": "前往绑定按钮"
-  },
-  {
-    "itemName": "cancel_bind",
-    "imageName": "login_cancel_bind.png",
-    "roiFront": "461,471,129,68",
-    "roiBack": "461,471,129,68",
-    "method": "Template matching",
-    "threshold": 0.8,
-    "description": "取消绑定"
   }
 ]

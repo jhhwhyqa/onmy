@@ -105,18 +105,6 @@ class ScriptTask(
     conf: LevelRushConfig
 
     def before_run(self):
-        page_main_session = self.navigator.resolve_page(page_main)
-        if page_main_session is not None:
-            page_main_session.add_enter_failure_hooks(
-                conditional_action(
-                    condition=LevelRushAssets.O_CLICK_BLANK_CLOSE,
-                    action=LevelRushAssets.O_CLICK_BLANK_CLOSE,
-                ),
-                conditional_action(
-                    condition=LevelRushAssets.I_PHONE_BIND_CANCEL,
-                    action=LevelRushAssets.I_PHONE_BIND_CANCEL,
-                ),
-            )
         page_daily_session = self.navigator.resolve_page(page_daily)
         if page_daily_session is not None:
             # 过场/剧情页只能点"跳过"，且要排在通用随机点击兜底之前
@@ -647,9 +635,13 @@ class ScriptTask(
             if self.appear(self.I_LEVEL_LOCKED):
                 logger.info(f"Storyline locked, try to level up")
                 break
-            if self.appear_then_click(self.I_PHONE_BIND, interval=1):
+            if self.appear_then_click(
+                RestartAssets.I_LOGIN_LOGIN_GOTO_BIND_PHONE, interval=1
+            ):
                 continue
-            if self.appear_then_click(self.I_PHONE_BIND_CANCEL, interval=1):
+            if self.appear_then_click(
+                RestartAssets.I_LOGIN_LOGIN_CANCEL_BIND_PHONE, interval=1
+            ):
                 continue
             if self.get_current_page() == page_exploration:
                 self.appear_then_click(self.I_YELLOW_BACK_BUTTON, interval=1)

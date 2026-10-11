@@ -95,10 +95,6 @@ class LevelRushAssets:
 	I_ASSIST_UP_SUCCESS = RuleImage(roi_front=(303,510,34,31), roi_back=(303,510,34,31), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_assist_up_success.png")
 	# 交替页面检查 
 	I_SWITCH_CHECK = RuleImage(roi_front=(21,534,31,63), roi_back=(21,534,31,63), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_switch_check.png")
-	# 前往绑定 
-	I_PHONE_BIND = RuleImage(roi_front=(976,460,70,75), roi_back=(976,460,70,75), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_phone_bind.png")
-	# 取消绑定 
-	I_PHONE_BIND_CANCEL = RuleImage(roi_front=(474,476,100,51), roi_back=(474,476,100,51), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_phone_bind_cancel.png")
 	# 普通模式 
 	I_NORMAL_MODE = RuleImage(roi_front=(986,601,108,44), roi_back=(986,601,108,44), threshold=0.8, method="Template matching", file="./tasks/LevelRush/lr/lr_normal_mode.png")
 	# 困难模式 
