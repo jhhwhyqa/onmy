@@ -90,6 +90,9 @@ class GeneralBattleAssets:
 	I_REWARD_STATISTICS = RuleImage(roi_front=(59,49,34,35), roi_back=(24,23,111,684), threshold=0.8, method="Template matching", file="./tasks/Component/GeneralBattle/gb/gb_reward_statistics.png")
 	# 结算金币 
 	I_REWARD_GOLD = RuleImage(roi_front=(268,178,97,69), roi_back=(254,163,797,261), threshold=0.8, method="Template matching", file="./tasks/Component/GeneralBattle/gb/gb_reward_gold.png")
+	# 奖励详情（判断"奖励详情"是否已展开）
+	I_REWARD_PARTICULARS = RuleImage(roi_front=(725,289,98,33), roi_back=(111,76,1053,564), threshold=0.8, method="Template matching", file="./tasks/Component/GeneralBattle/gb/gb_reward_particulars.png")
+	I_REWARD_PARTICULARS_ORCHI = RuleImage(roi_front=(931,496,107,31), roi_back=(111,76,1053,564), threshold=0.8, method="Template matching", file="./tasks/Component/GeneralBattle/gb/gb_reward_particulars_orchi.png")
 	# 结算紫蛇皮 
 	I_REWARD_PURPLE_SNAKE_SKIN = RuleImage(roi_front=(604,213,67,37), roi_back=(108,163,1070,261), threshold=0.8, method="Template matching", file="./tasks/Component/GeneralBattle/gb/gb_reward_purple_snake_skin.png")
 	# 结算金蛇皮 

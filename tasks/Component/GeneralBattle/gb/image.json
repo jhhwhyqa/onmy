@@ -268,5 +268,23 @@
     "method": "Template matching",
     "threshold": 0.8,
     "description": "御魂溢出"
+  },
+  {
+    "itemName": "reward_particulars",
+    "imageName": "gb_reward_particulars.png",
+    "roiFront": "725,289,98,33",
+    "roiBack": "111,76,1053,564",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "奖励详情"
+  },
+  {
+    "itemName": "reward_particulars_orchi",
+    "imageName": "gb_reward_particulars_orchi.png",
+    "roiFront": "931,496,107,31",
+    "roiBack": "111,76,1053,564",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "御魂详情"
   }
 ]
