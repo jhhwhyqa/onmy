@@ -14,6 +14,8 @@ from module.logger import logger
 RETRY_TRIES = 5
 RETRY_DELAY = 3
 
+FAST_INPUT_IME = 'com.github.uiautomator/.FastInputIME'
+
 
 def is_port_using(port_num):
     """ if port is using by others, return True. else return False """
@@ -251,6 +253,47 @@ class Device(u2.Device):
         Don't show float windows.
         """
         pass
+
+    _ime_id_patterns = (
+        r'mCurMethodId=([-_./\w]+)',
+        r'mSelectedMethodId=([-_./\w]+)',
+        r'mCurId=([-_./\w]+)',
+    )
+
+    def current_ime(self):
+        """
+        放宽 uiautomator2 原实现。它只用 mCurMethodId 去 dumpsys 里抓当前输入法,
+        部分 MuMu 镜像(安卓 15)没有该字段, 会一直返回 (None, shown), 使得
+        wait_fastinput_ime() 必然超时, send_keys() 回退 set_text 后抛 UiObjectNotFoundError。
+        """
+        dim, _ = self.shell(['dumpsys', 'input_method'])
+        shown = 'mInputShown=true' in dim
+        for pattern in self._ime_id_patterns:
+            match = re.search(pattern, dim)
+            if match:
+                return match.group(1), shown
+        # 三个字段都抓不到: 退回 settings(只读, 不会被 MuMu 拦)
+        out = self.shell(['settings', 'get', 'secure', 'default_input_method'])
+        return (out.output or '').strip(), shown
+
+    def wait_fastinput_ime(self, timeout=5.0):
+        """
+        原实现要求 ime id 正确且 mInputShown=true 才返回, 后者在 MuMu 上不一定拿得到。
+        这里只要求 FastInputIME 是当前输入法。
+        """
+        if not self.serial:
+            raise EnvironmentError('Android simulator is not supported.')
+
+        deadline = time.time() + timeout
+        while time.time() < deadline:
+            ime_id, _ = self.current_ime()
+            if ime_id == FAST_INPUT_IME:
+                return True
+            self.set_fastinput_ime(True)
+            time.sleep(0.5)
+        raise EnvironmentError(
+            f'FastInputIME started failed, current ime is {self.current_ime()[0]}'
+        )
 
 
 # Monkey patch
