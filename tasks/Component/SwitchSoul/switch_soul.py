@@ -252,6 +252,9 @@ class SwitchSoul(BaseTask, SwitchSoulAssets):
                 break
             if self.appear_then_click(self.I_SOU_SWITCH_SURE, interval=0.8):
                 continue
+            # OCR 切换御魂时会弹出「锁定阵容」提示，误触点到式神检查就关掉它
+            if self.appear_then_click(self.I_CHECK_BLOCK, interval=3):
+                continue
             if self.ocr_appear_click_by_rule(self.O_SS_TEAM_NAME, self.I_SOU_CLICK_PRESENT, interval=1.5):
                 cnt_click += 1
                 continue
