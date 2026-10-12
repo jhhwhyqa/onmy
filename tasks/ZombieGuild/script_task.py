@@ -5,6 +5,7 @@
 import time
 
 import re
+from copy import copy
 from datetime import timedelta
 from pathlib import Path
 from time import sleep
@@ -12,6 +13,7 @@ from uuid import uuid4
 
 from datetime import datetime
 
+from module.atom.animate import RuleAnimate
 from module.base.timer import Timer
 from module.exception import GamePageUnknownError, TaskEnd
 from module.logger import logger
@@ -44,6 +46,8 @@ DOKAN_REWARD_SCREENSHOT_DIR = Path('log/screenshots/dokan')
 DOKAN_REWARD_CAPTURE_DELAY = 1.0
 DOKAN_NEXT_SELECTION_TIMEOUT = 120.0
 DOKAN_NEXT_SELECTION_POLL_INTERVAL = 2.0
+DOKAN_LIST_STABLE_INTERVAL = 0.3
+DOKAN_LIST_STABLE_TIMEOUT = 1.5
 MAX_WELFARE_DOKAN_REFRESH_COUNT = 20
 # 主循环里连续识别不到任何页面多久后开始自愈, 以及自愈尝试次数上限(见 run 的 None 分支)
 DOKAN_UNKNOWN_PAGE_TIMEOUT = 10.0
@@ -289,7 +293,7 @@ class ScriptTask(GameUi, SwitchSoul, GeneralBattle, DokanAssets):
             logger.warning("weekend, exit")
             self.next_run(True)
             raise TaskEnd
-        # 初始化相关动态参数,从配置文件读取相关记录,如果没有当天的记录则设置为默认值
+        # 清空历史次数，首次进入筛选页面后读取游戏实际剩余次数。
         self.conf.attack_count_config.init_attack_count(callback=self.config.save)
         unknown_page_timer = Timer(10)
         unknown_none_timer = Timer(DOKAN_UNKNOWN_PAGE_TIMEOUT)
@@ -422,10 +426,14 @@ class ScriptTask(GameUi, SwitchSoul, GeneralBattle, DokanAssets):
             retrying_skipped_owner = self.second_dokan_ready
             if self.found_dokan_cnt > 0 and not retrying_skipped_owner:
                 raise DokanNotStartedError
-            if retrying_skipped_owner and (self.config.zombie_guild.attack_count_config.daily_attack_count < 2
-                                           or self.found_dokan_cnt >= 2):
+            if retrying_skipped_owner and self.found_dokan_cnt >= 2:
                 raise DokanFinishedError
-            if self.update_remain_attack_count() <= 0:  # 可挑战次数为<=0,当作道馆成功完成
+            remaining = self.update_remain_attack_count()
+            if remaining < 0:
+                logger.warning('未识别到道馆剩余次数，结束本次筛选')
+                raise DokanNotStartedError
+            if remaining == 0:
+                logger.info('游戏显示道馆剩余0次，结束任务')
                 raise DokanFinishedError
             if not retrying_skipped_owner and not self.ensure_dokan_created():
                 logger.warning('Create Dokan failed, stop before selecting a target')
@@ -458,6 +466,30 @@ class ScriptTask(GameUi, SwitchSoul, GeneralBattle, DokanAssets):
         self.goto_page(pages.page_dokan)
         self.attack_priority_selected = True
 
+    def _wait_for_dokan_list_ready(self) -> bool:
+        """列表连续两次稳定后使用当前帧筛选，避免滑动中读取旧位置。"""
+        animation = RuleAnimate(self.I_RIGHTPAD_POINT_BOUNTY, threshold=0.98, name='DOKAN_LIST')
+        deadline = time.monotonic() + DOKAN_LIST_STABLE_TIMEOUT
+        stable_checks = 0
+        while time.monotonic() < deadline:
+            check_started = time.monotonic()
+            self.screenshot()
+            if time.monotonic() >= deadline:
+                break
+            stable_checks = stable_checks + 1 if animation.stable(
+                self.device.image, frame_id=self.device.image_frame_id) else 0
+            checked_at = time.monotonic()
+            if checked_at >= deadline:
+                break
+            if stable_checks >= 2:
+                return True
+            delay = min(max(0.0, DOKAN_LIST_STABLE_INTERVAL - (checked_at - check_started)),
+                        deadline - checked_at)
+            if delay > 0:
+                sleep(delay)
+        logger.warning('道馆列表仍在变化，跳过当前屏，继续筛选')
+        return False
+
     def find_dokan(self) -> bool:
         """只挑战带“鑫”图标且符合防守人数要求的福利寮。"""
         self.found_dokan_cnt += 1
@@ -475,10 +507,26 @@ class ScriptTask(GameUi, SwitchSoul, GeneralBattle, DokanAssets):
 
         def find_challengeable():
             restore_roi()
-            self.screenshot()
+            self.device.click_record_clear()
+            if not self._wait_for_dokan_list_ready():
+                return False
             candidates = self.find_all_element(self.I_RIGHTPAD_POINT_BOUNTY, (0, 0, 0, 50))
             logger.info(f'find elements list:{candidates}')
+            xin_rules = []
             for idx, item in enumerate(candidates):
+                rule = copy(self.I_RIGHTPAD_XIN_ICON)
+                rule.roi_front = list(rule.roi_front)
+                rule.roi_back = (item[0] - 15, max(0, item[1] - 90), 100, 95)
+                xin_rules.append(rule)
+            # 同一帧批量判断当前屏的图标，普通道馆无需逐项截图或打开详情。
+            self.prepare_appear_cache(xin_rules)
+            welfare_candidates = []
+            for idx, (item, rule) in enumerate(zip(candidates, xin_rules)):
+                if self.appear(rule):
+                    welfare_candidates.append((idx, item, rule))
+                else:
+                    logger.info(f"skip dojo without Xin emblem: idx={idx} item={item}")
+            for idx, item, rule in welfare_candidates:
                 self.device.click_record_clear()
                 logger.info(f"------start no.{idx} =={item}-----------")
                 self.screenshot()
@@ -486,10 +534,9 @@ class ScriptTask(GameUi, SwitchSoul, GeneralBattle, DokanAssets):
                     self.click(self.C_DOKAN_CANCEL_SELECT_DOKAN, interval=1.5)
                     self.wait_animate_stable(self.C_DOKAN_CANCEL_SELECT_DOKAN_CHECK_ANIMATE,
                                              interval=0.5, timeout=1.5)
-                self.I_RIGHTPAD_XIN_ICON.roi_back = (item[0] - 15, max(0, item[1] - 90), 100, 95)
-                self.screenshot()
-                if not self.appear(self.I_RIGHTPAD_XIN_ICON):
-                    logger.info(f"skip dojo without Xin emblem: idx={idx} item={item}")
+                # 关闭详情会改变画面，点击前在最新帧复核候选，防止列表位置变化。
+                if not self.appear(rule):
+                    logger.info(f"Xin emblem moved before selection: idx={idx} item={item}")
                     continue
                 self.I_RIGHTPAD_POINT_BOUNTY.roi_back = position_offset(item, (-10, -10, 20, 20))
                 if not self.ui_click_until_appear_or_timeout(self.I_RIGHTPAD_POINT_BOUNTY, self.I_CENTER_CHALLENGE,
@@ -720,9 +767,9 @@ class ScriptTask(GameUi, SwitchSoul, GeneralBattle, DokanAssets):
         return False
 
     def can_battle_again(self) -> bool:
-        """A second dojo is available only after starting the first with two attempts."""
+        """以游戏识别的剩余次数决定再战，单次任务最多挑战两馆。"""
         attack_count = self.conf.attack_count_config
-        return attack_count.daily_attack_count == 2 and attack_count.remain_attack_count > 0
+        return attack_count.remain_attack_count > 0 and self.found_dokan_cnt < 2
 
     def wait_for_next_dokan_selection(self) -> None:
         """Wait for Battle Again to return to the map before the second selection."""
@@ -837,8 +884,7 @@ class ScriptTask(GameUi, SwitchSoul, GeneralBattle, DokanAssets):
             return
         # 道馆已开启
         # 如果打两次,当前是第一次,设置为failure_interval后运行
-        if self.config.zombie_guild.attack_count_config.remain_attack_count == 1 and \
-                self.config.zombie_guild.attack_count_config.daily_attack_count == 2:
+        if self.config.zombie_guild.attack_count_config.remain_attack_count == 1:
             self.set_next_run(task="ZombieGuild", target=now + self.config.zombie_guild.scheduler.failure_interval)
             return
         # 其余情况当作成功
