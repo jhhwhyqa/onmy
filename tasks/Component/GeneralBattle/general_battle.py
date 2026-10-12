@@ -702,13 +702,20 @@ class GeneralBattle(GeneralBuff, GeneralBattleAssets):
             context: 当前战斗上下文对象。
             config: 当前通用战斗配置。
             exit_matcher: 战斗结束后的任务页面识别条件。
-                仅在最近一页是 `page_battle_result/page_reward` 且未开启连战时参与快速退出判定。
+                仅在已进入过战斗页面(本轮 last_page 不为空)、最近一页是
+                `page_battle_result/page_reward` 且未开启连战时参与快速退出判定。
 
         Returns:
             BattleAction: 根据结算收尾状态推导出的动作决策。
         """
+        entered_battle = context.last_page is not None
         # 非连战且设置了退出检测器, 则根据退出检测器检测是否已经退出
-        if not config.continuous_battle and exit_matcher is not None and self._evaluate_exit_matcher(exit_matcher):
+        if (
+            entered_battle
+            and not config.continuous_battle
+            and exit_matcher is not None
+            and self._evaluate_exit_matcher(exit_matcher)
+        ):
             logger.info("Exit matcher hit")
             return BattleAction.EXIT_WIN if context.is_win else BattleAction.EXIT_LOSE
         # 上个页面还是战斗中的页面但此时是未知界面, 且奖励计时也未开启, 则认为当前是页面抖动继续战斗(式神助战...)
