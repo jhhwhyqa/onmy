@@ -41,7 +41,7 @@ class ScriptTask(BaseExploration):
             pages.page_battle_prepare: self.run_on_battle,
             pages.page_battle: self.run_on_battle,
             pages.page_battle_result: self.run_on_battle,
-            pages.page_reward: lambda : self.click(pages.random_click(), interval=0.8),
+            pages.page_reward: lambda : self.click(pages.random_click(), interval=0.3),
             pages.page_battle_team: self.run_on_battle_team
         }
 

@@ -83,9 +83,9 @@ class SixRealmsAssets:
 	# 结算的椒图 
 	I_BOSS_SHUTU = RuleImage(roi_front=(108,141,173,122), roi_back=(53,70,273,278), threshold=0.8, method="Template matching", file="./tasks/SixRealms/moon_sea/ms/ms_boss_shutu.png")
 	# description 
-	I_BOSS_BATTLE_AGAIN = RuleImage(roi_front=(435,403,173,64), roi_back=(409,390,212,100), threshold=0.8, method="Template matching", file="./tasks/SixRealms/moon_sea/ms/ms_boss_battle_again.png")
+	I_BOSS_BATTLE_AGAIN = RuleImage(roi_front=(435,408,181,59), roi_back=(409,390,212,100), threshold=0.8, method="Template matching", file="./tasks/SixRealms/moon_sea/ms/ms_boss_battle_again.png")
 	# description 
-	I_BOSS_BATTLE_GIVEUP = RuleImage(roi_front=(671,399,175,59), roi_back=(649,381,219,100), threshold=0.8, method="Template matching", file="./tasks/SixRealms/moon_sea/ms/ms_boss_battle_giveup.png")
+	I_BOSS_BATTLE_GIVEUP = RuleImage(roi_front=(667,408,177,59), roi_back=(649,381,219,100), threshold=0.8, method="Template matching", file="./tasks/SixRealms/moon_sea/ms/ms_boss_battle_giveup.png")
 	# boss备战 
 	I_BOSS_FIRE_PREPARE = RuleImage(roi_front=(849,624,48,57), roi_back=(829,597,103,104), threshold=0.8, method="Template matching", file="./tasks/SixRealms/moon_sea/ms/ms_boss_fire_prepare.png")
 

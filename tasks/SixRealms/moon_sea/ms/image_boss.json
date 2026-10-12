@@ -65,7 +65,7 @@
   {
     "itemName": "boss_battle_again",
     "imageName": "ms_boss_battle_again.png",
-    "roiFront": "435,403,173,64",
+    "roiFront": "435,408,181,59",
     "roiBack": "409,390,212,100",
     "method": "Template matching",
     "threshold": 0.8,
@@ -74,7 +74,7 @@
   {
     "itemName": "boss_battle_giveup",
     "imageName": "ms_boss_battle_giveup.png",
-    "roiFront": "671,399,175,59",
+    "roiFront": "667,408,177,59",
     "roiBack": "649,381,219,100",
     "method": "Template matching",
     "threshold": 0.8,
