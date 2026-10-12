@@ -304,10 +304,10 @@ class ScriptTask(GameUi, SwitchSoul, GeneralBattle, DokanAssets):
             while True:
                 self.screenshot()
                 self._capture_dokan_reward_if_visible()
-                # fallback=True: 作用域内没命中时再全量扫一遍注册页面。
-                # 导航器(goto_page)就是这么识别的, 主循环只扫 {global, zombie_guild},
-                # 所以曾出现"导航刚报到达道馆地图、循环立刻识别成 None"的不对称。
-                current_page = self.get_current_page(fallback=True)
+                # 只扫 {global, zombie_guild}: 道馆页面的 key 已在 page.py 里改成
+                # 本任务独有, 作用域内识别得到; 不用 fallback 全量扫描, 否则一旦
+                # 识别不到就会每帧扫一遍所有任务的页面(含别的任务的 OCR 规则)。
+                current_page = self.get_current_page()
                 if current_page is not None:
                     # 识别到页面说明已经脱离未知界面, 重置自愈计时与次数
                     unknown_none_retry = 0

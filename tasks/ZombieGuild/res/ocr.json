@@ -1,5 +1,14 @@
 [
   {
+    "itemName": "dokan_title",
+    "roiFront": "557,5,164,62",
+    "roiBack": "557,5,164,62",
+    "mode": "Full",
+    "method": "Default",
+    "keyword": "道馆突破",
+    "description": "道馆页顶部「道馆突破」标题（图片模板不稳时由 OCR 兜底识别本页）"
+  },
+  {
     "itemName": "dokan_map",
     "roiFront": "270,130,740,460",
     "roiBack": "270,130,740,460",

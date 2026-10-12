@@ -121,6 +121,8 @@ class DokanAssets:
 
 
 	# Ocr Rule Assets
+	# 道馆页顶部「道馆突破」标题（图片模板不稳时由 OCR 兜底识别本页）
+	O_DOKAN_TITLE = RuleOcr(roi=(557,5,164,62), area=(557,5,164,62), mode="Full", method="Default", keyword="道馆突破", name="dokan_title")
 	# 道馆地图里找文字：万
 	O_DOKAN_MAP = RuleOcr(roi=(270,130,740,460), area=(270,130,740,460), mode="Full", method="Default", keyword="万", name="dokan_map")
 	# 查找道馆时,中间卡片上防守人数

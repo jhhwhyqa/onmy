@@ -7,8 +7,9 @@ from tasks.GameUi.page_definition import Page
 from tasks.GlobalGame.assets import GlobalGameAssets
 
 # 道馆地图页面
-page_dokan_map = Page(any_of(DokanAssets.I_RYOU_DOKAN_FOUND_DOKAN, DokanAssets.I_RYOU_DOKAN_FINDING_DOKAN))
-page_shirin.connect(page_dokan_map, DokanAssets.I_SCENE_SHENSHE, key="page_shirin->page_dokan_map")
+page_dokan_map = Page(any_of(DokanAssets.I_RYOU_DOKAN_FOUND_DOKAN, DokanAssets.I_RYOU_DOKAN_FINDING_DOKAN),
+                      key="zombie_guild_dokan_map")
+page_shirin.connect(page_dokan_map, DokanAssets.I_SCENE_SHENSHE, key="page_shirin->zombie_guild_dokan_map")
 page_dokan_map.connect(page_shirin, GlobalGameAssets.I_UI_BACK_YELLOW, key="page_dokan_map->page_shirin")
 
 
@@ -28,7 +29,9 @@ def map_enter_dokan(task) -> bool:
 
 
 # 道馆页面(必须道馆已经开启才可以调用)
-page_dokan = Page(DokanAssets.I_RYOU_DOKAN_CHECK)
+# 顶部「道馆突破」标题：图片模板在不同字体/渲染下容易不过阈值，配一条 OCR 兜底。
+page_dokan = Page(any_of(DokanAssets.I_RYOU_DOKAN_CHECK, DokanAssets.O_DOKAN_TITLE),
+                  key="zombie_guild_dokan")
 page_dokan.connect(page_dokan_map,
                    sequence(DokanAssets.I_RYOU_DOKAN_DOKAN_QUIT, DokanAssets.I_RYOU_DOKAN_EXIT_ENSURE,
                             success_index=1),
@@ -37,7 +40,7 @@ page_dokan_map.connect(page_dokan, action=map_enter_dokan, key="page_dokan_map->
 # 道馆->道馆地图->神社->寮->庭院  导航器会误认为(道馆->式神录->庭院)返回庭院最快, 增加花费可以减少惩罚纠错过程
 page_dokan.connect(page_shikigami_records, DokanAssets.I_RYOU_DOKAN_SHIKIGAMI, key="page_dokan->page_shikigami_records", cost=4)
 # 庭院->寮->神社->道馆地图->道馆  导航器会误认为(庭院->式神录->道馆)进入道馆最快, 同理需要增加花费
-page_shikigami_records.connect(page_dokan, GlobalGameAssets.I_UI_BACK_YELLOW, key="page_shikigami_records->page_dokan", cost=4)
+page_shikigami_records.connect(page_dokan, GlobalGameAssets.I_UI_BACK_YELLOW, key="page_shikigami_records->zombie_guild_dokan", cost=4)
 
 
 def priority_enter_dokan(task) -> bool:
@@ -51,6 +54,7 @@ def priority_enter_dokan(task) -> bool:
 
 
 # 道馆攻击优先级页面
-page_dokan_priority = Page(DokanAssets.I_RYOU_DOKAN_ATTACK_PRIORITY_0, priority=75)
+page_dokan_priority = Page(DokanAssets.I_RYOU_DOKAN_ATTACK_PRIORITY_0, priority=75,
+                           key="zombie_guild_dokan_priority")
 page_dokan.connect(page_dokan_priority, DokanAssets.I_RYOU_DOKAN_ATTACK_PRIORITY, key="page_dokan->page_dokan_priority")
 page_dokan_priority.connect(page_dokan, priority_enter_dokan, key="page_dokan_priority->page_dokan")
