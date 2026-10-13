@@ -262,6 +262,22 @@ class ImageClient:
         """
         return self.client.get_frame_info(frame_id)
 
+    def get_config_frame(self, config_name: str) -> dict[str, Any]:
+        """
+        读取某个脚本配置当前帧的 JPEG 预览。
+
+        与 `get_frame_info()` 不同，这里返回图像本身。帧是脚本截图时注册进去的，
+        读取不会触发任何截图，所以可以和正在运行的脚本同时使用，不会争抢设备。
+
+        Args:
+            config_name: 脚本配置名。
+
+        Returns:
+            dict: `exists` 为 False 表示该配置还没有注册过帧；存在时含 `jpeg`
+            （JPEG 字节流）、`created_at`（该帧注册时间，epoch 秒）与 `frame_id`。
+        """
+        return self.client.get_config_frame(config_name)
+
     def prepare_template(self, template_path: str, include_sift: bool = False) -> dict[str, Any]:
         """
         触发服务端预加载模板，并按需准备 SIFT 特征。

@@ -29,6 +29,9 @@ class ImageServerSettings:
     template_cache_max_count: int = 200
     worker_count: int = 0
     cleanup_interval_seconds: float = 60.0
+    # 实时预览把帧编码成 JPEG 的质量。实测 1280x720 下 q=80 约 270KB，
+    # 而 PNG 约 2.7MB 且编码更慢，所以预览一律走 JPEG。
+    frame_jpeg_quality: int = 80
 
     @classmethod
     def from_dict(cls, data: dict[str, Any] | None) -> "ImageServerSettings":
@@ -46,6 +49,7 @@ class ImageServerSettings:
             template_cache_max_count=int(data.get("template_cache_max_count", 200)),
             worker_count=int(data.get("worker_count", 0)),
             cleanup_interval_seconds=float(data.get("cleanup_interval_seconds", 60.0)),
+            frame_jpeg_quality=int(data.get("frame_jpeg_quality", 80)),
         )
 
 
@@ -146,6 +150,9 @@ class ImageRuntime:
         self._frames: dict[str, FrameEntry] = {}
         # 每个脚本配置当前有效的截图帧；新截图注册时会替换同配置旧帧。
         self._config_frames: dict[str, str] = {}
+        # 帧编码后的 JPEG 缓存，key 是 frame_id。脚本每 0.1~0.3 秒才换一帧，
+        # 而前端按固定频率读取，缓存后绝大多数读取都不需要重新编码。
+        self._frame_jpeg_cache: dict[str, bytes] = {}
         # 长生命周期模板缓存：按文件指纹复用模板图与派生数据。
         self._templates: dict[str, TemplateEntry] = {}
         self._scheduler = ImageTaskScheduler(self.settings.worker_count)
@@ -247,6 +254,87 @@ class ImageRuntime:
             "created_at": entry.created_at,
             "last_access_at": entry.last_access_at,
         }
+
+    def get_config_frame(self, config_name: str) -> dict[str, Any]:
+        """
+        读取某个脚本配置当前帧，并编码为 JPEG 返回。
+
+        帧来自脚本每次截图时 `register_frame()` 注册的那一张，所以读取本身
+        不会触发任何截图，也不会和正在运行的脚本争抢模拟器 —— 这正是前端实时
+        预览可以和脚本同时使用的原因。
+
+        Args:
+            config_name: 脚本配置名。
+
+        Returns:
+            dict: `exists` 为 False 时 `jpeg` / `created_at` / `frame_id` 均为 None；
+            存在时 `jpeg` 是 JPEG 字节流，`created_at` 是该帧注册时间（epoch 秒），
+            前端据此判断画面是否还在更新。
+        """
+        normalized = self._normalize_config_name(config_name)
+        now = time.time()
+        with self._lock:
+            frame_id = self._config_frames.get(normalized)
+            entry = self._frames.get(frame_id) if frame_id is not None else None
+            if entry is None:
+                self._cache_stats["frame_misses"] += 1
+                return {
+                    "exists": False,
+                    "jpeg": None,
+                    "created_at": None,
+                    "frame_id": None,
+                    "shape": None,
+                }
+            entry.last_access_at = now
+            self._cache_stats["frame_hits"] += 1
+            cached = self._frame_jpeg_cache.get(entry.frame_id)
+            created_at = entry.created_at
+            resolved_id = entry.frame_id
+            shape = list(entry.shape)
+
+        if cached is None:
+            # 编码是纯 CPU 操作（实测 1280x720 约 8ms），放在锁外做，避免持锁
+            # 期间阻塞脚本的 register_frame。命中缓存时完全不进入这里。
+            cached = self._encode_frame_jpeg(entry)
+
+        return {
+            "exists": True,
+            "jpeg": cached,
+            "created_at": created_at,
+            "frame_id": resolved_id,
+            "shape": shape,
+        }
+
+    def _encode_frame_jpeg(self, entry: FrameEntry) -> bytes:
+        """
+        把一帧编码为 JPEG，并按 `frame_id` 缓存结果。
+
+        缓存不只是省 CPU：zerorpc 用 gevent 单线程调度，编码期间不会让出执行权，
+        所以重复编码会串行阻塞脚本自己的匹配请求。同一个 `frame_id` 只编码一次
+        就把这个影响压到最低。
+
+        Args:
+            entry: 待编码的帧缓存条目。
+
+        Returns:
+            bytes: JPEG 字节流。
+
+        Raises:
+            ValueError: OpenCV 编码失败时抛出。
+        """
+        # 截图在内存里是 RGB 排列，而 imencode 按 BGR 解释，不转换会导致红蓝互换。
+        bgr = cv2.cvtColor(entry.image, cv2.COLOR_RGB2BGR)
+        ok, buf = cv2.imencode(
+            ".jpg",
+            bgr,
+            [int(cv2.IMWRITE_JPEG_QUALITY), int(self.settings.frame_jpeg_quality)],
+        )
+        if not ok:
+            raise ValueError(f"Failed to encode frame as JPEG: {entry.frame_id}")
+        jpeg = buf.tobytes()
+        with self._lock:
+            self._frame_jpeg_cache[entry.frame_id] = jpeg
+        return jpeg
 
     def prepare_template(self, template_path: str, include_sift: bool = False) -> dict[str, Any]:
         """
@@ -479,12 +567,25 @@ class ImageRuntime:
         normalized = str(config_name or "").strip()
         return normalized or "unknown"
 
+    def _protected_frame_ids(self) -> set[str]:
+        """
+        返回不参与淘汰的帧：每个脚本配置当前有效的那一帧。
+
+        这些帧是前端实时预览的数据源。脚本停止后不再有新帧注册，若照 TTL 淘汰，
+        最后一帧会在 `frame_cache_expire_seconds` 后消失、预览变成空白；保留它们
+        才能在不落盘的前提下继续显示「脚本最后看到的画面」。它们只在被同配置的
+        新帧替换时移除（见 `register_frame`）。
+        """
+        return set(self._config_frames.values())
+
     def _delete_frame(self, frame_id: str) -> bool:
         """删除指定截图帧，并同步维护 config_name 到当前 frame_id 的索引。"""
         entry = self._frames.pop(frame_id, None)
         if entry is None:
             return False
 
+        # 编码缓存跟着帧走，否则会随帧替换不断堆积。
+        self._frame_jpeg_cache.pop(frame_id, None)
         if self._config_frames.get(entry.config_name) == frame_id:
             self._config_frames.pop(entry.config_name, None)
         self._cache_stats["frame_evictions"] += 1
@@ -893,12 +994,15 @@ class ImageRuntime:
         清理过期或超量的截图帧缓存。
 
         先按 TTL 淘汰失效帧，再在容量超限时按最近最少访问顺序继续回收。
+        每个配置当前有效的帧由 `_protected_frame_ids()` 豁免，两类淘汰都跳过它们
+        —— 它们是实时预览的数据源，脚本停止后仍需保留最后一张画面。
         """
+        protected = self._protected_frame_ids()
         expire_before = now - self.settings.frame_cache_expire_seconds
         expired = [
             frame_id
             for frame_id, entry in self._frames.items()
-            if entry.last_access_at < expire_before
+            if frame_id not in protected and entry.last_access_at < expire_before
         ]
         for frame_id in expired:
             self._delete_frame(frame_id)
@@ -907,13 +1011,17 @@ class ImageRuntime:
 
         overflow = len(self._frames) - self.settings.frame_cache_max_count
         if overflow > 0:
-            sorted_entries = sorted(
-                self._frames.values(),
-                key=lambda item: item.last_access_at,
-            )
-            for entry in sorted_entries[:overflow]:
-                self._delete_frame(entry.frame_id)
-            logger.debug(f"Evict {overflow} overflow frames ({reason})")
+            evictable = [
+                entry
+                for frame_id, entry in self._frames.items()
+                if frame_id not in protected
+            ]
+            if evictable:
+                evictable.sort(key=lambda item: item.last_access_at)
+                victims = evictable[:overflow]
+                for entry in victims:
+                    self._delete_frame(entry.frame_id)
+                logger.debug(f"Evict {len(victims)} overflow frames ({reason})")
 
     def _cleanup_templates(self, now: float, reason: str) -> None:
         """
