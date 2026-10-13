@@ -256,9 +256,11 @@ class ScriptTask(
                     return True
 
             if no_plate:
-                #  TODO 不知为何无法识别，但会自动切换页面，不用也行
-                #  if self.appear(self.I_C_PLATE_BUY):
-                #     self.click(random_click(ltrb=(True, False, False, False)), interval=1.2)
+                self.screenshot()
+                if self.appear(self.I_C_PLATE_BUY):
+                    self.click(
+                        random_click(ltrb=(True, False, False, False)), interval=1.2
+                    )
                 logger.info('棋盘不足，退出')
                 return False
 
@@ -593,9 +595,12 @@ class ScriptTask(
             match cong.bondling_config.user_status:
                 case UserStatus.ALONE:
                     if not self.run_alone():
-                        # TODO 不知为何无法识别，但会自动切换页面，不用也行
-                        # if self.appear(self.I_C_PLATE_BUY):
-                        #     self.click(random_click(ltrb=(True, False, False, False)), interval=1.2)
+                        self.screenshot()
+                        if self.appear(self.I_C_PLATE_BUY):
+                            self.click(
+                                random_click(ltrb=(True, False, False, False)),
+                                interval=1.2,
+                            )
                         logger.info('棋盘不足，退出')
                         return False
                     self.run_general_battle(battle_config)
