@@ -173,8 +173,8 @@
   {
     "itemName": "bcmj_reset_confirm",
     "imageName": "as_bcmj_reset_confirm.png",
-    "roiFront": "668,399,180,70",
-    "roiBack": "668,399,180,70",
+    "roiFront": "691,414,124,46",
+    "roiBack": "649,399,202,83",
     "method": "Template matching",
     "threshold": 0.8,
     "description": "通过兵藏秘境确认重置按钮"
@@ -182,8 +182,8 @@
   {
     "itemName": "bcmj_reset_close",
     "imageName": "as_bcmj_reset_close.png",
-    "roiFront": "429,397,186,71",
-    "roiBack": "429,397,186,71",
+    "roiFront": "476,410,102,49",
+    "roiBack": "429,397,196,82",
     "method": "Template matching",
     "threshold": 0.8,
     "description": "通过兵藏秘境取消重置按钮"
@@ -191,8 +191,8 @@
   {
     "itemName": "start_challenge",
     "imageName": "as_start_challenge.png",
-    "roiFront": "685,407,142,47",
-    "roiBack": "685,407,142,47",
+    "roiFront": "684,416,142,47",
+    "roiBack": "656,406,195,67",
     "method": "Template matching",
     "threshold": 0.8,
     "description": "周一点击确认开始挑战"

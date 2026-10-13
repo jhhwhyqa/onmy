@@ -1,5 +1,6 @@
 from module.atom.image import RuleImage
 from module.atom.click import RuleClick
+from module.atom.scatter import RuleScatter
 from module.atom.long_click import RuleLongClick
 from module.atom.swipe import RuleSwipe
 from module.atom.ocr import RuleOcr
@@ -55,11 +56,11 @@ class HeroTestAssets:
 	# 兵藏秘境的阵容未锁 
 	I_BCMJ_UNLOCK = RuleImage(roi_front=(908,656,20,20), roi_back=(825,642,195,56), threshold=0.8, method="Template matching", file="./tasks/HeroTest/as/as_bcmj_unlock.png")
 	# 通过兵藏秘境确认重置按钮 
-	I_BCMJ_RESET_CONFIRM = RuleImage(roi_front=(668,399,180,70), roi_back=(668,399,180,70), threshold=0.8, method="Template matching", file="./tasks/HeroTest/as/as_bcmj_reset_confirm.png")
+	I_BCMJ_RESET_CONFIRM = RuleImage(roi_front=(691,414,124,46), roi_back=(649,399,202,83), threshold=0.8, method="Template matching", file="./tasks/HeroTest/as/as_bcmj_reset_confirm.png")
 	# 通过兵藏秘境取消重置按钮 
-	I_BCMJ_RESET_CLOSE = RuleImage(roi_front=(429,397,186,71), roi_back=(429,397,186,71), threshold=0.8, method="Template matching", file="./tasks/HeroTest/as/as_bcmj_reset_close.png")
+	I_BCMJ_RESET_CLOSE = RuleImage(roi_front=(476,410,102,49), roi_back=(429,397,196,82), threshold=0.8, method="Template matching", file="./tasks/HeroTest/as/as_bcmj_reset_close.png")
 	# 周一点击确认开始挑战 
-	I_START_CHALLENGE = RuleImage(roi_front=(685,407,142,47), roi_back=(685,407,142,47), threshold=0.8, method="Template matching", file="./tasks/HeroTest/as/as_start_challenge.png")
+	I_START_CHALLENGE = RuleImage(roi_front=(684,416,142,47), roi_back=(656,406,195,67), threshold=0.8, method="Template matching", file="./tasks/HeroTest/as/as_start_challenge.png")
 	# 藤原道长副本标志 
 	I_CHECK_HERO2 = RuleImage(roi_front=(52,113,57,58), roi_back=(3,62,157,151), threshold=0.8, method="Template matching", file="./tasks/HeroTest/as/as_check_hero2.png")
 	# 切换源赖光 
