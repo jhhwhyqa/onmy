@@ -101,6 +101,8 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, EasySecretAssets):
         scroll_count = 0
         enter_fail = 0
         skip_streak = 0
+        dead_cards = set()  # 点过却一场没打的卡（层数行文本）
+        last_card = ''  # 最近点进去的卡
 
         while True:
             if battle_limit > 0 and battle_count >= battle_limit:
@@ -119,6 +121,8 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, EasySecretAssets):
                 # 连续太多次说明列表状态和实际对不上，再点也是白点，直接结束。
                 if battles == 0:
                     skip_streak += 1
+                    if last_card:
+                        dead_cards.add(last_card)
                     if skip_streak >= self.skip_limit:
                         logger.warning(
                             f'{self.skip_limit} secrets skipped in a row, '
@@ -138,7 +142,7 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, EasySecretAssets):
             if self.appear(EasySecretAssets.I_CHECK_SECRET):
                 # 刚切页 / 刚滑完，列表可能还在滚，先等它停稳再取坐标
                 self.wait_list_stable()
-                card = self.find_layer_1_card(enter_fail)
+                card = self.find_layer_1_card(enter_fail, dead_cards)
                 if card is not None:
                     name, x, y, text = card
                     logger.info(
@@ -151,6 +155,7 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, EasySecretAssets):
                     time.sleep(0.6)
                     if self.enter_secret_detail(name):
                         enter_fail = 0
+                        last_card = text
                         continue
                     enter_fail += 1
                     if enter_fail >= self.enter_fail_limit:
@@ -226,12 +231,13 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, EasySecretAssets):
             previous = current
             time.sleep(0.3)
 
-    def find_layer_1_card(self, attempt: int = 0):
+    def find_layer_1_card(self, attempt: int = 0, dead_cards: set = frozenset()):
         """在选择页上找第一个还停在「壹」（未挑战）的秘闻卡片。
 
         Args:
             attempt: 第几次尝试。用来在候选点之间轮换 —— 万一点下去游戏没响应，
                 下一次换个点再试（而不是在同一个点上反复撞）。
+            dead_cards: 本次运行里点过却一场没打的卡（层数行文本），直接丢掉。
 
         跳过名单里的秘闻（见 ``skip_secrets``）在这里就被丢掉，连点都不点 ——
         否则「进去 -> 跳过 -> 退出来」会反复撞上同一张卡，把 ``skip_limit`` 攒满
@@ -268,6 +274,10 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, EasySecretAssets):
         candidates = []
         for index in indices:
             lx, ly, lw, lh, text = boxes[index]
+            # 列表顶部被面板裁掉一行、读不出名字的卡会一直停在原位，点过就别再点
+            if text in dead_cards:
+                logger.info(f'Ignore dead card [{text}]')
+                continue
             name = ''
             name_box = None
             for bx, by, bw, bh, btext in boxes:
