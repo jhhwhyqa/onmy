@@ -1,4 +1,5 @@
 import os
+import re
 import time
 from collections import deque
 from datetime import datetime
@@ -21,6 +22,26 @@ from module.exception import RequestHumanTakeover, ScriptError
 from module.image.rpc import get_image_client
 from module.logger import logger
 
+# 覆盖式预览截图的写盘间隔（秒）。脚本每 0.1~0.3 秒截一帧，全量落盘会拖慢脚本，
+# 所以按秒节流，只保留最新一张给前端看。
+PREVIEW_SAVE_INTERVAL = 5.0
+
+_UNSAFE_NAME_RE = re.compile(r'[<>:"/\\|?*\x00-\x1f]')
+
+
+def sanitize_instance_name(name: str) -> str:
+    """把配置名清理成可安全用作文件名的形式。
+
+    写入与读取（`module.server.screenshot_router`）共用，保证两边算出的文件名一致。
+
+    Args:
+        name: 原始配置名。
+
+    Returns:
+        不含路径分隔符与 Windows 非法字符的名称。
+    """
+    return _UNSAFE_NAME_RE.sub('_', str(name or '').strip())
+
 
 class Screenshot(Adb, DroidCast, Scrcpy, Window, NemuIpc):
     _screen_size_checked = False
@@ -28,6 +49,7 @@ class Screenshot(Adb, DroidCast, Scrcpy, Window, NemuIpc):
     _minicap_uninstalled = False
     _screenshot_interval = Timer(0.1)
     _last_save_time = {}
+    _last_preview_save_time = 0.0
     image: np.ndarray
     image_frame_id: str | None = None
 
@@ -89,6 +111,7 @@ class Screenshot(Adb, DroidCast, Scrcpy, Window, NemuIpc):
             else:
                 continue
 
+        self.save_latest_screenshot()
         return self.image
 
     def _handle_orientated_image(self, image):
@@ -156,6 +179,38 @@ class Screenshot(Adb, DroidCast, Scrcpy, Window, NemuIpc):
         else:
             self._last_save_time[genre] = now
             return False
+
+    def save_latest_screenshot(self, interval=None):
+        """把当前帧覆盖写到 log/screenshot_last/{配置名}.png。
+
+        与 save_screenshot 不同，文件名固定、每次覆盖，所以只保留最新一张、不会
+        堆积文件；脚本退出后文件保留，前端据此展示「脚本上一次对模拟器的截图」。
+
+        Args:
+            interval (int, float): 最小写盘间隔，默认 PREVIEW_SAVE_INTERVAL。
+
+        Returns:
+            bool: True if save succeed.
+        """
+        if interval is None:
+            interval = PREVIEW_SAVE_INTERVAL
+        now = time.time()
+        if now - self._last_preview_save_time < interval:
+            return False
+        self._last_preview_save_time = now
+
+        folder = Path('./log/screenshot_last')
+        folder.mkdir(parents=True, exist_ok=True)
+        target = folder / f'{sanitize_instance_name(self.config.config_name)}.png'
+        # 先写临时文件再原子替换，避免前端读到写了一半的图。
+        temp = target.with_name(f'{target.name}.tmp.png')
+        try:
+            self.image_save(temp)
+            os.replace(temp, target)
+        except (OSError, ValueError) as e:
+            logger.warning(f'Failed to save latest screenshot: {e}')
+            return False
+        return True
 
     def screenshot_last_save_time_reset(self, genre):
         self._last_save_time[genre] = 0
