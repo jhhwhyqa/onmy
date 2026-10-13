@@ -430,7 +430,10 @@ class ScriptTask(WQExplore, SecretScriptTask, WantedQuestsAssets):
                     )
                     # 在没有命中exit_matcher但是出现奖励的情况时，认为是剧情对话进行判定
                     self.screenshot()
-                    if self.appear(self.I_WQC_BATTLE_END_TALKS):
+                    if self.appear(self.I_WQC_BATTLE_END_TALKS) or (
+                        not self.appear(self.I_WQSE_SPECIAL_FIRE)
+                        and not self.appear(self.I_UI_BACK_RED)
+                    ):
                         self.click_talk_until_disappear()
                     break
                 if self.appear_then_click(self.I_WQSE_FIRE, interval=1):
