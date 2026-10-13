@@ -374,8 +374,13 @@ class ScriptTask(WQExplore, SecretScriptTask, WantedQuestsAssets):
                                             battle_key='wq_secret',
                                             exit_matcher=any_of(self.I_UI_BACK_RED, self.I_WQSE_SPECIAL_FIRE))
                     # 在没有命中 exit_matcher 但是出现奖励的情况时，认为是剧情对话进行判定
+                    # 部分秘闻（如金鱼姬）的结算对话会先弹出角色面板，对话标志此时识别不到，
+                    # 因此只要既没有挑战按钮也没有返回键，同样按剧情对话处理
                     self.screenshot()
-                    if self.appear(self.I_WQC_BATTLE_END_TALKS):
+                    if self.appear(self.I_WQC_BATTLE_END_TALKS) or (
+                        not self.appear(self.I_WQSE_SPECIAL_FIRE)
+                        and not self.appear(self.I_UI_BACK_RED)
+                    ):
                         self.click_talk_until_disappear()
                     break
                 if self.appear_then_click(self.I_WQSE_FIRE, interval=1):
