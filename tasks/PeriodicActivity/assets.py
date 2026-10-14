@@ -11,6 +11,26 @@ class PeriodicActivityAssets:
 
 
 	# Image Rule Assets
+	# 庭院右侧活动栏进入「逢魔演武」 
+	I_DRILL_ENTRY = RuleImage(roi_front=(1184,458,45,28), roi_back=(1150,100,120,500), threshold=0.8, method="Template matching", file="./tasks/PeriodicActivity/dd/dd_drill_entry.png")
+	# 活动页「演武挑战」按钮 
+	I_DRILL_CHALLENGE = RuleImage(roi_front=(292,188,39,66), roi_back=(252,108,139,304), threshold=0.8, method="Template matching", file="./tasks/PeriodicActivity/dd/dd_drill_challenge.png")
+	# 「挑战」按钮，点了进战斗 
+	I_DRILL_FIRE = RuleImage(roi_front=(1131,591,94,49), roi_back=(1110,556,136,115), threshold=0.8, method="Template matching", file="./tasks/PeriodicActivity/dd/dd_drill_fire.png")
+	# 逢魔演武界面标志 
+	I_DRILL_CHECK = RuleImage(roi_front=(148,17,139,41), roi_back=(148,17,139,41), threshold=0.8, method="Template matching", file="./tasks/PeriodicActivity/dd/dd_drill_check.png")
+	# 「前往演武委派」按钮 
+	I_GOTO_DRILL_DELEGATION = RuleImage(roi_front=(1063,389,33,70), roi_back=(1056,287,50,174), threshold=0.8, method="Template matching", file="./tasks/PeriodicActivity/dd/dd_goto_drill_delegation.png")
+	# 式神委派界面右侧委派栏里的「演武委派」条目 
+	I_DRILL_DELEGATION = RuleImage(roi_front=(1012,162,37,33), roi_back=(973,98,170,559), threshold=0.8, method="Template matching", file="./tasks/PeriodicActivity/dd/dd_drill_delegation.png")
+
+
+	# Ocr Rule Assets
+	# 剩余挑战次数「剩余次数x/15」 
+	O_DRILL_REMAIN = RuleOcr(roi=(1107,671,147,26), area=(1107,671,147,26), mode="Single", method="Default", keyword="", name="drill_remain")
+
+
+	# Image Rule Assets
 	# 前往青蛙瓷器挑战赛 
 	I_GOTO_FROG_CHALLENGE = RuleImage(roi_front=(1183,376,45,28), roi_back=(1166,113,88,404), threshold=0.8, method="Template matching", file="./tasks/PeriodicActivity/fc/fc_goto_frog_challenge.png")
 	# 首次进入跳过 

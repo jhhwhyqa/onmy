@@ -19,12 +19,16 @@ class PeriodicActivityName(str, Enum):
     QUIZ = 'quiz'  # 智力竞赛
     GUGU_ART_STUDIO = 'gugu_art_studio'  # 呱呱画室
     FROG_CHALLENGE = 'frog_challenge'  # 青蛙瓷器挑战赛
+    DEMON_DRILL = 'demon_drill'  # 逢魔演武
 
 
 class PeriodicActivityConfig(BaseModel):
     # 本次调度执行哪一个周期活动
     activity: PeriodicActivityName = Field(default=PeriodicActivityName.DYE_TRIALS,
                                            description='periodic_activity_name_help')
+    # 仅逢魔演武生效：执行战斗前先做一次逢魔委派
+    demon_drill_delegation_enable: bool = Field(default=False,
+                                                description='demon_drill_delegation_enable_help')
 
 
 class QuizConfig(BaseModel):
@@ -39,7 +43,7 @@ class PeriodicActivity(ConfigBase):
     periodic_activity_config: PeriodicActivityConfig = Field(default_factory=PeriodicActivityConfig)
     # 灵染试炼、呱呱画室、青蛙瓷器挑战赛共用（都需要在式神录切换御魂）
     switch_soul_config: SwitchSoulConfig = Field(default_factory=SwitchSoulConfig)
-    # 呱呱画室、青蛙瓷器挑战赛战斗配置
+    # 呱呱画室、青蛙瓷器挑战赛、逢魔演武战斗配置
     general_battle_config: GeneralBattleConfig = Field(default_factory=GeneralBattleConfig)
     # 智力竞赛配置
     quiz_config: QuizConfig = Field(default_factory=QuizConfig)

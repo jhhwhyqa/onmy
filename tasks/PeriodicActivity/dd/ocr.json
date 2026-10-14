@@ -1,0 +1,11 @@
+[
+  {
+    "itemName": "drill_remain",
+    "roiFront": "1107,671,147,26",
+    "roiBack": "1107,671,147,26",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "剩余挑战次数「剩余次数x/15」"
+  }
+]

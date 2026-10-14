@@ -24,3 +24,10 @@ page_frog_challenge.connect(page_main, GlobalGameAssets.I_UI_BACK_YELLOW,
                             key="page_frog_challenge->page_main")
 page_main.connect(page_frog_challenge, PeriodicActivityAssets.I_GOTO_FROG_CHALLENGE,
                   key="page_main->page_frog_challenge")
+
+# 逢魔演武界面
+page_demon_drill = Page(PeriodicActivityAssets.I_DRILL_CHECK)
+page_demon_drill.add_enter_failure_hooks(RightActivityAssets.I_TOGGLE_BUTTON)
+page_demon_drill.connect(page_main, GlobalGameAssets.I_UI_BACK_YELLOW, key="page_demon_drill->page_main")
+page_main.connect(page_demon_drill, PeriodicActivityAssets.I_DRILL_ENTRY, key="page_main->page_demon_drill")
+

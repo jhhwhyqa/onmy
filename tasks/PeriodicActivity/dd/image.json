@@ -1,0 +1,56 @@
+[
+  {
+    "itemName": "drill_entry",
+    "imageName": "dd_drill_entry.png",
+    "roiFront": "1184,458,45,28",
+    "roiBack": "1150,100,120,500",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "庭院右侧活动栏进入「逢魔演武」"
+  },
+  {
+    "itemName": "drill_challenge",
+    "imageName": "dd_drill_challenge.png",
+    "roiFront": "292,188,39,66",
+    "roiBack": "252,108,139,304",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "活动页「演武挑战」按钮"
+  },
+  {
+    "itemName": "drill_fire",
+    "imageName": "dd_drill_fire.png",
+    "roiFront": "1131,591,94,49",
+    "roiBack": "1110,556,136,115",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "「挑战」按钮，点了进战斗"
+  },
+  {
+    "itemName": "drill_check",
+    "imageName": "dd_drill_check.png",
+    "roiFront": "148,17,139,41",
+    "roiBack": "148,17,139,41",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "逢魔演武界面标志"
+  },
+  {
+    "itemName": "goto_drill_delegation",
+    "imageName": "dd_goto_drill_delegation.png",
+    "roiFront": "1063,389,33,70",
+    "roiBack": "1056,287,50,174",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "「前往演武委派」按钮"
+  },
+  {
+    "itemName": "drill_delegation",
+    "imageName": "dd_drill_delegation.png",
+    "roiFront": "1012,162,37,33",
+    "roiBack": "973,98,170,559",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "式神委派界面右侧委派栏里的「演武委派」条目"
+  }
+]
