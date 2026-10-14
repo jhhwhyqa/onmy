@@ -1,5 +1,6 @@
 from module.atom.image import RuleImage
 from module.atom.click import RuleClick
+from module.atom.scatter import RuleScatter
 from module.atom.long_click import RuleLongClick
 from module.atom.swipe import RuleSwipe
 from module.atom.ocr import RuleOcr
@@ -32,7 +33,7 @@ class TalismanPassAssets:
 	# 经验的 
 	I_TP_EXP = RuleImage(roi_front=(922,254,32,36), roi_back=(884,215,100,331), threshold=0.8, method="Template matching", file="./tasks/TalismanPass/tp/tp_tp_exp.png")
 	# 溢出确认 
-	I_OVERFLOW_CONFIRME = RuleImage(roi_front=(585,410,116,44), roi_back=(585,410,116,44), threshold=0.8, method="Template matching", file="./tasks/TalismanPass/tp/tp_overflow_confirme.png")
+	I_OVERFLOW_CONFIRME = RuleImage(roi_front=(583,418,118,41), roi_back=(409,225,462,271), threshold=0.8, method="Template matching", file="./tasks/TalismanPass/tp/tp_overflow_confirme.png")
 	# 点击随机御魂 
 	I_TP_SOUL_1 = RuleImage(roi_front=(248,501,34,37), roi_back=(165,389,930,189), threshold=0.7, method="Multi-scale template matching", file="./tasks/TalismanPass/tp/tp_tp_soul_1.png")
 	# 选择中间第二个御魂 

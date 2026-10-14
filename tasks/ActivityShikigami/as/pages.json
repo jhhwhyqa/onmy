@@ -20,7 +20,7 @@
   {
     "itemName": "to_battle_main",
     "imageName": "as_to_battle_main.png",
-    "roiFront": "816,454,101,61",
+    "roiFront": "816,454,103,39",
     "roiBack": "792,238,155,370",
     "method": "Template matching",
     "threshold": 0.8,
@@ -29,8 +29,8 @@
   {
     "itemName": "to_battle_boss",
     "imageName": "as_to_battle_boss.png",
-    "roiFront": "126,421,79,87",
-    "roiBack": "42,353,234,327",
+    "roiFront": "1057,293,110,34",
+    "roiBack": "1032,161,180,331",
     "method": "Template matching",
     "threshold": 0.8,
     "description": "点击进入boss战斗页面"
@@ -56,8 +56,8 @@
   {
     "itemName": "as_to_pass",
     "imageName": "as_as_to_pass.png",
-    "roiFront": "669,408,17,33",
-    "roiBack": "273,141,759,475",
+    "roiFront": "73,154,93,27",
+    "roiBack": "0,139,286,368",
     "method": "Template matching",
     "threshold": 0.65,
     "description": "进入门票活动的按钮"
