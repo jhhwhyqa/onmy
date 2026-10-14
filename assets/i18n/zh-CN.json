@@ -323,5 +323,5 @@
   "welfare_plugin_url_help": "填写完整地址，例如 http://服务器:2537/welfare-dojo/today。端口使用福利寮检测插件中配置的http_port。",
   "demon_drill": "逢魔演武",
   "demon_drill_delegation_enable": "是否执行逢魔委派",
-  "demon_drill_delegation_enable_help": "仅逢魔演武生效：勾选后每次执行逢魔演武前先做一次逢魔委派（前往演武委派 → 式神委派界面点「演武委派」，与普通式神委派同一套流程），委派完成后回到演武界面继续打挑战"
+  "demon_drill_delegation_enable_help": "仅逢魔演武生效：勾选后每次执行逢魔演武前先做一次逢魔委派"
 }
