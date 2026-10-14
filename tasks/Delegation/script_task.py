@@ -8,6 +8,7 @@ from module.logger import logger
 from module.exception import TaskEnd
 from module.base.timer import Timer
 
+from module.atom.image import RuleImage
 from tasks.GameUi.game_ui import GameUi
 from tasks.GameUi.page import page_main, page_delegation
 from tasks.Delegation.config import DelegationConfig
@@ -37,24 +38,23 @@ class ScriptTask(GameUi, DelegationAssets):
         self.set_next_run(task='Delegation', success=True, finish=True)
         raise TaskEnd
 
-    def delegate_one(self, name: str) -> bool:
+    def delegate_one(self, name: str, entry: RuleImage = None) -> bool:
         """
         委派一个任务
-        :param name:
-        :return:
+        :param name: 委派名称（用 OCR 在委派列表里找它）
+        :param entry: 可选的 image 规则；给了就直接用它点列表里的条目（名称 OCR 不稳时用）
+        :return: 找到并点开了该委派返回 True
         """
-        def ui_click(click, stop):
-            while 1:
-                self.screenshot()
-                if self.appear(stop):
-                    break
-                if self.click(click, interval=1.5):
-                    continue
         logger.hr('Delegation one', 2)
-        self.O_D_NAME.keyword = name
         self.screenshot()
-        if not self.ocr_appear(self.O_D_NAME):
-            logger.warning(f'Delegation: {name} not found')
+        if entry is None:
+            self.O_D_NAME.keyword = name
+            self.screenshot()
+            if not self.ocr_appear(self.O_D_NAME):
+                logger.warning(f'Delegation: {name} not found')
+                return False
+        elif not self.appear(entry):
+            logger.warning(f'Delegation: {name} entry not found by image')
             return False
         while 1:
             self.screenshot()
@@ -71,26 +71,26 @@ class ScriptTask(GameUi, DelegationAssets):
                 continue
             if self.appear_then_click(self.I_D_CONFIRM, interval=0.8):
                 continue
-            if self.ocr_appear_click(self.O_D_NAME, interval=1):
+            if entry is None and self.ocr_appear_click(self.O_D_NAME, interval=1):
+                continue
+            if entry is not None and self.appear_then_click(entry, interval=1):
                 continue
         # 进入委派  fefe e  fe
         logger.info(f'Enter Delegation: {name}')
-        ui_click(self.C_D_1, self.I_D_SELECT_1)
-        ui_click(self.C_D_2, self.I_D_SELECT_2)
-        ui_click(self.C_D_3, self.I_D_SELECT_3)
-        ui_click(self.C_D_4, self.I_D_SELECT_4)
+        # 一键选择式神：点一下把式神位填满（不再逐个点位选择）
+        if not self.wait_until_appear_then_click(self.I_D_QUICK_SELECT, wait_time=10):
+            logger.warning(f'Delegation: quick select not found for {name}')
+            return False
         # 委派开始
         logger.info(f'Delegation: {name} start')
         while 1:
             self.screenshot()
             if not self.appear(self.I_D_START):
                 break
-            if self.click(self.C_D_5, interval=0.8):
-                continue
             if self.appear_then_click(self.I_D_START, interval=1.8):
                 continue
-        # ui_click(self.C_D_5, self.I_D_SELECT_5)
         # self.ui_click_until_disappear(self.I_D_START)
+        return True
 
     def check_reward(self):
         check_timer = Timer(3)
