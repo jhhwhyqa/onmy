@@ -92,8 +92,8 @@
   {
     "itemName": "overflow_confirme",
     "imageName": "tp_overflow_confirme.png",
-    "roiFront": "585,410,116,44",
-    "roiBack": "585,410,116,44",
+    "roiFront": "583,418,118,41",
+    "roiBack": "409,225,462,271",
     "method": "Template matching",
     "threshold": 0.8,
     "description": "溢出确认"
