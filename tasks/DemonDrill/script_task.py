@@ -7,11 +7,11 @@ import time
 from module.exception import TaskEnd
 from module.logger import logger
 from tasks.Component.GeneralBattle.general_battle import GeneralBattle
+from tasks.Component.SwitchSoul.switch_soul import SwitchSoul
 from tasks.Delegation.script_task import ScriptTask as DelegationScriptTask
 from tasks.DemonDrill.assets import DemonDrillAssets
-from tasks.DemonDrill.config import DemonDrill
 from tasks.GameUi.game_ui import GameUi
-from tasks.GameUi.page import page_main
+from tasks.GameUi.page import page_main, page_shikigami_records
 import tasks.DemonDrill.page as pages
 from tasks.Component.RightActivity.assets import RightActivityAssets
 from module.base.timer import Timer
@@ -23,16 +23,13 @@ DRILL_MAX_BATTLES = 20
 
 # 基类顺序有讲究：`DelegationScriptTask` 自身继承 `GameUi`，它必须排在 `GameUi` 前面，
 # 否则 C3 会成环（GameUi < GeneralBattle < DelegationScriptTask < GameUi）直接 TypeError。
-class ScriptTask(GeneralBattle, DelegationScriptTask, GameUi, DemonDrillAssets):
+class ScriptTask(GeneralBattle, SwitchSoul, DelegationScriptTask, GameUi, DemonDrillAssets):
     """逢魔演武"""
-
-    conf: DemonDrill = None
 
     # 连续识别不到剩余次数时的退出保护（避免识别失败后无脑点挑战）
     dd_ocr_fail_limit = 3
 
     def run(self) -> None:
-        self.conf = self.config.demon_drill_config
         success = self.run_demon_drill()
         self.set_next_run(task='DemonDrill', success=success, finish=True)
         raise TaskEnd('DemonDrill')
@@ -47,13 +44,14 @@ class ScriptTask(GeneralBattle, DelegationScriptTask, GameUi, DemonDrillAssets):
             bool: True 表示挑战跑完（含已经没有次数）；False 表示入口/按钮没认出来（按失败间隔重试）
         """
         logger.hr('Demon drill', level=1)
+        con = self.config.demon_drill
         self.goto_page(page_main)
 
         if not self.enter_drill_activity():
             return False
 
         # 勾选了「是否执行逢魔委派」就先做委派，完成后再回来打演武
-        if self.conf.demon_drill_delegation_enable:
+        if con.demon_drill_config.demon_drill_delegation_enable:
             # 检查当前是否正在委派中
             if self.check_delegation_in_progress():
                 logger.info('Demon drill delegation already in progress, skip delegation')
@@ -67,7 +65,26 @@ class ScriptTask(GeneralBattle, DelegationScriptTask, GameUi, DemonDrillAssets):
         if not self.wait_until_appear(self.I_DRILL_CHALLENGE, wait_time=10):
             logger.warning('Demon drill activity page not detected after entering')
             return False
+
+        # 点击演武挑战按钮，进入演武挑战页面
         self.appear_then_click(self.I_DRILL_CHALLENGE, interval=1)
+
+        # 等待进入演武挑战页面
+        if not self.wait_until_appear(self.I_DRILL_FIRE, wait_time=10):
+            logger.warning('Demon drill challenge page not detected')
+            return False
+
+        logger.info('Entered demon drill challenge page')
+
+        # 御魂切换要在演武挑战页进出式神录，两种切法都切完再回来，避免多走一趟导航
+        if con.switch_soul_config.enable:
+            self.goto_page(page_shikigami_records)
+            self.run_switch_soul(con.switch_soul_config.switch_group_team)
+        if con.switch_soul_config.enable_switch_by_name:
+            self.goto_page(page_shikigami_records)
+            self.run_switch_soul_by_name(con.switch_soul_config.group_name, con.switch_soul_config.team_name)
+        if con.switch_soul_config.enable or con.switch_soul_config.enable_switch_by_name:
+            self.goto_page(pages.page_drill_challenge)
 
         battles = 0
         ocr_fail_count = 0
@@ -95,7 +112,7 @@ class ScriptTask(GeneralBattle, DelegationScriptTask, GameUi, DemonDrillAssets):
                     logger.info('Demon drill: no challenge left, stop here')
                     break
             self.appear_then_click(self.I_DRILL_FIRE, interval=1.2)
-            self.run_general_battle(config=self.conf.general_battle_config,
+            self.run_general_battle(config=con.general_battle_config,
                                     exit_matcher=self.I_DRILL_FIRE,
                                     battle_key='demon_drill')
             battles += 1
@@ -143,15 +160,18 @@ class ScriptTask(GeneralBattle, DelegationScriptTask, GameUi, DemonDrillAssets):
         Returns:
             bool: 正在委派中返回 True，否则返回 False
         """
+        time.sleep(1)  # 等待界面稳定
         self.screenshot()
         if not self.appear(self.I_DRILL_CHECK):
             logger.warning('Not on demon drill page when checking delegation status')
             return False
 
         result = self.O_DRILL_DELEGATION_STATUS.ocr(self.device.image)
+        logger.info(f'Demon drill delegation status OCR result: {result!r}')
         if result and '委派中' in str(result):
             logger.info('Demon drill delegation is already in progress')
             return True
+        logger.info('Demon drill delegation is not in progress')
         return False
 
     def run_drill_delegation(self) -> bool:

@@ -17,12 +17,16 @@ class DemonDrillAssets:
 	I_DRILL_CHALLENGE = RuleImage(roi_front=(292,188,39,66), roi_back=(252,108,139,304), threshold=0.8, method="Template matching", file="./tasks/DemonDrill/dd_drill_challenge.png")
 	# 「挑战」按钮，点了进战斗 
 	I_DRILL_FIRE = RuleImage(roi_front=(1131,591,94,49), roi_back=(1110,556,136,115), threshold=0.8, method="Template matching", file="./tasks/DemonDrill/dd_drill_fire.png")
-	# 逢魔演武界面标志 
+	# 逢魔演武界面标志
 	I_DRILL_CHECK = RuleImage(roi_front=(148,17,139,41), roi_back=(148,17,139,41), threshold=0.8, method="Template matching", file="./tasks/DemonDrill/dd_drill_check.png")
-	# 「前往演武委派」按钮 
+	# 演武挑战页面标志
+	I_DRILL_CHALLENGE_CHECK = RuleImage(roi_front=(150,12,134,48), roi_back=(150,12,134,48), threshold=0.75, method="Template matching", file="./tasks/DemonDrill/dd_drill_challenge_check.png")
+	# 「前往演武委派」按钮
 	I_GOTO_DRILL_DELEGATION = RuleImage(roi_front=(1063,389,33,70), roi_back=(1056,287,50,174), threshold=0.8, method="Template matching", file="./tasks/DemonDrill/dd_goto_drill_delegation.png")
 	# 式神委派界面右侧委派栏里的「演武委派」条目 
 	I_DRILL_DELEGATION = RuleImage(roi_front=(1012,162,37,33), roi_back=(973,98,170,559), threshold=0.8, method="Template matching", file="./tasks/DemonDrill/dd_drill_delegation.png")
+	# 演武挑战页面的式神录按钮 
+	I_DRILL_GOTO_SHIKIGAMI = RuleImage(roi_front=(852,561,46,43), roi_back=(852,561,46,43), threshold=0.8, method="Template matching", file="./tasks/DemonDrill/dd_drill_goto_shikigami.png")
 
 
 	# Ocr Rule Assets

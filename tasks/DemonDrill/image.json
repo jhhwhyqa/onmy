@@ -36,6 +36,15 @@
     "description": "逢魔演武界面标志"
   },
   {
+    "itemName": "drill_challenge_check",
+    "imageName": "dd_drill_challenge_check.png",
+    "roiFront": "150,12,134,48",
+    "roiBack": "150,12,134,48",
+    "method": "Template matching",
+    "threshold": 0.75,
+    "description": "演武挑战页面标志"
+  },
+  {
     "itemName": "goto_drill_delegation",
     "imageName": "dd_goto_drill_delegation.png",
     "roiFront": "1063,389,33,70",
@@ -52,5 +61,14 @@
     "method": "Template matching",
     "threshold": 0.8,
     "description": "式神委派界面右侧委派栏里的「演武委派」条目"
+  },
+  {
+    "itemName": "drill_goto_shikigami",
+    "imageName": "dd_drill_goto_shikigami.png",
+    "roiFront": "852,561,46,43",
+    "roiBack": "852,561,46,43",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "演武挑战页面的式神录按钮"
   }
 ]

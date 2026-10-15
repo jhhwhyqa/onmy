@@ -4,6 +4,7 @@
 from pydantic import Field, BaseModel
 
 from tasks.Component.GeneralBattle.config_general_battle import GeneralBattleConfig
+from tasks.Component.SwitchSoul.switch_soul_config import SwitchSoulConfig
 from tasks.Component.config_base import ConfigBase
 from tasks.Component.config_scheduler import Scheduler
 
@@ -16,4 +17,5 @@ class DemonDrillConfig(BaseModel):
 class DemonDrill(ConfigBase):
     scheduler: Scheduler = Field(default_factory=Scheduler)
     demon_drill_config: DemonDrillConfig = Field(default_factory=DemonDrillConfig)
+    switch_soul_config: SwitchSoulConfig = Field(default_factory=SwitchSoulConfig)
     general_battle_config: GeneralBattleConfig = Field(default_factory=GeneralBattleConfig)
