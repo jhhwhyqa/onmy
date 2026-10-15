@@ -23,7 +23,7 @@ from tasks.Component.GeneralBattle.general_battle import GeneralBattle, ExitMatc
     BattleAction
 from tasks.Component.SwitchSoul.switch_soul import SwitchSoul
 from tasks.Component.config_base import Time
-from tasks.ZombieGuild.assets import DokanAssets
+from tasks.ZombieGuild.assets import ZombieGuildAssets
 from tasks.ZombieGuild.config import ZombieGuild
 from tasks.ZombieGuild.reward_recognition import count_blue_tickets_in_png
 import tasks.ZombieGuild.page as pages
@@ -52,7 +52,7 @@ MAX_WELFARE_DOKAN_REFRESH_COUNT = 20
 DOKAN_UNKNOWN_PAGE_TIMEOUT = 10.0
 DOKAN_UNKNOWN_PAGE_RETRY = 3
 
-class ScriptTask(GameUi, SwitchSoul, GeneralBattle, DokanAssets):
+class ScriptTask(GameUi, SwitchSoul, GeneralBattle, ZombieGuildAssets):
     _reuse_image_match_results: bool = True  # 仅道馆启用同帧识别结果和相同规则副本的复用。
     attack_priority_selected: bool = False
     switch_member_soul_done: bool = False

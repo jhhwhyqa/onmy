@@ -63,7 +63,7 @@ class DokanAssets:
 	# 优先攻击: 黑脸 
 	I_RYOU_DOKAN_ATTACK_PRIORITY_4 = RuleImage(roi_front=(1072,178,94,39), roi_back=(1072,178,94,39), threshold=0.8, method="Template matching", file="./tasks/Dokan/res/res_ryou_dokan_priority_4.png")
 	# 正在查找道馆,还未选择 
-	I_RYOU_DOKAN_FINDING_DOKAN = RuleImage(roi_front=(980,60,100,160), roi_back=(980,60,100,160), threshold=0.8, method="Template matching", file="./tasks/Dokan/res/res_ryou_dokan_finding_dokan.png")
+	I_RYOU_DOKAN_FINDING_DOKAN = RuleImage(roi_front=(987,139,68,67), roi_back=(987,139,68,67), threshold=0.8, method="Template matching", file="./tasks/Dokan/res/res_ryou_dokan_finding_dokan.png")
 	# 已选择道馆 
 	I_RYOU_DOKAN_FOUND_DOKAN = RuleImage(roi_front=(440,580,360,140), roi_back=(440,580,360,140), threshold=0.8, method="Template matching", file="./tasks/Dokan/res/res_ryou_dokan_found_dokan.png")
 	# 状态：集结等待中。检查右下角的挑战是不是灰色的。FIXME 黄色和灰色的挑战截图总是傻傻分不清，先改用OCR 

@@ -1,4 +1,4 @@
-from tasks.ZombieGuild.assets import DokanAssets
+from tasks.ZombieGuild.assets import ZombieGuildAssets
 from tasks.GameUi.action import sequence
 from tasks.GameUi.default_pages import (page_shirin, page_shikigami_records, page_battle, page_battle_result,
                                         page_battle_prepare, page_reward, random_click, page_main)
@@ -7,9 +7,9 @@ from tasks.GameUi.page_definition import Page
 from tasks.GlobalGame.assets import GlobalGameAssets
 
 # 道馆地图页面
-page_dokan_map = Page(any_of(DokanAssets.I_RYOU_DOKAN_FOUND_DOKAN, DokanAssets.I_RYOU_DOKAN_FINDING_DOKAN),
+page_dokan_map = Page(any_of(ZombieGuildAssets.I_RYOU_DOKAN_FOUND_DOKAN, ZombieGuildAssets.I_RYOU_DOKAN_FINDING_DOKAN),
                       key="zombie_guild_dokan_map")
-page_shirin.connect(page_dokan_map, DokanAssets.I_SCENE_SHENSHE, key="page_shirin->zombie_guild_dokan_map")
+page_shirin.connect(page_dokan_map, ZombieGuildAssets.I_SCENE_SHENSHE, key="page_shirin->zombie_guild_dokan_map")
 page_dokan_map.connect(page_shirin, GlobalGameAssets.I_UI_BACK_YELLOW, key="page_dokan_map->page_shirin")
 
 
@@ -30,31 +30,31 @@ def map_enter_dokan(task) -> bool:
 
 # 道馆页面(必须道馆已经开启才可以调用)
 # 顶部「道馆突破」标题：图片模板在不同字体/渲染下容易不过阈值，配一条 OCR 兜底。
-page_dokan = Page(any_of(DokanAssets.I_RYOU_DOKAN_CHECK, DokanAssets.O_DOKAN_TITLE),
+page_dokan = Page(any_of(ZombieGuildAssets.I_RYOU_DOKAN_CHECK, ZombieGuildAssets.O_DOKAN_TITLE),
                   key="zombie_guild_dokan")
 page_dokan.connect(page_dokan_map,
-                   sequence(DokanAssets.I_RYOU_DOKAN_DOKAN_QUIT, DokanAssets.I_RYOU_DOKAN_EXIT_ENSURE,
+                   sequence(ZombieGuildAssets.I_RYOU_DOKAN_DOKAN_QUIT, ZombieGuildAssets.I_RYOU_DOKAN_EXIT_ENSURE,
                             success_index=1),
                    key="page_dokan->page_dokan_map")
 page_dokan_map.connect(page_dokan, action=map_enter_dokan, key="page_dokan_map->page_dokan")
 # 道馆->道馆地图->神社->寮->庭院  导航器会误认为(道馆->式神录->庭院)返回庭院最快, 增加花费可以减少惩罚纠错过程
-page_dokan.connect(page_shikigami_records, DokanAssets.I_RYOU_DOKAN_SHIKIGAMI, key="page_dokan->page_shikigami_records", cost=4)
+page_dokan.connect(page_shikigami_records, ZombieGuildAssets.I_RYOU_DOKAN_SHIKIGAMI, key="page_dokan->page_shikigami_records", cost=4)
 # 庭院->寮->神社->道馆地图->道馆  导航器会误认为(庭院->式神录->道馆)进入道馆最快, 同理需要增加花费
 page_shikigami_records.connect(page_dokan, GlobalGameAssets.I_UI_BACK_YELLOW, key="page_shikigami_records->zombie_guild_dokan", cost=4)
 
 
 def priority_enter_dokan(task) -> bool:
-    priority_list = [DokanAssets.I_RYOU_DOKAN_ATTACK_PRIORITY_0,
-                     DokanAssets.I_RYOU_DOKAN_ATTACK_PRIORITY_1,
-                     DokanAssets.I_RYOU_DOKAN_ATTACK_PRIORITY_2,
-                     DokanAssets.I_RYOU_DOKAN_ATTACK_PRIORITY_3,
-                     DokanAssets.I_RYOU_DOKAN_ATTACK_PRIORITY_4]
+    priority_list = [ZombieGuildAssets.I_RYOU_DOKAN_ATTACK_PRIORITY_0,
+                     ZombieGuildAssets.I_RYOU_DOKAN_ATTACK_PRIORITY_1,
+                     ZombieGuildAssets.I_RYOU_DOKAN_ATTACK_PRIORITY_2,
+                     ZombieGuildAssets.I_RYOU_DOKAN_ATTACK_PRIORITY_3,
+                     ZombieGuildAssets.I_RYOU_DOKAN_ATTACK_PRIORITY_4]
     target_priority = priority_list[task.config.zombie_guild.dokan_config.dokan_attack_priority]
     return task.appear_then_click(target_priority, interval=1.2)
 
 
 # 道馆攻击优先级页面
-page_dokan_priority = Page(DokanAssets.I_RYOU_DOKAN_ATTACK_PRIORITY_0, priority=75,
+page_dokan_priority = Page(ZombieGuildAssets.I_RYOU_DOKAN_ATTACK_PRIORITY_0, priority=75,
                            key="zombie_guild_dokan_priority")
-page_dokan.connect(page_dokan_priority, DokanAssets.I_RYOU_DOKAN_ATTACK_PRIORITY, key="page_dokan->page_dokan_priority")
+page_dokan.connect(page_dokan_priority, ZombieGuildAssets.I_RYOU_DOKAN_ATTACK_PRIORITY, key="page_dokan->page_dokan_priority")
 page_dokan_priority.connect(page_dokan, priority_enter_dokan, key="page_dokan_priority->page_dokan")

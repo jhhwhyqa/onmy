@@ -101,8 +101,8 @@
   {
     "itemName": "ryou_dokan_finding_dokan",
     "imageName": "res_ryou_dokan_finding_dokan.png",
-    "roiFront": "980,60,100,160",
-    "roiBack": "980,60,100,160",
+    "roiFront": "987,139,68,67",
+    "roiBack": "987,139,68,67",
     "method": "Template matching",
     "threshold": 0.8,
     "description": "正在查找道馆,还未选择"
