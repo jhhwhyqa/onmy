@@ -63,15 +63,6 @@ class DokanConfig(BaseModel):
     find_dokan_refresh_count: int = Field(default=7, description='find_dokan_refresh_count_help')
 
 
-class QQMessageConfig(BaseModel):
-    qq_message_enable: bool = Field(default=False, description='qq_message_enable_help')
-    welfare_plugin_url: str = Field(default='', description='welfare_plugin_url_help')
-    welfare_plugin_token: str = Field(default='', description='welfare_plugin_token_help')
-    qq_query_start_time: Time = Field(default=Time(hour=20), description='qq_query_start_time_help')
-    qq_query_end_time: Time = Field(default=Time(hour=22), description='qq_query_end_time_help')
-    qq_poll_interval: int = Field(default=60, ge=1, le=86400, description='qq_poll_interval_help')
-
-
 class DokanBattleConfig(GeneralBattleConfig):
     continuous_battle: bool = True
 
@@ -90,7 +81,6 @@ class TaskNotifyConfig(BaseModel):
 class ZombieGuild(ConfigBase):
     scheduler: Scheduler = Field(default_factory=Scheduler)
     dokan_config: DokanConfig = Field(default_factory=DokanConfig)
-    qq_message_config: QQMessageConfig = Field(default_factory=QQMessageConfig)
     notification_config: TaskNotifyConfig = Field(default_factory=TaskNotifyConfig)
     dokan_member_battle_conf: DokanBattleConfig = Field(default_factory=DokanBattleConfig)
     dokan_member_switch_soul: SwitchSoulConfig = Field(default_factory=SwitchSoulConfig)

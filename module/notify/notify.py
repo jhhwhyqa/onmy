@@ -18,6 +18,8 @@ onepush.core.log = logger
 class Notifier:
     def __init__(self, _config: str, enable: bool=False) -> None:
         self.config_name: str = ""
+        self.provider_name: str = ""
+        self.notifier: Provider = None
         self.enable: bool = enable
 
         if not self.enable:
@@ -47,8 +49,41 @@ class Notifier:
             logger.exception(e)
             return
 
-    def push(self, **kwargs) -> bool:
-        if not self.enable:
+    @property
+    def supports_images(self) -> bool:
+        """目前只有 smtp 渠道（例如 QQ 邮箱）能把图片当附件发出去。"""
+        return (self.enable and self.notifier is not None
+                and self.provider_name.lower() == "smtp")
+
+    def _build_mail_message(self, title: str, content: str, images, filenames=None):
+        """为 smtp 渠道拼一封带 PNG 附件的邮件，交给 onepush 直接发送。
+
+        onepush 的 smtp provider 支持传入自定义 Message，这里用它绕开默认的
+        纯文本解析器，把截图作为附件带上。
+        """
+        from email.message import EmailMessage
+
+        message = EmailMessage()
+        message["Subject"] = title
+        sender = self.config.get("From") or self.config.get("user")
+        receiver = self.config.get("To") or sender
+        if sender:
+            message["From"] = sender
+        if receiver:
+            message["To"] = receiver
+        message.set_content(content or "")
+        names = list(filenames or [])
+        for index, image in enumerate(images, start=1):
+            if index <= len(names) and names[index - 1]:
+                filename = names[index - 1]
+            else:
+                filename = f"reward_{index}.png"
+            message.add_attachment(bytes(image), maintype="image", subtype="png",
+                                   filename=filename)
+        return message
+
+    def push(self, images: list = None, filenames: list = None, **kwargs) -> bool:
+        if not self.enable or self.notifier is None:
             return False
         # 更新配置
         kwargs["title"] = f"{self.config_name} {kwargs['title']}"
@@ -77,8 +112,15 @@ class Notifier:
                 self.config["token"] = access_token
 
 
+        # 附件只在本次调用生效，不能写回 self.config 污染后续推送
+        payload = self.config
+        if images and self.supports_images:
+            payload = dict(self.config)
+            payload["msg"] = self._build_mail_message(
+                kwargs["title"], kwargs.get("content", ""), images, filenames)
+
         try:
-            resp = self.notifier.notify(**self.config)
+            resp = self.notifier.notify(**payload)
             if isinstance(resp, Response):
                 if resp.status_code != 200:
                     logger.warning("Push notify failed!")
@@ -92,9 +134,16 @@ class Notifier:
                             logger.warning(
                                 f"Return message:{return_data['wording']}")
                             return False
-        except SMTPResponseException:
-            logger.warning("Appear SMTPResponseException")
-            pass
+            elif isinstance(resp, dict) and resp:
+                # smtp 发送成功时返回被拒收的收件人，非空即表示没送到
+                logger.warning("Push notify failed!")
+                logger.warning(f"Refused recipients: {resp}")
+                return False
+        except SMTPResponseException as e:
+            # 认证失败、收件人被拒等都走这个分支，必须算发送失败:
+            # 否则调用侧会当作成功，把其实没发出去的截图删掉。
+            logger.warning(f"SMTP push failed: {e}")
+            return False
         except OnePushException:
             logger.exception("Push notify failed")
             return False

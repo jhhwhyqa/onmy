@@ -24,9 +24,8 @@ from tasks.Component.GeneralBattle.general_battle import GeneralBattle, ExitMatc
 from tasks.Component.SwitchSoul.switch_soul import SwitchSoul
 from tasks.Component.config_base import Time
 from tasks.ZombieGuild.assets import DokanAssets
-from tasks.ZombieGuild.config import ZombieGuild, QQMessageConfig
+from tasks.ZombieGuild.config import ZombieGuild
 from tasks.ZombieGuild.reward_recognition import count_blue_tickets_in_png
-from tasks.ZombieGuild.qq_monitor import QQDokanState
 import tasks.ZombieGuild.page as pages
 from tasks.GameUi.game_ui import GameUi
 
@@ -189,7 +188,8 @@ class ScriptTask(GameUi, SwitchSoul, GeneralBattle, DokanAssets):
             return
         try:
             sent = notifier.push_images(images, title=f'{datetime.now():%Y-%m-%d} 道馆结算奖励',
-                                        content=reward_summary)
+                                        content=reward_summary,
+                                        filenames=[screenshot.name for screenshot in screenshots])
         except Exception as exc:
             logger.warning(f'Dokan reward notification failed: {exc}')
             return
@@ -284,11 +284,6 @@ class ScriptTask(GameUi, SwitchSoul, GeneralBattle, DokanAssets):
     def run(self):
         self.before_run()
         self.conf = self.config.model.zombie_guild
-        qq_settings = getattr(self.conf, 'qq_message_config', QQMessageConfig())
-        if qq_settings.qq_message_enable and not QQDokanState(self.config.config_name).flags(qq_settings)[0]:
-            logger.info('尚未确认今天开启福利寮，等待下次检测')
-            self.set_next_run(task='ZombieGuild', target=datetime.now() + timedelta(seconds=qq_settings.qq_poll_interval))
-            raise TaskEnd
         if self.conf.dokan_config.monday_to_thursday and datetime.now().weekday() >= 4:
             logger.warning("weekend, exit")
             self.next_run(True)

@@ -7,8 +7,8 @@
 这里提供同名函数，返回带 `enable / push / push_images` 的对象，
 让调用侧写法保持不变。
 
-注意：仓库现有的 Notifier 只支持文字推送，不支持发图；`push_images`
-退化为"记日志 + 发一条文字通知"，不会静默丢弃。
+注意：`push_images` 只在渠道支持附件时（smtp，例如 QQ 邮箱）真的把截图发出去；
+其余渠道退化为纯文字通知，不会静默丢弃。
 """
 from module.logger import logger
 from module.notify.notify import Notifier
@@ -30,11 +30,21 @@ class TaskNotifier:
             logger.warning(f'推送通知失败: {exc}')
             return False
 
-    def push_images(self, images, title: str = '', **kwargs) -> bool:
-        # 现有 Notifier 发不了图，退化成文字通知，避免静默丢弃
-        paths = [str(p) for p in (images or [])]
-        logger.info(f'Notifier 不支持发图，已保存 {len(paths)} 张: {paths}')
-        return self.push(title=title, content='\n'.join(paths))
+    def push_images(self, images, title: str = '', content: str = '',
+                    filenames=None, **kwargs) -> bool:
+        """把截图当附件发送；渠道不支持附件时退化为文字通知。
+
+        :param images: PNG 字节流列表
+        :param filenames: 与 images 一一对应的附件名，缺省按序号命名
+        """
+        if not self.enable:
+            return False
+        images = list(images or [])
+        if images and self._notifier.supports_images:
+            return self._notifier.push(title=title, content=content,
+                                       images=images, filenames=filenames, **kwargs)
+        logger.info(f'当前推送渠道不支持附件，{len(images)} 张截图未发送，仅推送文字通知')
+        return self.push(title=title, content=content, **kwargs)
 
 
 def resolve_task_notifier(config, task_cfg=None) -> TaskNotifier:
