@@ -1,0 +1,20 @@
+[
+  {
+    "itemName": "drill_remain",
+    "roiFront": "1107,671,147,26",
+    "roiBack": "1107,671,147,26",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "剩余挑战次数「剩余次数x/15」"
+  },
+  {
+    "itemName": "drill_delegation_status",
+    "roiFront": "1080,165,65,29",
+    "roiBack": "1080,165,65,29",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "委派中",
+    "description": "委派状态检查「委派中」"
+  }
+]

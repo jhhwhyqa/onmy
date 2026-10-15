@@ -61,7 +61,11 @@ from tasks.LBS.config import LBS
 from tasks.MetaDemon.config import MetaDemon
 from tasks.FrogBoss.config import FrogBoss
 from tasks.FloatParade.config import FloatParade
-from tasks.PeriodicActivity.config import PeriodicActivity
+from tasks.DyeTrials.config import DyeTrials
+from tasks.Quiz.config import Quiz
+from tasks.GuguArtStudio.config import GuguArtStudio
+from tasks.FrogChallenge.config import FrogChallenge
+from tasks.DemonDrill.config import DemonDrill
 from tasks.IbukiArena.config import IbukiArena
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -132,7 +136,11 @@ class ConfigModel(ConfigBase):
     meta_demon: MetaDemon = Field(default_factory=MetaDemon)
     frog_boss: FrogBoss = Field(default_factory=FrogBoss)
     float_parade: FloatParade = Field(default_factory=FloatParade)
-    periodic_activity: PeriodicActivity = Field(default_factory=PeriodicActivity)
+    dye_trials: DyeTrials = Field(default_factory=DyeTrials)
+    quiz: Quiz = Field(default_factory=Quiz)
+    gugu_art_studio: GuguArtStudio = Field(default_factory=GuguArtStudio)
+    frog_challenge: FrogChallenge = Field(default_factory=FrogChallenge)
+    demon_drill: DemonDrill = Field(default_factory=DemonDrill)
     ibuki_arena: IbukiArena = Field(default_factory=IbukiArena)
 
     # 这些是肝帝专属
