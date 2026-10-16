@@ -11,7 +11,7 @@
   {
     "itemName": "activity_entry",
     "imageName": "res_activity_entry.png",
-    "roiFront": "1168,127,77,449",
+    "roiFront": "1178,220,51,24",
     "roiBack": "1168,127,78,449",
     "method": "Template matching",
     "threshold": 0.8,

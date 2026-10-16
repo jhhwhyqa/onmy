@@ -33,7 +33,7 @@ class LBSAssets:
 	# 刷新 
 	I_REFRESH = RuleImage(roi_front=(1189,525,36,32), roi_back=(1178,129,65,434), threshold=0.8, method="Template matching", file="./tasks/LBS/res/res_refresh.png")
 	# 活动入口 
-	I_ACTIVITY_ENTRY = RuleImage(roi_front=(1168,127,77,449), roi_back=(1168,127,78,449), threshold=0.8, method="Template matching", file="./tasks/LBS/res/res_activity_entry.png")
+	I_ACTIVITY_ENTRY = RuleImage(roi_front=(1178,220,51,24), roi_back=(1168,127,78,449), threshold=0.8, method="Template matching", file="./tasks/LBS/res/res_activity_entry.png")
 	# 组队 
 	I_TEAM_UP = RuleImage(roi_front=(1119,577,61,35), roi_back=(1117,574,70,73), threshold=0.8, method="Template matching", file="./tasks/LBS/res/res_team_up.png")
 	# 创建（点组队后出现，点它进标准组队界面） 
