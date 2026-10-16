@@ -14,6 +14,7 @@ from tasks.GameUi.game_ui import GameUi
 from tasks.GameUi.page import page_main, page_shikigami_records
 import tasks.DemonDrill.page as pages
 from tasks.Component.RightActivity.assets import RightActivityAssets
+from tasks.GlobalGame.assets import GlobalGameAssets
 from module.base.timer import Timer
 
 
@@ -205,12 +206,20 @@ class ScriptTask(GeneralBattle, SwitchSoul, DelegationScriptTask, GameUi, DemonD
     def back_to_drill_page(self) -> bool:
         """从式神委派界面回到逢魔演武界面。
 
-        式神委派的返回键是回探索页（页面图里 `page_delegation` 的出边就是回探索），
-        所以直接回庭院再进一次活动页。
+        委派是点活动页的「前往演武委派」进去的，往回退一步就回活动页；
+        不用绕回庭院再重新进一次活动栏（白跑一趟，还得重新找活动入口）。
+        退回后认不出活动页时才兜底走庭院。
 
         Returns:
             bool: 回到逢魔演武界面返回 True
         """
+        self.screenshot()
+        if not self.appear(self.I_DRILL_CHECK):
+            self.appear_then_click(GlobalGameAssets.I_UI_BACK_YELLOW, interval=1)
+        if self.wait_until_appear(self.I_DRILL_CHECK, wait_time=5):
+            logger.info('Returned to the demon drill activity page')
+            return True
+        logger.warning('Demon drill: back key did not return to the activity page, re-enter from main')
         self.goto_page(page_main)
         return self.enter_drill_activity()
 
