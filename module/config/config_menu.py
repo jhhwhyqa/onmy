@@ -42,7 +42,7 @@ class ConfigMenu:
                               'CollectiveMissions',
                               'Hunt' , 'AbyssShadows', 'GuildBanquet', 'DemonRetreat', 'GuildActivityMonitor']
         # 每周任务
-        self.menu["Weekly Task"] = ['TrueOrochi', 'RichMan', 'Secret', 'WeeklyTrifles', 'MysteryShop', 'Duel', 'Chess', 'DraftDuel']
+        self.menu["Weekly Task"] = ['TrueOrochi', 'RichMan', 'Secret', 'WeeklyTrifles', 'MysteryShop', 'Duel', 'Chess']
         # 活动的任务
         self.menu["Activity Task"] = ['ActivityShikigami', 'VersionActivity', 'LBS', 'MetaDemon', 'FrogBoss', 'FloatParade', 'DyeTrials', 'Quiz', 'GuguArtStudio', 'FrogChallenge', 'DemonDrill', 'IbukiArena']
         # 开发工具

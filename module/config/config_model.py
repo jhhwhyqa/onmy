@@ -90,7 +90,6 @@ from tasks.WeeklyTrifles.config import WeeklyTrifles
 from tasks.MysteryShop.config import MysteryShop
 from tasks.Duel.config import Duel
 from tasks.Chess.config import Chess
-from tasks.DraftDuel.config import DraftDuel
 # ----------------------------------------------------------------------------------------------------------------------
 
 class ConfigModel(ConfigBase):
@@ -162,7 +161,6 @@ class ConfigModel(ConfigBase):
     mystery_shop: MysteryShop = Field(default_factory=MysteryShop)
     duel: Duel = Field(default_factory=Duel)
     chess: Chess = Field(default_factory=Chess)
-    draft_duel: DraftDuel = Field(default_factory=DraftDuel)
 
     # 阴阳寮
     collective_missions: CollectiveMissions = Field(default_factory=CollectiveMissions)

@@ -386,7 +386,7 @@ class AssetsExtractor:
                 continue
 
             if not isinstance(data, list):
-                # 任务自带的纯数据 json（例如 DraftDuel/catalog.json），不是资源文件，跳过
+                # 任务自带的纯数据 json，不是资源文件，跳过
                 logger.info(f'{file} is not an asset file, skip')
                 continue
 
