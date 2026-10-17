@@ -54,7 +54,7 @@ class SwitchAccountAssets:
 	# 登录界面 服务器列表的手指向左滑动 
 	S_SA_SVR_SWIPE_LEFT = RuleSwipe(roi_front=(730,460,30,21), roi_back=(470,410,26,21), mode="default", name="sa_svr_swipe_left")
 	# 登录界面 账号列表的手指向上滑动 
-	S_SA_ACCOUNT_LIST_UP = RuleSwipe(roi_front=(600,520,30,20), roi_back=(750,270,30,20), mode="default", name="sa_account_list_up")
+	S_SA_ACCOUNT_LIST_UP = RuleSwipe(roi_front=(604,387,30,20), roi_back=(750,270,30,20), mode="default", name="sa_account_list_up")
 
 
 	# Image Rule Assets
@@ -86,5 +86,7 @@ class SwitchAccountAssets:
 	I_SA_CHECK_SELECT_SVR_2 = RuleImage(roi_front=(223,137,127,48), roi_back=(194,127,181,68), threshold=0.8, method="Template matching", file="./tasks/Component/SwitchAccount/res/res_sa_check_select_svr_2.png")
 	# 关闭服务器选择界面
 	I_SA_LOGIN_FORM_CANCEL_SVR_SELECT = RuleImage(roi_front=(1083,94,39,36), roi_back=(1083,94,39,36), threshold=0.8, method="Template matching", file="./tasks/Component/SwitchAccount/res/res_sa_login_form_cancel_svr_select.png")
+	# 关闭一次性新区集结窗口
+	I_SA_CANCEL_NEW_SVR_GATHERING = RuleImage(roi_front=(462,421,139,61), roi_back=(462,421,139,61), threshold=0.8, method="Template matching", file="./tasks/Component/SwitchAccount/res/res_sa_cancel_new_svr_gathering.png")
 
 

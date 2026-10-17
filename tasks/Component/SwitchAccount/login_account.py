@@ -28,7 +28,11 @@ class LoginAccount(BaseTask, SwitchAccountAssets):
         self.O_SA_LOGIN_FORM_SVR_NAME.keyword = svrName
         if self.ocr_appear(self.O_SA_LOGIN_FORM_SVR_NAME):
             return True
-        self.ui_click(self.C_SA_LOGIN_FORM_SWITCH_SVR_BTN, self.I_SA_CHECK_SELECT_SVR_1, 1.5)
+        # 超时仍打不开选择服务器界面时按失败返回, 由上层跳过该账号, 避免死循环触发 GameTooManyClickError
+        if not self.ui_click_until_appear_or_timeout(self.C_SA_LOGIN_FORM_SWITCH_SVR_BTN,
+                                                     self.I_SA_CHECK_SELECT_SVR_1, 1.5, timeout=12):
+            logger.warning('open svr select page timeout for %s', svrName)
+            return False
         # 展开底部角色列表,显示角色所属服务器
         self.screenshot()
         if self.appear(self.I_SA_CHECK_SELECT_SVR_1) and (not self.appear(self.I_SA_CHECK_SELECT_SVR_2)):
@@ -81,8 +85,19 @@ class LoginAccount(BaseTask, SwitchAccountAssets):
         @rtype:
         """
         logger.info("start switch_character")
-        # 改成对比是否出现 已有角色 
-        self.ui_click(self.C_SA_LOGIN_FORM_SWITCH_SVR_BTN, self.O_SA_CHECK_SELECT_SVR)
+        # 登录可能会转圈加载,这里清理点击记录防止报错
+        while 1:
+            time.sleep(1)
+            self.screenshot()
+            if self.appear(self.O_SA_CHECK_SELECT_SVR, interval=2):
+                break
+            self.click(self.C_SA_LOGIN_FORM_SWITCH_SVR_BTN, interval=2)
+            self.device.click_record_clear()
+        # 改成对比是否出现 已有角色
+        # self.ui_click(self.C_SA_LOGIN_FORM_SWITCH_SVR_BTN, self.O_SA_CHECK_SELECT_SVR)
+        # 应对可能出现的新区集结弹窗
+        self.screenshot()
+        self.appear_then_click(self.I_SA_CANCEL_NEW_SVR_GATHERING)
         # 展开底部角色列表,显示角色所属服务器
         self.screenshot()
         while (not self.appear(self.I_SA_CHECK_SELECT_SVR_2)) and self.appear(self.I_SA_CHECK_SELECT_SVR_1):
@@ -238,6 +253,7 @@ class LoginAccount(BaseTask, SwitchAccountAssets):
         self.O_SA_ACCOUNT_ACCOUNT_SELECTED.keyword = accountInfo.account
         self.O_SA_LOGIN_FORM_USER_CENTER_ACCOUNT.keyword = accountInfo.account
         while 1:
+            time.sleep(0.8)
             self.screenshot()
             # 处于 选择服务器界面 直接点击空白区域退出该界面 进入切换账号流程
             if self.appear(self.I_SA_CHECK_SELECT_SVR_1) or self.appear(self.I_SA_CHECK_SELECT_SVR_2):
