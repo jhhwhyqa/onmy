@@ -20,11 +20,11 @@
   {
     "itemName": "hunt_check",
     "imageName": "DemonRetreat_hunt_check.png",
-    "roiFront": "545,4,195,55",
-    "roiBack": "545,4,195,55",
+    "roiFront": "542,4,204,55",
+    "roiBack": "542,4,204,55",
     "method": "Template matching",
     "threshold": 0.8,
-    "description": "检查是否成功进入首领退治"
+    "description": "首领退治开启界面的标识（顶部标题）"
   },
   {
     "itemName": "demon_gather",
@@ -65,8 +65,8 @@
   {
     "itemName": "rank_lsit",
     "imageName": "DemonRetreat_rank_lsit.png",
-    "roiFront": "542,5,200,54",
-    "roiBack": "542,5,200,54",
+    "roiFront": "73,186,135,41",
+    "roiBack": "73,186,135,41",
     "method": "Template matching",
     "threshold": 0.8,
     "description": "退治排行榜"
@@ -106,5 +106,14 @@
     "method": "Template matching",
     "threshold": 0.8,
     "description": "「开启狭间」的确认按钮"
+  },
+  {
+    "itemName": "challenge_check",
+    "imageName": "DemonRetreat_challenge_check.png",
+    "roiFront": "575,15,128,43",
+    "roiBack": "575,15,128,43",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "首领退治挑战界面的标识"
   }
 ]

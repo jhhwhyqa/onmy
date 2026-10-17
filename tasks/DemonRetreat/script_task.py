@@ -120,6 +120,7 @@ class ScriptTask(GameUi, GeneralBattle, SwitchSoul, DemonRetreatAssets, AbyssSha
         self.goto_page(page_guild)
 
         goto_demon_retreat_num = 0
+        enter_timer = Timer(60).start()
         while 1:
             self.screenshot()
             # 进入神社
@@ -133,7 +134,8 @@ class ScriptTask(GameUi, GeneralBattle, SwitchSoul, DemonRetreatAssets, AbyssSha
             # 确保不离开退治
             if self.appear_then_click(self.I_QUIT_BACK, interval=1):
                 pass
-            if self.appear(self.I_HUNT_CHECK):
+            # 开启界面、以及本周已被别人开启时直接落到的挑战界面，都算进入成功
+            if self.appear(self.I_HUNT_CHECK) or self.appear(self.I_CHALLENGE_CHECK):
                 if self.appear_then_click(self.I_QUIT_BACK, interval=1):
                     pass
                 logger.info("Enter demon_retreat success")
@@ -151,10 +153,16 @@ class ScriptTask(GameUi, GeneralBattle, SwitchSoul, DemonRetreatAssets, AbyssSha
                 raise TaskEnd
 
             if self.appear(self.I_RANK_LSIT):
-                logger.info("Enter demon_retreat false")
-                return False
+
+                    logger.info("Enter demon_retreat false")
+                    return False
+
             # 超过五次没有进入进入认为失败
             if goto_demon_retreat_num >= 3:
+                break
+            # 界面认不出来（比如卡在某个未知弹窗）时别原地空转，交回上层按进入失败处理
+            if enter_timer.reached():
+                logger.warning("Enter demon_retreat timeout, no expected entry appeared")
                 break
         return False
 
