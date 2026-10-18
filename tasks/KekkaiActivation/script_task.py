@@ -240,18 +240,20 @@ class ScriptTask(KU, KekkaiActivationAssets):
         if rule == CardType.TAIKO:
             min_card_num = self.config.kekkai_activation.activation_config.min_taiko_num
             check_card = "勾玉"
+            stop_card = self.I_CARDS_KAIKO_4
         elif rule == CardType.FISH:
             min_card_num = self.config.kekkai_activation.activation_config.min_fish_num
             check_card = "体力"
+            stop_card = self.I_CARDS_FISH_4
         else:
             logger.error('Unknown utilize rule')
             raise ValueError('Unknown utilize rule')
 
-        ocr_count = 0
+        max_swipes = 10  # 防止识别异常时无限滑动
+        swipe_count = 0
         while 1:
             self.screenshot()
             results = self.O_CHECK_CARD_NUMBER.detect_and_ocr(self.device.image)
-            ocr_count += 1
             # 第一步：筛选出包含 "体力或者勾玉" 的结果
             filtered_results = [result for result in results if check_card in result.ocr_text]
             logger.info(f"识别到卡: {[result.ocr_text for result in filtered_results]}")
@@ -283,8 +285,12 @@ class ScriptTask(KU, KekkaiActivationAssets):
 
                 return target
             else:
-                if ocr_count > 3:
-                    logger.error('多次未找到符合条件的结果, 退出')
+                # 已经滑到四星卡区域，后面不会再有更高星级的卡
+                if self.appear(stop_card):
+                    logger.info('已识别到四星卡, 未发现符合条件的高星卡')
+                    return None
+                if swipe_count >= max_swipes:
+                    logger.error(f'滑动{max_swipes}次仍未找到符合条件的结果, 退出')
                     return None
                 logger.warning("未找到符合条件的结果, 准备往上滑动")
                 duration = 2
@@ -294,6 +300,7 @@ class ScriptTask(KU, KekkaiActivationAssets):
                 p2 = (safe_pos_x, safe_pos_y - 410)
                 logger.info('Swipe %s -> %s, %sS ' % (point2str(*p1), point2str(*p2), duration))
                 self.device.swipe_adb(p1, p2, duration=duration)
+                swipe_count += 1
                 time.sleep(1)
                 continue
 
