@@ -1,12 +1,11 @@
 # This Python file uses the following encoding: utf-8
 # @author runhey
 # github https://github.com/runhey
-import asyncio
 import json
 from urllib.parse import quote
 
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
-from fastapi.responses import Response, StreamingResponse
+from fastapi.responses import Response
 from fastapi import WebSocket, WebSocketDisconnect
 from datetime import datetime
 from module.config.utils import convert_to_underscore
@@ -265,7 +264,7 @@ async def script_task(script_name: str, task: str):
     return mm.config_cache(script_name).model.script_task(task)
 
 @script_app.put('/{script_name}/{task}/{group}/{argument}/value')
-async def script_task(script_name: str, task: str, group: str, argument: str, types: str, value):
+async def script_set_task_value(script_name: str, task: str, group: str, argument: str, types: str, value):
     try:
         match types:
             case 'integer':
@@ -310,37 +309,6 @@ async def sync_next_run(script_name: str, task: str, target_dt: str):
     await script_process.broadcast_state({"schedule": config.get_schedule_data()})
     return True
 
-
-# --------------------------------------  SSE  --------------------------------------
-@script_app.get('/{script_name}/state')
-async def script_task_state(script_name: str):
-    async def state_generate_events():
-        while True:
-            # 生成 SSE 事件数据
-            event_data = "data: Hello, SSE!\n\n"
-            yield event_data
-
-            # 模拟异步操作，可以替换为您的实际处理逻辑
-            await asyncio.sleep(1)
-
-    response = StreamingResponse(state_generate_events(), media_type="text/event-stream")
-    response.headers["Cache-Control"] = "no-cache"
-    return response
-
-@script_app.get('/{script_name}/log')
-async def script_task_log(script_name: str):
-    async def log_generate_events():
-        while True:
-            # 生成 SSE 事件数据
-            event_data = "data: log\n"
-            yield event_data
-
-            # 模拟异步操作，可以替换为您的实际处理逻辑
-            await asyncio.sleep(1)
-
-    response = StreamingResponse(log_generate_events(), media_type="text/event-stream")
-    response.headers["Cache-Control"] = "no-cache"
-    return response
 
 # -------------------------------------- websocket --------------------------------------
 
