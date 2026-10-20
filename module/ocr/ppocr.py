@@ -1,6 +1,8 @@
+import cv2
 import numpy as np
 from paddleocr import PaddleOCR
 
+from module.logger import logger
 from module.ocr.common import BoxedResult, OcrLogger
 
 
@@ -47,6 +49,20 @@ class TextSystem:
         # replaces only the recognition step after detection.
         self.text_recognizer = None
 
+    @staticmethod
+    def _is_blank_image(img) -> bool:
+        """空图或纯黑图没有可识别文字。
+
+        PaddleOCR 对这类图仍可能给出退化的检测框，裁剪时会抛
+        cv2.error（_src.total() > 0 断言失败），因此直接跳过。
+        """
+        return (
+            img is None
+            or not isinstance(img, np.ndarray)
+            or img.size == 0
+            or img.max() == 0
+        )
+
     def recognize_batch(self, images):
         """Compatibility recognizer used by vertical-text RPC handling."""
         return [self.ocr_single_line(image) for image in images]
@@ -55,7 +71,14 @@ class TextSystem:
         """Recognize a single line of text from a cropped image.
         若检测到多个文字块，按从左到右顺序拼接。
         """
-        result = list(self._ocr.predict(img, use_textline_orientation=self._use_angle_cls))
+        if self._is_blank_image(img):
+            return "", 0.0
+        try:
+            result = list(self._ocr.predict(img, use_textline_orientation=self._use_angle_cls))
+        except cv2.error as exc:
+            logger.warning(f"OCR single line failed on invalid image: {exc}")
+            OcrLogger.save(img, "ocr_single_line", "", 0.0, extra="predict_failed")
+            return "", 0.0
         if not result or not result[0].get('rec_texts'):
             OcrLogger.save(img, "ocr_single_line", "", 0.0, extra="no_text_detected")
             return "", 0.0
@@ -84,6 +107,8 @@ class TextSystem:
 
     def detect_and_ocr(self, img: np.ndarray, drop_score=0.5, unclip_ratio=None, box_thresh=None):
         """Detect text regions and recognize text."""
+        if self._is_blank_image(img):
+            return []
         kwargs = {}
         if box_thresh is not None:
             kwargs['text_det_box_thresh'] = box_thresh
@@ -103,11 +128,16 @@ class TextSystem:
             self._log_detect_results(img, results)
             return results
 
-        result = list(self._ocr.predict(
-            img,
-            use_textline_orientation=self._use_angle_cls,
-            **kwargs,
-        ))
+        try:
+            result = list(self._ocr.predict(
+                img,
+                use_textline_orientation=self._use_angle_cls,
+                **kwargs,
+            ))
+        except cv2.error as exc:
+            logger.warning(f"OCR detect failed on invalid image: {exc}")
+            OcrLogger.save(img, "detect_and_ocr", "", 0.0, extra="predict_failed")
+            return []
         if not result:
             OcrLogger.save(img, "detect_and_ocr", "", 0.0, extra="no_result")
             return []
@@ -127,6 +157,8 @@ class TextSystem:
 
     def _detect_and_ocr_custom_rec(self, img, drop_score, unclip_ratio, box_thresh):
         """Run detection with OCR pipeline, then use custom recognizer."""
+        if self._is_blank_image(img):
+            return []
         # First run detection to get boxes
         kwargs = {}
         if box_thresh is not None:
@@ -138,11 +170,16 @@ class TextSystem:
         elif self._unclip_ratio is not None:
             kwargs['text_det_unclip_ratio'] = self._unclip_ratio
 
-        result = list(self._ocr.predict(
-            img,
-            use_textline_orientation=self._use_angle_cls,
-            **kwargs,
-        ))
+        try:
+            result = list(self._ocr.predict(
+                img,
+                use_textline_orientation=self._use_angle_cls,
+                **kwargs,
+            ))
+        except cv2.error as exc:
+            logger.warning(f"OCR detect failed on invalid image: {exc}")
+            OcrLogger.save(img, "detect_and_ocr(custom)", "", 0.0, extra="predict_failed")
+            return []
         if not result:
             OcrLogger.save(img, "detect_and_ocr(custom)", "", 0.0, extra="no_result")
             return []
