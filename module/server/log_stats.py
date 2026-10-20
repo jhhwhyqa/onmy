@@ -208,7 +208,7 @@ class LogStatsParser:
         if self._active_task is None:
             self._active_task = TaskRunState(
                 name=task_name,
-                start_time=self._six_realms_start_time,
+                start_time=self._six_realms_last_time,
                 last_time=self._six_realms_last_time,
             )
         elif self._normalize_title(self._active_task.name) != self._normalize_title(task_name):
@@ -216,7 +216,7 @@ class LogStatsParser:
             self._close_active_task()
             self._active_task = TaskRunState(
                 name=task_name,
-                start_time=self._six_realms_start_time,
+                start_time=self._six_realms_last_time,
                 last_time=self._six_realms_last_time,
             )
 
@@ -300,11 +300,12 @@ class LogStatsParser:
         self._six_realms_last_time = ts
 
     def _handle_task_ended(self, title: str) -> None:
-        if not self._six_realms_active or self._active_task is None:
+        if self._active_task is None:
             return
         if self._normalize_title(title) != self._normalize_title(self._active_task.name):
             return
         self._close_active_battle()
+        self._close_active_task()
 
     def _close_active_battle(self) -> None:
         if self._active_task is None or self._active_battle is None:
