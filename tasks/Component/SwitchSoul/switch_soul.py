@@ -56,6 +56,34 @@ class SwitchSoul(BaseTask, SwitchSoulAssets):
                 continue
         logger.info('Click preset in switch soul')
 
+    def _consume_switch_sure(self) -> None:
+        """点掉御魂切换确认框，直到它消失（顺便处理阻断勾选）。"""
+        while 1:
+            self.click(self.I_SOU_SWITCH_SURE, 3)
+            self.screenshot()
+            if self.appear_then_click(self.I_CHECK_BLOCK, 3):
+                continue
+            if not self.appear(self.I_SOU_SWITCH_SURE):
+                break
+
+    def _wait_and_consume_switch_sure(self, attempts: int = 3, delay: float = 0.6) -> bool:
+        """
+        等待确认框出现并点掉。
+
+        确认框通常在选中队伍约 1 秒后才弹出；不等它就会出现
+        「切完御魂返回时被弹窗挡住、goto_page 反复失败」的问题。
+
+        Returns:
+            True 表示等到并处理了确认框，False 表示等待期内没有出现。
+        """
+        for _ in range(attempts):
+            sleep(delay)
+            self.screenshot()
+            if self.appear(self.I_SOU_SWITCH_SURE):
+                self._consume_switch_sure()
+                return True
+        return False
+
     def switch_soul_one(self, group: int, team: int) -> None:
         """
         设置一个队伍的预设御魂
@@ -123,17 +151,13 @@ class SwitchSoul(BaseTask, SwitchSoulAssets):
             sleep(0.8)
             self.screenshot()
             if self.appear(self.I_SOU_SWITCH_SURE):
-                while 1:
-                    self.click(self.I_SOU_SWITCH_SURE, 3)
-                    self.screenshot()
-                    if self.appear_then_click(self.I_CHECK_BLOCK, 3):
-                        continue
-                    if not self.appear(self.I_SOU_SWITCH_SURE):
-                        break
+                self._consume_switch_sure()
                 clicked_team = True
                 break
             if self.appear_then_click(target_team, interval=3):
-                # 已经点到队伍，后续轮次会被 interval 节流挡住并误报失败，直接结束。
+                # 已经点到队伍，后续轮次会被 interval 节流挡住并误报失败，直接结束；
+                # 但确认框延迟约 1 秒出现，必须等它并点掉，否则会挡住后续的返回。
+                self._wait_and_consume_switch_sure()
                 clicked_team = True
                 break
         if not clicked_team:
