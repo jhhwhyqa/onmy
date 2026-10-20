@@ -118,7 +118,8 @@ class SwitchSoul(BaseTask, SwitchSoulAssets):
             sleep(0.5)
         # 点击队伍
         target_team = get_team_asset(team)
-        for i in range(3):
+        clicked_team = False
+        for _ in range(3):
             sleep(0.8)
             self.screenshot()
             if self.appear(self.I_SOU_SWITCH_SURE):
@@ -129,9 +130,14 @@ class SwitchSoul(BaseTask, SwitchSoulAssets):
                         continue
                     if not self.appear(self.I_SOU_SWITCH_SURE):
                         break
-                continue
-            if not self.appear_then_click(target_team, interval=3):
-                logger.warning(f'Click team {team} failed in group {group}')
+                clicked_team = True
+                break
+            if self.appear_then_click(target_team, interval=3):
+                # 已经点到队伍，后续轮次会被 interval 节流挡住并误报失败，直接结束。
+                clicked_team = True
+                break
+        if not clicked_team:
+            logger.warning(f'Click team {team} failed in group {group}')
         # 兜底若还出现确认按钮则点击
         self.ui_click_until_disappear(self.I_SOU_SWITCH_SURE)
         logger.info(f'Switch soul_one group {group} team {team}')
