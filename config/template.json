@@ -935,6 +935,11 @@
     },
     "general_config": {
       "limit_time": "01:30:00",
+      "pass_limit": 50,
+      "ap_limit": 300,
+      "ap100_limit": 20,
+      "boss_limit": 20,
+      "run_order": "自定义",
       "run_sequence": "pass,ap,ap100,boss",
       "active_souls_clean": false,
       "random_sleep": false
@@ -963,7 +968,6 @@
       "ap100_group_team_name": ""
     },
     "pass_battle_conf": {
-      "limit": 50,
       "lock_team_enable": false,
       "preset_enable": false,
       "preset_group": 1,
@@ -979,7 +983,6 @@
       "quick_exit": false
     },
     "ap_battle_conf": {
-      "limit": 300,
       "lock_team_enable": false,
       "preset_enable": false,
       "preset_group": 1,
@@ -995,7 +998,6 @@
       "quick_exit": false
     },
     "boss_battle_conf": {
-      "limit": 20,
       "exit_strategy": "FALSE",
       "lock_team_enable": false,
       "preset_enable": false,
@@ -1012,7 +1014,6 @@
       "quick_exit": false
     },
     "ap100_battle_conf": {
-      "limit": 20,
       "lock_team_enable": false,
       "preset_enable": false,
       "preset_group": 1,

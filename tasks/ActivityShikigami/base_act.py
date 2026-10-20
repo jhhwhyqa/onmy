@@ -85,7 +85,7 @@ class StateMachine(BaseTask):
             return self.count_map[self.climb_type]
 
         def get_limit() -> int:
-            limit = getattr(self.conf, f"{self.climb_type}_battle_conf").limit
+            limit = getattr(self.conf.general_config, f"{self.climb_type}_limit", 0)
             return 0 if not limit else limit
 
         # 超过运行时间

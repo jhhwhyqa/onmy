@@ -2,6 +2,7 @@
 # @author runhey
 # github https://github.com/runhey
 from datetime import timedelta, time
+from enum import Enum
 from module.logger import logger
 
 from pydantic import BaseModel, Field, model_validator, validator
@@ -14,12 +15,54 @@ from typing import Optional
 
 
 CLIMB_TYPES = ('pass', 'ap', 'ap100', 'boss')
+LEGACY_GENERAL_KEYS = (
+    'limit_time', 'pass_limit', 'ap_limit', 'ap100_limit', 'boss_limit',
+    'run_sequence', 'active_souls_clean', 'random_sleep',
+)
+
+
+class RunOrder(str, Enum):
+    """爬塔活动的执行目标：预设只跑单项，多项走自定义。"""
+    PASS = '仅门票'
+    AP = '仅体力'
+    AP100 = '仅百体'
+    BOSS = '仅首领'
+    CUSTOM = '自定义'
+
+
+RUN_ORDER_SEQUENCE = {
+    RunOrder.PASS: ('pass',),
+    RunOrder.AP: ('ap',),
+    RunOrder.AP100: ('ap100',),
+    RunOrder.BOSS: ('boss',),
+}
+RUN_ORDER_VALUES = {order.value for order in RunOrder}
+DEFAULT_RUN_SEQUENCE = 'pass,ap,ap100,boss'
+# 旧版「整组顺序」预设，迁移时转成自定义顺序
+LEGACY_RUN_ORDERS = {
+    '默认顺序': DEFAULT_RUN_SEQUENCE,
+    '门票最后': 'ap,ap100,boss,pass',
+    '首领优先': 'boss,pass,ap,ap100',
+}
 
 
 class GeneralConfig(ConfigBase):
     limit_time: Time = Field(default=Time(hour=1, minute=30), description='总限制时间')
-    run_sequence: str = Field(default='pass,ap,ap100,boss',
-                              description='pass:门票,ap100:100体,boss:boss战,ap:体力\n'
+    pass_limit: int = Field(default=50, description='门票爬塔最多挑战多少场, 0 表示不执行')
+    ap_limit: int = Field(default=300, description='体力爬塔最多挑战多少场, 0 表示不执行')
+    ap100_limit: int = Field(default=20, description='百体爬塔最多挑战多少场, 0 表示不执行')
+    boss_limit: int = Field(default=20, description='首领战最多挑战多少场, 0 表示不执行')
+    run_order: RunOrder = Field(
+        default=RunOrder.CUSTOM,
+        title='执行顺序',
+        description='执行目标\n'
+                    '仅门票/仅体力/仅百体/仅首领: 只执行选中的这一项\n'
+                    '自定义: 按下方「自定义顺序」执行, 可以填写多个',
+    )
+    run_sequence: str = Field(default=DEFAULT_RUN_SEQUENCE,
+                              title='自定义顺序',
+                              description='仅在执行顺序选择「自定义」时生效\n'
+                                          'pass:门票,ap100:100体,boss:boss战,ap:体力\n'
                                           '逗号分隔,从左到右依次运行\n'
                                           '例:pass,ap100,boss,ap=门票->100体->boss战->体力')
     # # 门票爬塔buff
@@ -42,21 +85,26 @@ class GeneralConfig(ConfigBase):
 
     @property
     def run_sequence_v(self) -> list[str]:
-        """校验并返回配置的运行顺序序列（不过滤次数）"""
-        self.valid_run_sequence()
-        return [climb_type.strip() for climb_type in self.run_sequence.split(',')]
+        """预设只执行单项；自定义按填写的顺序执行多项"""
+        if self.run_order in RUN_ORDER_SEQUENCE:
+            sequence = list(RUN_ORDER_SEQUENCE[self.run_order])
+        else:
+            sequence = self.valid_run_sequence()
+        return [climb_type for climb_type in sequence if getattr(self, f'{climb_type}_limit', 0) > 0]
 
     # @model_validator(mode='after')
-    def valid_run_sequence(self):
-        if not self.run_sequence or not self.run_sequence.strip():
+    def valid_run_sequence(self) -> list[str]:
+        """校验自定义顺序并返回解析后的列表"""
+        raw_sequence = (self.run_sequence or '').strip()
+        if not raw_sequence:
             raise ValueError('run sequence cannot be empty')
-        sequence_list = [climb_type.strip() for climb_type in self.run_sequence.split(',')]
-        if not sequence_list or len(sequence_list) < 1:
+        sequence_list = [climb_type.strip() for climb_type in raw_sequence.split(',') if climb_type.strip()]
+        if not sequence_list:
             raise ValueError('run sequence cannot be empty')
         for climb_type in sequence_list:
             if climb_type not in CLIMB_TYPES:
                 raise ValueError(f'run sequence can only be one of {", ".join(CLIMB_TYPES)}, now is {climb_type}')
-        return self
+        return sequence_list
 
     @validator('limit_time', pre=True, always=True)
     def parse_limit_time(cls, value):
@@ -149,25 +197,7 @@ class RichManConfig(ConfigBase):
     buy_ticket: bool = Field(default=False, description='是否购买定向骰子')
 
 
-class ClimbBattleConfig(GeneralBattleConfig):
-    """单个爬塔活动的战斗配置，次数上限与战斗参数放在同一分组。"""
-    limit: int = Field(default=0, ge=0, description='本次运行最多挑战多少场, 0 表示不执行')
-
-
-class PassBattleConfig(ClimbBattleConfig):
-    limit: int = Field(default=50, ge=0, title='门票次数', description='门票爬塔最多挑战多少场, 0 表示不执行')
-
-
-class ApBattleConfig(ClimbBattleConfig):
-    limit: int = Field(default=300, ge=0, title='体力次数', description='体力爬塔最多挑战多少场, 0 表示不执行')
-
-
-class Ap100BattleConfig(ClimbBattleConfig):
-    limit: int = Field(default=20, ge=0, title='百体次数', description='百体爬塔最多挑战多少场, 0 表示不执行')
-
-
-class BossBattleConfig(ClimbBattleConfig):
-    limit: int = Field(default=20, ge=0, title='首领次数', description='首领战最多挑战多少场, 0 表示不执行')
+class BossBattleConfig(GeneralBattleConfig):
     exit_strategy: str = Field(default='FALSE', title='首领退出策略',
                                description='TRUE/FALSE:秒退/打到底\n'
                                            '数字1-999:x秒后退出\n'
@@ -186,26 +216,22 @@ class ActivityShikigami(ConfigBase):
     rich_man: RichManConfig = Field(default_factory=RichManConfig)
     switch_soul_config: SwitchSoulConfig = Field(default_factory=SwitchSoulConfig)
 
-    pass_battle_conf: PassBattleConfig = Field(default_factory=PassBattleConfig)
-    ap_battle_conf: ApBattleConfig = Field(default_factory=ApBattleConfig)
+    pass_battle_conf: GeneralBattleConfig = Field(default_factory=GeneralBattleConfig)
+    ap_battle_conf: GeneralBattleConfig = Field(default_factory=GeneralBattleConfig)
     boss_battle_conf: BossBattleConfig = Field(default_factory=BossBattleConfig)
-    ap100_battle_conf: Ap100BattleConfig = Field(default_factory=Ap100BattleConfig)
+    ap100_battle_conf: GeneralBattleConfig = Field(default_factory=GeneralBattleConfig)
 
     hide_fields = dynamic_hide('rich_man')
 
     @property
     def run_sequence_v(self) -> list[str]:
         """按配置顺序返回次数大于 0 的活动"""
-        sequence = self.general_config.run_sequence_v
-        return [
-            climb_type for climb_type in sequence
-            if getattr(self, f'{climb_type}_battle_conf').limit > 0
-        ]
+        return self.general_config.run_sequence_v
 
     @model_validator(mode='before')
     @classmethod
     def migrate_legacy_config(cls, data):
-        """兼容旧版 general_climb：公共项并入 general_config，次数并入各活动战斗配置。"""
+        """兼容旧版 general_climb：公共项与各活动次数统一并入 general_config。"""
         if not isinstance(data, dict):
             return data
         data = dict(data)
@@ -213,20 +239,35 @@ class ActivityShikigami(ConfigBase):
         if isinstance(old_general, BaseModel):
             old_general = old_general.model_dump()
         general = data.get('general_config')
+        if isinstance(general, BaseModel):
+            general = general.model_dump()
         general = dict(general) if isinstance(general, dict) else {}
         if isinstance(old_general, dict):
-            for key in ('limit_time', 'run_sequence', 'active_souls_clean', 'random_sleep'):
+            for key in LEGACY_GENERAL_KEYS:
                 if key in old_general and key not in general:
                     general[key] = old_general[key]
-            for climb_type in CLIMB_TYPES:
-                limit = old_general.get(f'{climb_type}_limit')
-                if limit is None:
-                    continue
-                conf_key = f'{climb_type}_battle_conf'
-                conf = data.get(conf_key)
-                conf = dict(conf) if isinstance(conf, dict) else {}
-                conf.setdefault('limit', limit)
-                data[conf_key] = conf
+        # 兼容次数曾被放进各活动战斗配置的结构
+        for climb_type in CLIMB_TYPES:
+            conf_key = f'{climb_type}_battle_conf'
+            conf = data.get(conf_key)
+            if not isinstance(conf, dict) or 'limit' not in conf:
+                continue
+            conf = dict(conf)
+            limit = conf.pop('limit')
+            general.setdefault(f'{climb_type}_limit', limit)
+            data[conf_key] = conf
+        # 旧的整组顺序预设已取消，转成自定义顺序；未知值回落到自定义
+        legacy_order = general.get('run_order')
+        if isinstance(legacy_order, RunOrder):
+            legacy_order = legacy_order.value
+        if isinstance(legacy_order, str):
+            legacy_order = legacy_order.strip()
+        if legacy_order is not None:
+            if legacy_order in LEGACY_RUN_ORDERS:
+                general['run_order'] = RunOrder.CUSTOM.value
+                general['run_sequence'] = LEGACY_RUN_ORDERS[legacy_order]
+            elif legacy_order not in RUN_ORDER_VALUES:
+                general['run_order'] = RunOrder.CUSTOM.value
         if old_general is not None or 'general_config' in data:
             data['general_config'] = general
         return data
