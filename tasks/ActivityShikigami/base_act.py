@@ -274,14 +274,14 @@ class BaseAct(StateMachine, GameUi, GeneralBattle, SwitchSoul, ActivityShikigami
         if enable:
             logger.info(f"Lock {self.climb_type} team")
             match self.climb_type:
-                case "ap" | "boss":
+                case "ap":
                     self.ui_click(self.I_AP_UNLOCK, stop=self.I_AP_LOCK, interval=1.5)
                 case _:
                     self.ui_click(self.I_UNLOCK, stop=self.I_LOCK, interval=1.5)
             return
         logger.info(f"Unlock {self.climb_type} team")
         match self.climb_type:
-            case "ap" | "boss":
+            case "ap":
                 self.ui_click(self.I_AP_LOCK, stop=self.I_AP_UNLOCK, interval=1.5)
             case _:
                 self.ui_click(self.I_LOCK, stop=self.I_UNLOCK, interval=1.5)
