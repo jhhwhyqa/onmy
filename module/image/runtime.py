@@ -18,6 +18,11 @@ from numpy import fromfile, uint8
 from module.base.utils import is_approx_rectangle
 from module.logger import logger
 
+# 模板路径与文件指纹的缓存时长：匹配热路径不再每次 resolve + stat。
+_TEMPLATE_IDENTITY_TTL_SECONDS = 5.0
+# 模板路径缓存条数上限，超出后整体清空，避免无限增长。
+_TEMPLATE_IDENTITY_MAX_ENTRIES = 8192
+
 
 @dataclass(slots=True)
 class ImageServerSettings:
@@ -26,7 +31,7 @@ class ImageServerSettings:
     frame_cache_expire_seconds: float = 3.0
     frame_cache_max_count: int = 24
     template_cache_expire_seconds: int = 3600
-    template_cache_max_count: int = 200
+    template_cache_max_count: int = 2048
     worker_count: int = 0
     cleanup_interval_seconds: float = 60.0
 
@@ -43,7 +48,7 @@ class ImageServerSettings:
             frame_cache_expire_seconds=float(data.get("frame_cache_expire_seconds", 3.0)),
             frame_cache_max_count=int(data.get("frame_cache_max_count", 24)),
             template_cache_expire_seconds=int(data.get("template_cache_expire_seconds", 3600)),
-            template_cache_max_count=int(data.get("template_cache_max_count", 200)),
+            template_cache_max_count=int(data.get("template_cache_max_count", 2048)),
             worker_count=int(data.get("worker_count", 0)),
             cleanup_interval_seconds=float(data.get("cleanup_interval_seconds", 60.0)),
         )
@@ -148,6 +153,8 @@ class ImageRuntime:
         self._config_frames: dict[str, str] = {}
         # 长生命周期模板缓存：按文件指纹复用模板图与派生数据。
         self._templates: dict[str, TemplateEntry] = {}
+        # 模板路径与文件指纹缓存：热路径避免重复 resolve + stat。
+        self._template_identity: dict[str, tuple[float, str, str]] = {}
         self._scheduler = ImageTaskScheduler(self.settings.worker_count)
         self._sift = None
         # 运行时诊断统计，仅用于调试缓存命中、失效和淘汰情况。
@@ -507,14 +514,34 @@ class ImageRuntime:
             self._cache_stats["frame_hits"] += 1
             return entry
 
+    def _template_identity_for(self, template_path: str) -> tuple[str, str]:
+        """
+        返回模板的绝对路径与文件指纹，并在短 TTL 内复用结果。
+
+        匹配热路径会为每条规则反复查询模板；这里避免每次都做 `Path.resolve()` 与 `os.stat()`。
+        模板文件只在人工改资源时变化，5 秒的失效窗口足够，且不影响正确性。
+        """
+        now = time.time()
+        with self._lock:
+            cached = self._template_identity.get(template_path)
+            if cached is not None and now - cached[0] <= _TEMPLATE_IDENTITY_TTL_SECONDS:
+                return cached[1], cached[2]
+
+        normalized_path = str(Path(template_path).resolve())
+        fingerprint = self._build_template_fingerprint(normalized_path)
+        with self._lock:
+            if len(self._template_identity) >= _TEMPLATE_IDENTITY_MAX_ENTRIES:
+                self._template_identity.clear()
+            self._template_identity[template_path] = (now, normalized_path, fingerprint)
+        return normalized_path, fingerprint
+
     def _get_template_entry(self, template_path: str) -> TemplateEntry:
         """
         按模板路径和文件指纹获取模板缓存条目。
 
         若缓存未命中，会重新加载模板图像并生成新的缓存键，确保模板文件更新后不会复用旧内容。
         """
-        normalized_path = str(Path(template_path).resolve())
-        fingerprint = self._build_template_fingerprint(normalized_path)
+        normalized_path, fingerprint = self._template_identity_for(template_path)
         template_key = f"{normalized_path}|{fingerprint}"
         now = time.time()
 

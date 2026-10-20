@@ -5,6 +5,7 @@ import atexit
 import multiprocessing
 import pickle
 import socket
+import threading
 import time
 from typing import Any, Optional
 
@@ -14,6 +15,14 @@ import zerorpc
 from module.exception import ScriptError
 from module.image.runtime import ImageRuntime
 from module.logger import logger
+
+# 可重试的 RPC 异常：服务端超时或连接丢失时，重建连接并重试一次即可恢复。
+_RETRYABLE_RPC_ERRORS = tuple(
+    exc for exc in (
+        getattr(zerorpc, "TimeoutExpired", None),
+        getattr(zerorpc, "LostRemote", None),
+    ) if exc is not None
+)
 
 # 图像服务始终通过全新解释器启动，避免继承父进程中已初始化的 RPC 运行时状态。
 _IMAGE_SERVER_CONTEXT = multiprocessing.get_context("spawn")
@@ -227,12 +236,57 @@ class ImageClient:
             address: 图像服务地址，允许传入带或不带 `tcp://` 前缀的字符串。
         """
         self.address = _normalize_address(address)
-        self.client = zerorpc.Client(timeout=10)
+        self._reconnect_lock = threading.Lock()
+        self.client = self._create_client(probe=True)
+
+    def _create_client(self, probe: bool = True) -> zerorpc.Client:
+        """
+        建立一个新的 zerorpc 连接。
+
+        Args:
+            probe: 为真时在连接后调用 `ping()`，用于初始化阶段快速暴露服务不可用。
+        """
+        client = zerorpc.Client(timeout=10)
         try:
-            self.client.connect(self.address)
-            self.client.ping()
+            client.connect(self.address)
+            if probe:
+                client.ping()
+            return client
         except Exception as exc:
+            try:
+                client.close()
+            except Exception:
+                pass
             raise ScriptError(f"Image server connection failed: {self.address}") from exc
+
+    def _reconnect_after_failure(self, failed_client: zerorpc.Client) -> None:
+        """
+        RPC 失败后重建连接。
+
+        只在当前连接仍是失败的那个时才重建，避免并发失败时重复建连。
+        """
+        with self._reconnect_lock:
+            if self.client is not failed_client:
+                return
+            replacement = self._create_client(probe=False)
+            self.client = replacement
+            try:
+                failed_client.close()
+            except Exception:
+                pass
+
+    def _call(self, method_name: str, *args):
+        """调用服务端方法；超时或连接丢失时重连并重试一次。"""
+        client = self.client
+        try:
+            return getattr(client, method_name)(*args)
+        except _RETRYABLE_RPC_ERRORS as exc:
+            logger.warning(
+                f'Image server rpc `{method_name}` failed ({type(exc).__name__}), '
+                'reconnecting and retrying once'
+            )
+            self._reconnect_after_failure(client)
+            return getattr(self.client, method_name)(*args)
 
     def ping(self) -> bool:
         """探测远程图像服务是否在线。"""
@@ -240,7 +294,7 @@ class ImageClient:
 
     def get_server_info(self) -> dict[str, Any]:
         """获取服务端当前缓存与调度器状态快照。"""
-        return self.client.get_server_info()
+        return self._call("get_server_info")
 
     def register_frame(self, image: np.ndarray, config_name: str) -> dict[str, Any]:
         """
@@ -251,7 +305,7 @@ class ImageClient:
             config_name: 当前脚本配置名；服务端用它删除同配置旧截图帧。
         """
         payload = pickle.dumps(image, protocol=4)
-        return self.client.register_frame(payload, config_name)
+        return self._call("register_frame", payload, config_name)
 
     def get_frame_info(self, frame_id: str) -> dict[str, Any]:
         """
@@ -260,7 +314,7 @@ class ImageClient:
         Args:
             frame_id: 由 `register_frame()` 返回的服务端帧引用。
         """
-        return self.client.get_frame_info(frame_id)
+        return self._call("get_frame_info", frame_id)
 
     def prepare_template(self, template_path: str, include_sift: bool = False) -> dict[str, Any]:
         """
@@ -270,7 +324,7 @@ class ImageClient:
             template_path: 模板文件绝对路径。
             include_sift: 为真时会额外准备 SIFT 描述子，适合后续 SIFT/FLANN 匹配预热。
         """
-        return self.client.prepare_template(template_path, include_sift)
+        return self._call("prepare_template", template_path, include_sift)
 
     @staticmethod
     def _encode_image_payload(image: np.ndarray | None, frame_id: str | None) -> bytes | None:
@@ -301,7 +355,7 @@ class ImageClient:
             threshold: 可选的临时阈值覆盖值；为空时沿用规则自身阈值。
         """
         payload = self._encode_image_payload(image=image, frame_id=frame_id)
-        return self.client.match_rule(rule_data, frame_id, payload, threshold)
+        return self._call("match_rule", rule_data, frame_id, payload, threshold)
 
     def match_rule_with_brightness_window(
         self,
@@ -316,7 +370,7 @@ class ImageClient:
         该接口仅适用于普通模板匹配，会在命中后额外校验源区域和模板区域的平均亮度范围。
         """
         payload = self._encode_image_payload(image=image, frame_id=frame_id)
-        return self.client.match_rule_with_brightness_window(rule_data, frame_id, payload, threshold)
+        return self._call("match_rule_with_brightness_window", rule_data, frame_id, payload, threshold)
 
     def match_many(
         self,
@@ -331,7 +385,7 @@ class ImageClient:
         适用于 `RuleGif`、`ImageGrid` 这类需要在同帧内判断多个候选模板的场景。
         """
         payload = self._encode_image_payload(image=image, frame_id=frame_id)
-        return self.client.match_many(rules_data, frame_id, payload, threshold)
+        return self._call("match_many", rules_data, frame_id, payload, threshold)
 
     def match_all(
         self,
@@ -348,7 +402,7 @@ class ImageClient:
             roi: 可选的搜索区域覆盖值；提供后由服务端在该区域内枚举所有命中。
         """
         payload = self._encode_image_payload(image=image, frame_id=frame_id)
-        return self.client.match_all(rule_data, frame_id, payload, threshold, roi)
+        return self._call("match_all", rule_data, frame_id, payload, threshold, roi)
 
     def match_all_any(
         self,
@@ -366,7 +420,7 @@ class ImageClient:
             nms_threshold: NMS 去重阈值，用于移除高度重叠的冗余框。
         """
         payload = self._encode_image_payload(image=image, frame_id=frame_id)
-        return self.client.match_all_any(rule_data, frame_id, payload, threshold, roi, nms_threshold)
+        return self._call("match_all_any", rule_data, frame_id, payload, threshold, roi, nms_threshold)
 
     def match_all_any_many(
         self,
@@ -382,7 +436,7 @@ class ImageClient:
         该接口适合一次性拿到多组模板的非冗余命中列表。
         """
         payload = self._encode_image_payload(image=image, frame_id=frame_id)
-        return self.client.match_all_any_many(rules_data, frame_id, payload, threshold, nms_threshold)
+        return self._call("match_all_any_many", rules_data, frame_id, payload, threshold, nms_threshold)
 
     def match_dynamic_template(
         self,
@@ -406,7 +460,7 @@ class ImageClient:
         """
         template_payload = pickle.dumps(template, protocol=4)
         image_payload = self._encode_image_payload(image=image, frame_id=frame_id)
-        return self.client.match_dynamic_template(template_payload, frame_id, image_payload, roi_back, threshold, name)
+        return self._call("match_dynamic_template", template_payload, frame_id, image_payload, roi_back, threshold, name)
 
 
 def get_image_client(address: str | None = None, refresh: bool = False) -> ImageClient:

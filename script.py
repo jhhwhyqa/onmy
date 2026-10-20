@@ -25,7 +25,7 @@ from module.base.decorator import del_cached_property
 from module.logger import logger
 from module.exception import *
 from module.server.i18n import I18n
-from module.image.rpc import ensure_image_server_ready
+from module.image.rpc import ensure_image_server_ready, get_image_client
 from module.ocr.rpc import ensure_ocr_server_ready
 from module.script import ScriptRuntimeController, ScriptRuntimeDecision
 from tasks.Restart.server_update import delay_pending_tasks_for_server_update, is_server_update_window
@@ -125,6 +125,34 @@ class Script:
                 lines = handle_sensitive_logs(lines)
             with open(f'{folder}/log.txt', 'w', encoding='utf-8') as f:
                 f.writelines(lines)
+
+    @staticmethod
+    def _log_image_cache_stats(stage: str = '') -> None:
+        """
+        输出一行图像缓存摘要，用于判断性能优化的着力点。
+
+        数据来自图像服务端的 `get_server_info()`，是服务启动以来的累计计数。
+        任务开始与结束各打一行，两者相减即为本次任务的增量。
+
+        Args:
+            stage: 标记这条摘要属于哪个阶段，如 `start:TrueOrochi`。
+        """
+        try:
+            info = get_image_client().get_server_info()
+        except Exception as e:
+            logger.debug(f'Image cache stats unavailable: {e}')
+            return
+
+        stats = info.get('cache_stats') or {}
+        # 文件日志按 160 列截断，这里必须保持紧凑，否则尾部字段会被截掉。
+        label = f'[{stage}]' if stage else ''
+        logger.info(
+            f'ImageCache{label} '
+            f"frames={info.get('frame_cache_count')} tpl={info.get('template_cache_count')} "
+            f"fh={stats.get('frame_hits', 0)} fm={stats.get('frame_misses', 0)} "
+            f"th={stats.get('template_hits', 0)} tm={stats.get('template_misses', 0)} "
+            f"exp={stats.get('template_expired', 0)}"
+        )
 
     def wait_until(self, future):
         """
@@ -348,6 +376,7 @@ class Script:
 
             # Run
             logger.info(f'Scheduler: Start task `{task}`')
+            self._log_image_cache_stats('S')
             self.device.stuck_record_clear()
             self.device.click_record_clear()
             logger.hr(task, level=0)
@@ -356,6 +385,7 @@ class Script:
             success = self.run(inflection.camelize(task))
             self.config.model.running_task = ''
             logger.info(f'Scheduler: End task `{task}`')
+            self._log_image_cache_stats('E')
             self.is_first_task = False
             self.anti_ban_guard.record_active((datetime.now() - _task_start).total_seconds())
 

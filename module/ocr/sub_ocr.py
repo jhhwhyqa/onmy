@@ -77,7 +77,13 @@ class Single(BaseCor):
             if result != "":
                 return result
 
-            # 如果没有识别到，这个时候考虑到可能是竖方向的文本, 使用detect_and_ocr来进行识别
+            # 横版 ROI 用单行模型就是最终判据：没读到就是没有。
+            # 整块检测只留给竖版 ROI（可能是纵向文本），避免每次未命中都多跑一次推理。
+            width, height = self.roi[2], self.roi[3]
+            if width >= height:
+                logger.debug(f"[{self.name}]: No text detected in single-line ROI")
+                return ""
+
             result = self.detect_and_ocr(image)
             if not result:
                 logger.info(f"[{self.name}]: No text detected in ROI")

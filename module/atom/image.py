@@ -41,6 +41,9 @@ class RuleImage:
         self.roi_back = roi_back
         self.threshold = threshold
         self.file = file
+        # 路径解析结果缓存：换装流程会改写 self.file，因此按原始字符串判断是否失效。
+        self._resolved_file_raw = None
+        self._resolved_file = ""
         self.scale_range: tuple[float, float] | tuple[float, float, float] | None = None
         self.scale_step: float = self.DEFAULT_MULTI_SCALE_STEP
 
@@ -157,10 +160,18 @@ class RuleImage:
         self.roi_front[2] = size[0]
         self.roi_front[3] = size[1]
 
+    def _service_file_path(self) -> str:
+        """返回模板文件的绝对路径；同一路径只解析一次。"""
+        raw = self.file
+        if not raw:
+            return ""
+        if self._resolved_file_raw != raw:
+            self._resolved_file = str(Path(raw).resolve())
+            self._resolved_file_raw = raw
+        return self._resolved_file
+
     def to_service_payload(self) -> dict:
-        file_path = ""
-        if self.file:
-            file_path = str(Path(self.file).resolve())
+        file_path = self._service_file_path()
         scale_range = None
         if self.scale_range is not None:
             scale_range = list(self.scale_range)

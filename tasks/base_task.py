@@ -40,6 +40,9 @@ class BaseTask(GlobalGameAssets, CostumeBase):
     limit_count: int = None  # 限制运行的次数
     current_count: int = None  # 当前运行的次数
 
+    # 突发事件（好友邀请）的检查间隔，避免每帧都发一次匹配 RPC。
+    BURST_CHECK_INTERVAL: float = 0.5
+
     def __init__(self, config: Config, device: Device) -> None:
         """
 
@@ -66,8 +69,8 @@ class BaseTask(GlobalGameAssets, CostumeBase):
         游戏界面突发异常检测
         :return: 没有出现返回False, 其他True
         """
-        image = self.device.image
-        appear_invitation = self.appear(self.I_G_ACCEPT)
+        # 好友邀请是低频事件，不必每帧都发一次匹配 RPC；采样间隔沿用 appear 的 interval 机制。
+        appear_invitation = self.appear(self.I_G_ACCEPT, interval=self.BURST_CHECK_INTERVAL)
         if not appear_invitation:
             return False
         logger.info('Invitation appearing')
