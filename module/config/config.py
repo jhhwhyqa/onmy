@@ -11,8 +11,6 @@ from datetime import datetime, timedelta
 from cached_property import cached_property
 from threading import Lock
 
-from module.base.filter import Filter
-from module.config.config_updater import ConfigUpdater
 from module.config.config_manual import ConfigManual
 from module.config.config_watcher import ConfigWatcher
 from module.config.config_menu import ConfigMenu
@@ -130,13 +128,6 @@ class Config(ConfigState, ConfigManual, ConfigWatcher, ConfigMenu):
         logger.info(f'Notifier: {notifier.config_name}')
         return notifier
 
-    def gui_args(self, task: str) -> str:
-        """
-        获取给gui显示的参数
-        :return:
-        """
-        return self.model.gui_args(task=task)
-
     def get_arg(self, task: str, group: str, argument: str):
         """
 
@@ -172,7 +163,7 @@ class Config(ConfigState, ConfigManual, ConfigWatcher, ConfigMenu):
         保存配置文件
         :return:
         """
-        self.model.write_json(self.config_name, self.model.dict())
+        self.model.write_json(self.config_name, self.model.model_dump())
 
     def update_scheduler(self) -> None:
         """
@@ -183,7 +174,7 @@ class Config(ConfigState, ConfigManual, ConfigWatcher, ConfigMenu):
         waiting_task = []
         error = []
         self.scheduler_update_dt = datetime.now()
-        for key, value in self.model.dict().items():
+        for key, value in self.model.model_dump().items():
             func = Function(key, value)
             if not func.enable:
                 continue

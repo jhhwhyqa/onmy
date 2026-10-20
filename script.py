@@ -2,30 +2,23 @@
 # @author runhey
 # github https://github.com/runhey
 
-import zerorpc
-import zmq
 import re
-import cv2
 import time
 import os
 import inflection
-import json
 import copy
 
 from datetime import date
 import threading
 from module.device.device import Device
-from typing import Any, Callable
+from typing import Any
 from datetime import datetime, timedelta
 from pathlib import Path
 from cached_property import cached_property
-from pydantic import BaseModel, ValidationError
 from threading import Thread
 from multiprocessing.queues import Queue
-from module.config.utils import convert_to_underscore
 from module.config.config import Config
 from module.config.anti_ban import AntiBanGuard
-from module.device.device import Device
 from module.device.env import IS_WINDOWS
 from module.base.utils import load_module
 from module.base.decorator import del_cached_property
@@ -44,11 +37,9 @@ _log_switch_lock = threading.Lock()#线程锁
 class Script:
     def __init__(self, config_name: str ='oas') -> None:
         logger.hr('Start', level=0)
-        self.server = None
         self.state_queue: Queue = None
         self._emulator_down = False
         self.runtime = ScriptRuntimeController(self)
-        self.gui_update_task: Callable = None  # 回调函数, gui进程注册当每次config更新任务的时候更新gui的信息
         self.config_name = config_name
         # Skip first restart
         self.is_first_task = True
@@ -134,156 +125,6 @@ class Script:
                 lines = handle_sensitive_logs(lines)
             with open(f'{folder}/log.txt', 'w', encoding='utf-8') as f:
                 f.writelines(lines)
-
-    def init_server(self, port: int) -> int:
-        """
-        初始化zerorpc服务，返回端口号
-        :return:
-        """
-        self.server = zerorpc.Server(self)
-        try:
-            self.server.bind(f'tcp://127.0.0.1:{port}')
-            return port
-        except zmq.error.ZMQError:
-            logger.error(f"Ocr server cannot bind on port {port}")
-            return None
-
-    def run_server(self) -> None:
-        """
-        启动zerorpc服务
-        :return:
-        """
-        self.server.run()
-
-    def gui_args(self, task: str) -> str:
-        """
-        获取给gui显示的参数
-        :return:
-        """
-        return self.config.gui_args(task=task)
-
-    def gui_menu(self) -> str:
-        """
-        获取给gui显示的菜单
-        :return:
-        """
-        return self.config.gui_menu
-
-    def gui_task(self, task: str) -> str:
-        """
-        获取给gui显示的任务 的参数的具体值
-        :return:
-        """
-        return self.config.model.gui_task(task=task)
-
-    def gui_set_task(self, task: str, group: str, argument: str, value) -> bool:
-        """
-        设置给gui显示的任务 的参数的具体值
-        :return:
-        """
-        # 验证参数
-        task = convert_to_underscore(task)
-        group = convert_to_underscore(group)
-        argument = convert_to_underscore(argument)
-        # pandtic验证
-        if isinstance(value, str):
-            if len(value) == 8:
-                try:
-                    value = datetime.strptime(value, '%H:%M:%S').time()
-                except ValueError:
-                    pass
-
-
-        path = f'{task}.{group}.{argument}'
-        task_object = getattr(self.config.model, task, None)
-        group_object = getattr(task_object, group, None)
-        argument_object = getattr(group_object, argument, None)
-
-        if argument_object is None:
-            logger.error(f'Set arg {task}.{group}.{argument}.{value} failed')
-            return False
-
-        try:
-            setattr(group_object, argument, value)
-            argument_object = getattr(group_object, argument, None)
-            logger.info(f'Set arg {task}.{group}.{argument}.{argument_object}')
-            self.config.save()  # 我是没有想到什么方法可以使得属性改变自动保存的
-            return True
-        except ValidationError as e:
-            logger.error(e)
-            return False
-
-    @zerorpc.stream
-    def gui_mirror_image(self):
-        """
-        获取给gui显示的镜像
-        :return: cv2的对象将 numpy 数组转换为字节串。接下来MsgPack 进行序列化发送方将图像数据转换为字节串
-        """
-        # return msgpack.packb(cv2.imencode('.jpg', self.device.screenshot())[1].tobytes())
-        img = cv2.cvtColor(self.device.screenshot(), cv2.COLOR_RGB2BGR)
-        self.device.stuck_record_clear()
-        ret, buffer = cv2.imencode('.jpg', img)
-        yield buffer.tobytes()
-
-    def _gui_update_tasks(self) -> None:
-        """
-        获取更新任务后 pending waiting 的任务 和 当前的任务的数据。打包给gui显示
-        :return:
-        """
-        data = {}
-        pending = []
-        waiting = []
-        task = {}
-        if self.config.task is not None and self.config.task.next_run < datetime.now():
-            task["name"] = self.config.task.command
-            task["next_run"] = str(self.config.task.next_run)
-        data["task"] = task
-
-        for p in self.config.pending_task[1:]:
-            item = {"name": p.command, "next_run": str(p.next_run)}
-            pending.append(item)
-
-        for w in self.config.waiting_task:
-            item = {"name": w.command, "next_run": str(w.next_run)}
-            waiting.append(item)
-
-
-        data["pending"] = pending
-        data["waiting"] = waiting
-
-        if self.gui_update_task is not None:
-            self.gui_update_task(data)
-
-    def _gui_set_status(self, status: str) -> None:
-        """
-        设置给gui显示的状态
-        :param status: 可以在gui中显示的状态 有 "Init", "Empty"(不显示), "Run"(运行中), "Error", "Free"(空闲)
-        :return:
-        """
-        data = {"status": status}
-        if self.gui_update_task is not None:
-            self.gui_update_task(data)
-
-    def gui_task_list(self) -> str:
-        """
-        获取给gui显示的任务列表
-        :return:
-        """
-        result = {}
-        for key, value in self.config.model.dict().items():
-            if isinstance(value, str):
-                continue
-            if key == "restart":
-                continue
-            if "scheduler" not in value:
-                continue
-
-            scheduler = value["scheduler"]
-            item = {"enable": scheduler["enable"],
-                    "next_run": str(scheduler["next_run"])}
-            key = self.config.model.type(key)
-            result[key] = item
-        return json.dumps(result)
 
     def wait_until(self, future):
         """
@@ -533,7 +374,7 @@ class Script:
                 logger.critical('Request human takeover')
                 # 添加失败三次的推送通知
                 self.config.notifier.push(
-                    title=f'{I18n.trans_zh_cn(task)}{task}',
+                    title=I18n.task_title(task),
                     content=f"<{self.config_name}> 任务连续失败三次，请上线查看"
                 )
                 # 关闭模拟器
@@ -578,7 +419,7 @@ class Script:
             self.exception_handler(e=e, command=command)
             logger.warning(f'Game stuck, {self.device.package} will be restarted in 10 seconds')
             logger.warning('If you are playing by hand, please stop Alas')
-            self.config.notifier.push(title=f'{I18n.trans_zh_cn(command)}{command}',
+            self.config.notifier.push(title=I18n.task_title(command),
                                       content=f"<{self.config_name}> GameStuckError or GameTooManyClickError")
             self.config.task_call('Restart')
             self.device.sleep(10)
@@ -606,7 +447,7 @@ class Script:
             self.save_error_log()
             self.exception_handler(e=e, command=command)
             self.config.notifier.push(
-                title=f'{I18n.trans_zh_cn(command)}{command}',
+                title=I18n.task_title(command),
                 content=f"<{self.config_name}> GamePageUnknownError",
             )
             self.config.task_call('Restart')
@@ -618,7 +459,7 @@ class Script:
             self.exception_handler(e=e, command=command)
             logger.critical('This is likely to be a mistake of developers, but sometimes just random issues')
             self.config.notifier.push(
-                title=f'{I18n.trans_zh_cn(command)}{command}',
+                title=I18n.task_title(command),
                 content=f"<{self.config_name}> ScriptError",
             )
             exit(1)
@@ -628,7 +469,7 @@ class Script:
             self.exception_handler(e=e, command=command)
             logger.critical('Request human takeover')
             self.config.notifier.push(
-                title=f'{I18n.trans_zh_cn(command)}{command}',
+                title=I18n.task_title(command),
                 content=f"<{self.config_name}> RequestHumanTakeover",
             )
             exit(1)
@@ -638,7 +479,7 @@ class Script:
         self.exception_handler(e=e, command=command)
         self.save_error_log()
         self.config.notifier.push(
-            title=f'{I18n.trans_zh_cn(command)}{command}',
+            title=I18n.task_title(command),
             content=f"<{self.config_name}> Exception occured",
         )
         exit(1)

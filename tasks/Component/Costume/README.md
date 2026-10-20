@@ -2,7 +2,7 @@
 
 1. 在`./tasks/Component/Costume`文件夹下面新建一个你的这个庭院皮肤文件夹比如`mainxxx`
 
-2. 在你的文件夹下面新增一个`image.json`，启动`gui.py`对应工具添加对应的assets
+2. 在你的文件夹下面新增一个`image.json`，启动 `server.py` 后打开 `/tool/annotator` 添加对应的 assets
 
    **很重要很重要，你不要乱划动庭院，如果你留意到游戏在你的停留位置是默认的**
 

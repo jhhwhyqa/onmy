@@ -22,14 +22,6 @@ def filepath_config(filename, mod_name='script') -> str:
     else:
         return os.path.join('./config', f'{filename}.{mod_name}.json')
 
-def filepath_args(filename='args', mod_name='alas'):
-    return f'./module/config/argument/{filename}.json'
-
-
-def filepath_argument(filename):
-    return f'./module/config/argument/{filename}.yaml'
-
-
 def read_file(file: str):
     """
     Read a file, support both .yaml and .json format.

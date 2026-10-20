@@ -1,8 +1,6 @@
 # This Python file uses the following encoding: utf-8
 # @author runhey
 # github https://github.com/runhey
-import json
-
 from cached_property import cached_property
 from pydantic import BaseModel, ValidationError, validator, Field
 
@@ -49,14 +47,6 @@ class ConfigMenu:
         self.menu["Tools"] = ['Image Rule', 'Ocr Rule', 'Click Rule', 'Long Click Rule', 'Swipe Rule', 'List Rule']
 
     @cached_property
-    def gui_menu(self) -> str:
-        """
-        生成的是json字符串
-        :return:
-        """
-        return json.dumps(self.menu, ensure_ascii=False, sort_keys=False, default=str)
-
-    @cached_property
     def gui_menu_list(self) -> dict:
         del self.menu['TaskList']
         del self.menu['Tools']
@@ -66,6 +56,6 @@ class ConfigMenu:
 if __name__ == "__main__":
     try:
         m = ConfigMenu()
-        print(m.gui_menu)
+        print(m.gui_menu_list)
     except:
         print('weih')

@@ -3,7 +3,6 @@
 # github https://github.com/runhey
 from tasks.GuildActivityMonitor.config import GuildActivityMonitor
 from tasks.OtherWorldTwilight.config import OtherWorldTwilight
-from typing import Dict, Any
 
 import re
 import inflection
@@ -221,43 +220,6 @@ class ConfigModel(ConfigBase):
         filepath = Path.cwd() / "config" / f"{config_name}.json"
         write_file(filepath, data)
 
-    def gui_args(self, task: str) -> str:
-        """
-        返回提供给gui显示的参数
-        :param task: 输入的是任务的名称英文 如'Script' 或者是'script'都是可以的
-        :return: 返回的是pydantic给我们结构化的输出的信息, 如果不能获取就返回空的str
-        """
-        task = convert_to_underscore(task)
-        task_gui = getattr(self, task, None)
-        if task_gui is None:
-            logger.warning(f'{task} is no inexistence')
-            return ''
-
-        schema2 = task_gui.schema()
-        # https://github.com/pydantic/pydantic/discussions/5687
-        if 'definitions' in schema2:
-            if 'Scheduler' in schema2['definitions']:
-                if 'properties' in schema2['definitions']['Scheduler']:
-                    properties = schema2['definitions']['Scheduler']['properties']
-                    if 'success_interval' in properties:
-                        properties['success_interval']['type'] = 'string'
-                    if 'failure_interval' in properties:
-                        properties['failure_interval']['type'] = 'string'
-        return json.dumps(schema2)
-
-    def gui_task(self, task: str) -> str:
-        """
-        返回提供给gui显示的参数
-        :param task:
-        :return:
-        """
-        task_name = convert_to_underscore(task)
-        task = getattr(self, task_name, None)
-        if task is None:
-            logger.warning(f'{task_name} is no inexistence')
-            return ''
-        return task.json()
-
     def save(self) -> None:
         """
 
@@ -317,7 +279,7 @@ class ConfigModel(ConfigBase):
     def script_task(self, task: str) -> dict:
         """
 
-        :param task: 同gui_args函数
+        :param task: 任务名
         :return:
         """
         task = convert_to_underscore(task)
@@ -488,8 +450,7 @@ class ConfigModel(ConfigBase):
 
     def reset_datetime_for_all_enabled_tasks(self, task_datetime: datetime):
         logger.warn(f"trying to reset datetime of all tasks to: {task_datetime}")
-        # logger.info(f"current config: {self.dict()}")
-        data = self.dict()
+        data = self.model_dump()
         self.replace_next_run(data, task_datetime)
         # logger.info(f"new config: {data}")
 
