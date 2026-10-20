@@ -90,6 +90,8 @@ class ActivityShikigamiAssets:
 	O_REMAIN_AP100 = RuleOcr(roi=(1114,20,112,39), area=(1108,5,131,62), mode="Digit", method="Default", keyword="", name="remain_ap100")
 	# 进入100体活动标识 
 	O_ENTER_AP100 = RuleOcr(roi=(67,99,100,359), area=(67,99,100,359), mode="Full", method="Default", keyword="刹那试炼", name="enter_ap100")
+	# 首领战累计伤害 
+	O_BOSS_DAMAGE = RuleOcr(roi=(50,110,300,50), area=(50,110,300,50), mode="Digit", method="Default", keyword="", name="boss_damage")
 
 
 	# Ocr Rule Assets

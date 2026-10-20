@@ -70,5 +70,14 @@
     "method": "Default",
     "keyword": "刹那试炼",
     "description": "进入100体活动标识"
+  },
+  {
+    "itemName": "boss_damage",
+    "roiFront": "50,110,300,50",
+    "roiBack": "50,110,300,50",
+    "mode": "Digit",
+    "method": "Default",
+    "keyword": "",
+    "description": "首领战累计伤害"
   }
 ]

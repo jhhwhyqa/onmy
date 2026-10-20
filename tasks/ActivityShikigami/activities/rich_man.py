@@ -119,7 +119,7 @@ class RichManAct(BaseAct, Debugger):
                 if not switch_souled:
                     self.switch_soul(self.I_BATTLE_MAIN_TO_RECORDS)
                     switch_souled = True
-                if self.conf.general_climb.random_sleep:
+                if self.conf.general_config.random_sleep:
                     random_sleep(probability=0.2)
                 self.click(self.I_ACT_FIRE)
                 click_fire += 1

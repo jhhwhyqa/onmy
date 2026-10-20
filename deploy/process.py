@@ -33,13 +33,27 @@ class ProcessManager(DeployConfig):
 
         try:
             wmi = GetObject('winmgmts:')
-            processes = wmi.InstancesOf('Win32_Process')
+            processes = list(wmi.InstancesOf('Win32_Process'))
+
+            # 自身和祖先进程都不能杀。启动器(oas.exe)通常就是本进程的控制台宿主,
+            # 强杀它会连带关掉整个控制台, 更新进程会以退出码 1 中途结束。
+            parent_of = {}
+            for p in processes:
+                parent_of[p.Properties_["ProcessID"].Value] = p.Properties_["ParentProcessID"].Value
+            protected = {self.self_pid}
+            pid = self.self_pid
+            while parent_of.get(pid):
+                pid = parent_of[pid]
+                if pid in protected:
+                    break
+                protected.add(pid)
+
             for p in processes:
                 executable_path = p.Properties_["ExecutablePath"].Value
                 process_name = p.Properties_("Name").Value
                 process_id = p.Properties_["ProcessID"].Value
 
-                if executable_path is not None and process_name == name and process_id != self.self_pid:
+                if executable_path is not None and process_name == name and process_id not in protected:
                     executable_path = executable_path.replace(r'\\', '/').replace('\\', '/')
                     for folder in self.process_folder:
                         if folder in executable_path:

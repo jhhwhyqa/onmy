@@ -7,6 +7,7 @@ from tasks.Component.GeneralBattle.general_battle import (
     ExitMatcher,
     BattleContext,
     BattleAction,
+    BattleTimedInspection,
 )
 from cached_property import cached_property
 
@@ -18,7 +19,7 @@ from module.logger import logger
 
 from tasks.base_task import BaseTask
 from tasks.ActivityShikigami.assets import ActivityShikigamiAssets
-from tasks.ActivityShikigami.config import GeneralBattleConfig, ActivityShikigami
+from tasks.ActivityShikigami.config import BossBattleConfig, GeneralBattleConfig, ActivityShikigami
 from tasks.Component.SwitchSoul.switch_soul import SwitchSoul
 from tasks.GameUi.game_ui import GameUi
 import tasks.ActivityShikigami.page as pages
@@ -49,9 +50,9 @@ class StateMachine(BaseTask):
 
     @property
     def climb_type(self) -> str:
-        if self.run_idx >= len(self.conf.general_climb.run_sequence_v):
-            return self.conf.general_climb.run_sequence_v[-1]
-        return self.conf.general_climb.run_sequence_v[self.run_idx]
+        if self.run_idx >= len(self.conf.run_sequence_v):
+            return self.conf.run_sequence_v[-1]
+        return self.conf.run_sequence_v[self.run_idx]
 
     @property
     def count_map(self) -> dict[str, int]:
@@ -60,7 +61,7 @@ class StateMachine(BaseTask):
         """
         if not getattr(self, "_count_map", None):
             self._count_map = {
-                climb_type: 0 for climb_type in self.conf.general_climb.run_sequence_v
+                climb_type: 0 for climb_type in self.conf.run_sequence_v
             }
         return self._count_map
 
@@ -71,7 +72,7 @@ class StateMachine(BaseTask):
         """
         if not getattr(self, "_pre_tickets_map", None):
             self._pre_tickets_map = {
-                climb_type: -1 for climb_type in self.conf.general_climb.run_sequence_v
+                climb_type: -1 for climb_type in self.conf.run_sequence_v
             }
         return self._pre_tickets_map
 
@@ -84,11 +85,11 @@ class StateMachine(BaseTask):
             return self.count_map[self.climb_type]
 
         def get_limit() -> int:
-            limit = getattr(self.conf.general_climb, f"{self.climb_type}_limit", 0)
+            limit = getattr(self.conf, f"{self.climb_type}_battle_conf").limit
             return 0 if not limit else limit
 
         # 超过运行时间
-        if datetime.now() - self.start_time >= self.conf.general_climb.limit_time_v:
+        if datetime.now() - self.start_time >= self.conf.general_config.limit_time_v:
             logger.info(f"Climb type {self.climb_type} time out")
             raise LimitTimeOut
         # 次数达到限制
@@ -102,7 +103,7 @@ class StateMachine(BaseTask):
         :return: True 切换成功 or False
         """
         self.run_idx += 1
-        if self.run_idx >= len(self.conf.general_climb.run_sequence_v):
+        if self.run_idx >= len(self.conf.run_sequence_v):
             logger.info("All climbing activities have been completed")
             return False
         # 切换爬塔类型了, 恢复所有状态
@@ -116,6 +117,35 @@ class BaseAct(StateMachine, GameUi, GeneralBattle, SwitchSoul, ActivityShikigami
 
     def _exit_matcher(self) -> ExitMatcher | None:
         return self.I_ACT_FIRE
+
+    def _get_timed_battle_inspections(
+        self, config: GeneralBattleConfig, battle_key: str
+    ) -> tuple[BattleTimedInspection, ...]:
+        inspections = super()._get_timed_battle_inspections(config, battle_key)
+        if not isinstance(config, BossBattleConfig):
+            return inspections
+        condition = config.generate_quit_condition()
+        if condition is None:
+            return inspections
+        return inspections + (
+            BattleTimedInspection(
+                name="boss_exit",
+                interval=1,
+                action=lambda context: self._inspection_boss_exit(context, condition),
+            ),
+        )
+
+    def _inspection_boss_exit(self, context: BattleContext, condition) -> None:
+        """首领战巡检：满足退出策略的时间或伤害条件时请求退出战斗。"""
+        if context.quick_exit:
+            return
+        damage = None
+        if condition.is_need_damage_value():
+            damage = self.O_BOSS_DAMAGE.ocr_digit(self.device.image)
+        if not condition.is_valid(damage):
+            return
+        logger.info(f"Boss exit condition reached, damage: {damage}")
+        context.quick_exit = True
 
     def _handle_result(
         self, context: BattleContext, config: GeneralBattleConfig
@@ -153,7 +183,7 @@ class BaseAct(StateMachine, GameUi, GeneralBattle, SwitchSoul, ActivityShikigami
 
     def run(self):
         self.before_run()
-        for climb_type in self.conf.general_climb.run_sequence_v:
+        for climb_type in self.conf.run_sequence_v:
             logger.hr(f"Start run {self.climb_type}", 1)
             dest_page: Optional[pages.Page] = getattr(
                 pages, f"page_act_{climb_type}", None
@@ -185,7 +215,7 @@ class BaseAct(StateMachine, GameUi, GeneralBattle, SwitchSoul, ActivityShikigami
             finally:
                 self.switch_next()  # 切换下一个爬塔类型
         self.goto_page(pages.page_main)
-        if self.conf.general_climb.active_souls_clean:
+        if self.conf.general_config.active_souls_clean:
             self.set_next_run(
                 task="SoulsTidy", success=False, finish=False, target=datetime.now()
             )
@@ -209,7 +239,7 @@ class BaseAct(StateMachine, GameUi, GeneralBattle, SwitchSoul, ActivityShikigami
             logger.warning(f"No tickets left, wait for next time")
             raise TicketsNotEnough
         self.switch_soul(self.I_BATTLE_MAIN_TO_RECORDS)
-        if self.conf.general_climb.random_sleep:
+        if self.conf.general_config.random_sleep:
             random_sleep(probability=0.2)
         if self.enter_battle():
             self.count_map[self.climb_type] += 1
