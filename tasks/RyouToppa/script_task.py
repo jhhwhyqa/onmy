@@ -95,6 +95,10 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RyouToppaAssets):
             self.goto_page(page_shikigami_records)
             self.run_switch_soul_by_name(ryou_config.switch_soul_config.group_name, ryou_config.switch_soul_config.team_name)
 
+        # 先退出式神录面板，避免面板吃掉返回点击导致导航失败
+        if ryou_config.switch_soul_config.enable or ryou_config.switch_soul_config.enable_switch_by_name:
+            self.exit_shikigami_records()
+
         self.goto_page(page_kekkai_toppa)
         ryou_toppa_start_flag = True
         ryou_toppa_success_penetration = False

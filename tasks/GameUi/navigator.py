@@ -199,6 +199,7 @@ class GameUi(ChessBattleNavigationMixin, BaseTask, GameUiAssets):
         skip_first_screenshot: bool = True,
         categories: set[str] = None,
         context: str = "current_page",
+        log_miss: bool = True,
     ) -> Page | None:
         """先按作用域识别当前页面，失败后再回退到 session 全量页面。
 
@@ -206,6 +207,7 @@ class GameUi(ChessBattleNavigationMixin, BaseTask, GameUiAssets):
             skip_first_screenshot: 是否复用当前截图。
             categories: 第一轮识别允许参与的页面分类集合。
             context: 当前识别调用场景，用于日志输出。
+            log_miss: 两轮都失败时是否输出 `Page detect miss` 警告（过场兜底时可关闭）。
 
         Returns:
             稳定识别到的当前页面；两轮识别都失败时返回 `None`。
@@ -228,7 +230,8 @@ class GameUi(ChessBattleNavigationMixin, BaseTask, GameUiAssets):
             logger.attr("UI", page.name)
             return page
 
-        logger.warning(f"Page detect miss[{context}]: scoped={sorted_categories}")
+        if log_miss:
+            logger.warning(f"Page detect miss[{context}]: scoped={sorted_categories}")
         return None
 
     def _detect_pages(
@@ -495,6 +498,50 @@ class GameUi(ChessBattleNavigationMixin, BaseTask, GameUiAssets):
                 return True
         return False
 
+    def _settle_and_detect(self, destination: Page, delay: float = 0.5) -> Page | None:
+        """过场帧兜底：短暂等待后重新识别当前页。
+
+        页面淡入淡出、弹窗收起的一两帧内，所有识别器都可能匹配不到。此时直接
+        去点未知页关闭动作容易误点；先等半秒再看一眼，通常就能识别到真实页面。
+
+        Args:
+            destination: 本次导航目标，用于确定识别分类。
+            delay: 等待秒数。
+
+        Returns:
+            识别到的页面；仍然识别不到时返回 None。
+        """
+
+        time.sleep(delay)
+        page = self._detect_current_page_with_fallback(
+            skip_first_screenshot=False,
+            categories=self._navigation_detect_categories(destination),
+            log_miss=False,
+        )
+        if page is not None:
+            self.navigator.current_page = page
+        return page
+
+    def _transition_succeeded(self, source: Page, destination: Page, transition: Transition) -> None:
+        """执行一条边成功后的钩子、惩罚回收与日志。"""
+
+        self._run_hooks(source.on_leave_success)
+        self._run_hooks(transition.on_leave_success)
+        self._run_hooks(destination.on_enter_success)
+        self._run_hooks(transition.on_enter_success)
+        # 成功一次就回收一点历史惩罚，避免一次瞬时失败永久改变后续路由。
+        self.navigator.reduce_penalty(transition)
+        self._mark_page_entered(destination)
+        logger.info(f"Page arrived {destination}")
+
+    def _transition_failure_hooks(self, source: Page, destination: Page, transition: Transition) -> None:
+        """执行一条边失败后的钩子。"""
+
+        self._run_hooks(source.on_leave_failure)
+        self._run_hooks(transition.on_leave_failure)
+        self._run_hooks(destination.on_enter_failure)
+        self._run_hooks(transition.on_enter_failure)
+
     def _execute_transition(self, transition: Transition) -> bool:
         """执行一条导航边。
 
@@ -518,10 +565,7 @@ class GameUi(ChessBattleNavigationMixin, BaseTask, GameUiAssets):
                 break
 
         if not action_done:
-            self._run_hooks(source.on_leave_failure)
-            self._run_hooks(transition.on_leave_failure)
-            self._run_hooks(destination.on_enter_failure)
-            self._run_hooks(transition.on_enter_failure)
+            self._transition_failure_hooks(source, destination, transition)
             penalty = self.navigator.add_penalty(transition)
             logger.warning(f"Transition failed before leaving {source}: {transition.key}, penalty={penalty:.1f}")
             self.navigator.current_page = self._detect_current_page_with_fallback(
@@ -531,18 +575,33 @@ class GameUi(ChessBattleNavigationMixin, BaseTask, GameUiAssets):
             return False
 
         if self._wait_for_destination(destination):
-            self._run_hooks(source.on_leave_success)
-            self._run_hooks(transition.on_leave_success)
-            self._run_hooks(destination.on_enter_success)
-            self._run_hooks(transition.on_enter_success)
-            self._mark_page_entered(destination)
-            logger.info(f"Page arrived {destination}")
+            self._transition_succeeded(source, destination, transition)
             return True
 
-        self._run_hooks(source.on_leave_failure)
-        self._run_hooks(transition.on_leave_failure)
-        self._run_hooks(destination.on_enter_failure)
-        self._run_hooks(transition.on_enter_failure)
+        # 等待期内没确认到目标页，先判断是否还停在源页面。
+        # 弹窗/过场会吞掉第一次点击；也可能已经离开源页、只是落到了别的页面。
+        source_visible = self.confirm_page(source, skip_first_screenshot=False)
+        if not source_visible:
+            # 已经离开源页：这条边实际生效了，只是中途被弹窗或过场打断。
+            # 不计惩罚，交给外层按重新识别到的页面规划。
+            self._transition_failure_hooks(source, destination, transition)
+            self.navigator.current_page = self._detect_current_page_with_fallback(
+                skip_first_screenshot=False,
+                categories=self._navigation_detect_categories(destination),
+            )
+            logger.info(
+                f"Transition left {source} but not reached {destination}: {transition.key}; re-plan"
+            )
+            return False
+
+        # 仍停在源页：第一次点击多半被弹窗/动画吞掉了，重试一次动作再等一小会儿。
+        logger.info(f"Transition {transition.key} did not leave {source}, retry action once")
+        if self._execute_action(transition.action, interval=0.3, skip_first_screenshot=False):
+            if self._wait_for_destination(destination, timeout=2.5):
+                self._transition_succeeded(source, destination, transition)
+                return True
+
+        self._transition_failure_hooks(source, destination, transition)
         penalty = self.navigator.add_penalty(transition)
         logger.warning(f"Transition cannot reach {destination}: {transition.key}, penalty={penalty:.1f}")
         self.navigator.current_page = self._detect_current_page_with_fallback(
@@ -767,6 +826,7 @@ class GameUi(ChessBattleNavigationMixin, BaseTask, GameUiAssets):
         repeated_failure_transition_key: str | None = None
         repeated_failure_count = 0
         last_repeated_failure_close_result: str | None = None
+        unknown_settled = False
 
         def reset_repeated_transition_failures() -> None:
             nonlocal repeated_failure_transition_key, repeated_failure_count
@@ -777,11 +837,21 @@ class GameUi(ChessBattleNavigationMixin, BaseTask, GameUiAssets):
             current = self._refresh_current_page(destination, skip_first_screenshot)
             skip_first_screenshot = False
 
+            if current is None and not unknown_settled:
+                # 过场动画期间一帧内可能匹配不到任何页面。先等半秒再看一眼，
+                # 避免把正常过场当成未知页去乱点关闭动作。
+                unknown_settled = True
+                current = self._settle_and_detect(destination)
+                if current is not None:
+                    progress_timer.reset()
+                    last_detected_page_key = None
+
             if current is None:
                 if self.close_unknown_pages(skip_first_screenshot=False):
                     progress_timer.reset()
                     last_progress_signature = ("close_unknown", destination.key)
                     last_detected_page_key = None
+                    unknown_settled = False
                     reset_repeated_transition_failures()
                 elif progress_timer.reached():
                     self._log_navigation_timeout(
@@ -798,6 +868,7 @@ class GameUi(ChessBattleNavigationMixin, BaseTask, GameUiAssets):
                 self._run_enter_success_hooks_if_needed(current)
                 progress_timer.reset()
                 last_detected_page_key = current.key
+                unknown_settled = False
                 reset_repeated_transition_failures()
 
             if current == destination:
@@ -839,6 +910,7 @@ class GameUi(ChessBattleNavigationMixin, BaseTask, GameUiAssets):
                         repeated_failure_count = 1
                     if repeated_failure_count % self.REPEATED_TRANSITION_FAILURE_THRESHOLD == 0:
                         close_success = self.close_unknown_pages(skip_first_screenshot=False)
+                        last_repeated_failure_close_result = str(close_success)
                         logger.warning(f"Transition {transition.key} repeated failure close result: {close_success}")
                         if close_success:
                             progress_timer.reset()

@@ -68,8 +68,10 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RealmRaidAssets):
             self.goto_page(page_shikigami_records)
             self.run_switch_soul_by_name(con.switch_soul_config.group_name, con.switch_soul_config.team_name)
             
-        # 切换完成后，必须返回突破页面
+        # 切换完成后，必须返回突破页面。
+        # 先退出式神录面板：面板会吃掉返回点击，导致 records->realm_raid 反复失败。
         if con.switch_soul_config.enable or con.switch_soul_config.enable_switch_by_name:
+            self.exit_shikigami_records()
             self.goto_page(page_realm_raid)
 
         # 有呱太活动的时候第一次进入还会 出现一个弹窗

@@ -160,6 +160,30 @@ class NavigatorSession:
         self.edge_penalties[transition.key] = self.edge_penalties.get(transition.key, 0.0) + value
         return self.edge_penalties[transition.key]
 
+    def reduce_penalty(self, transition: Transition, value: float = 1.0) -> float:
+        """成功走通一条边后回收其惩罚。
+
+        惩罚只在 session 内累计、不会自动衰减；若不回收，一次瞬时失败会让
+        这条边在后续所有路径计算里持续变贵，最终被永久绕开。
+
+        Args:
+            transition: 成功走通的边。
+            value: 本次回收的惩罚值。
+
+        Returns:
+            回收后的剩余惩罚值。
+        """
+
+        current = self.edge_penalties.get(transition.key, 0.0)
+        if current <= 0:
+            return 0.0
+        updated = max(0.0, current - value)
+        if updated:
+            self.edge_penalties[transition.key] = updated
+        else:
+            self.edge_penalties.pop(transition.key, None)
+        return updated
+
     def penalty_of(self, transition: Transition) -> float:
         """读取某条边的当前惩罚值。
 
