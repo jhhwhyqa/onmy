@@ -4,13 +4,12 @@ pre_checks()
 
 from deploy.adb import AdbManager
 from deploy.process import ProcessManager
-from deploy.fluentui import FluentuiManager
 from deploy.config import ExecutionError
 from deploy.git import GitManager
 from deploy.pip import PipManager
 
 
-class Installer(GitManager, PipManager, AdbManager, FluentuiManager, ProcessManager):
+class Installer(GitManager, PipManager, AdbManager, ProcessManager):
     def install(self):
         try:
             self.git_install()
