@@ -10,11 +10,15 @@ from module.logger import logger
 
 class RuleClick:
 
-    def __init__(self, roi_front: tuple, roi_back: tuple, name: str = None) -> None:
+    def __init__(self, roi_front: tuple, roi_back: tuple, name: str = None,
+                 functional: bool = True, profile: str = None) -> None:
         """
         初始化
         :param roi_front:
         :param roi_back:
+        :param name:
+        :param functional: 该点击是否属于功能操作，供任务层点击记录区分
+        :param profile: 点击落点密度档位，生成规则会携带；本地落点算法不使用该参数
         """
         self.roi_front = roi_front
         self.roi_back = roi_back
@@ -22,6 +26,8 @@ class RuleClick:
             self.name = name
         else:
             self.name = 'click'
+        self.functional = functional
+        self.profile = profile
 
     def coord(self) -> tuple:
         """

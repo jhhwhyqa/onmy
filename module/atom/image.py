@@ -17,19 +17,22 @@ from module.base.utils.utils import random_normal_distribution_int
 class RuleImage:
     debug_mode: bool = False
     METHOD_TEMPLATE_MATCH = "Template matching"
+    METHOD_MASKED_TEMPLATE_MATCH = "Masked template matching"
     METHOD_MULTI_SCALE_TEMPLATE_MATCH = "Multi-scale template matching"
     METHOD_SIFT_FLANN = "Sift Flann"
     DEFAULT_MULTI_SCALE_RANGE = (0.6, 1.2)
     DEFAULT_MULTI_SCALE_STEP = 0.1
 
-    def __init__(self, roi_front: tuple, roi_back: tuple, method: str, threshold: float, file: str) -> None:
+    def __init__(self, roi_front: tuple, roi_back: tuple, method: str, threshold: float, file: str,
+                 profile: str = "High") -> None:
         """
         初始化
         :param roi_front: 前置roi
         :param roi_back: 后置roi 用于匹配的区域
-        :param method: 匹配方法 "Template matching" / "Multi-scale template matching" / "Sift Flann"
+        :param method: 匹配方法 "Template matching" / "Masked template matching" / "Multi-scale template matching" / "Sift Flann"
         :param threshold: 阈值  0.8
         :param file: 相对路径, 带后缀
+        :param profile: 点击落点密度档位，供生成的规则携带；默认 High
         """
         self._match_init = False  # 这个是给后面的 等待图片稳定
         self._image = None  # 这个是匹配的目标
@@ -41,6 +44,7 @@ class RuleImage:
         self.roi_back = roi_back
         self.threshold = threshold
         self.file = file
+        self.profile = profile
         # 路径解析结果缓存：换装流程会改写 self.file，因此按原始字符串判断是否失效。
         self._resolved_file_raw = None
         self._resolved_file = ""
@@ -108,6 +112,14 @@ class RuleImage:
         :return:
         """
         return self.method == self.METHOD_TEMPLATE_MATCH
+
+    @property
+    def is_masked_template_match(self) -> bool:
+        """
+        是否是掩码模板匹配，掩码取自同目录下 `xxx_mask.png`
+        :return:
+        """
+        return self.method == self.METHOD_MASKED_TEMPLATE_MATCH
 
     @property
     def is_multi_scale_template_match(self) -> bool:
@@ -184,6 +196,7 @@ class RuleImage:
             "roi_back": list(self.roi_back),
             "scale_range": scale_range,
             "scale_step": float(self.scale_step),
+            "grayscale": bool(getattr(self, 'grayscale', False)),
         }
 
     def _apply_match_result(self, result: dict) -> bool:
@@ -199,6 +212,10 @@ class RuleImage:
             threshold = self.threshold
         source = self.corp(image)
         mat = self.image
+
+        if getattr(self, 'grayscale', False):
+            source = cv2.cvtColor(source, cv2.COLOR_RGB2GRAY)
+            mat = cv2.cvtColor(mat, cv2.COLOR_RGB2GRAY)
 
         if self._template_image_invalid(mat):
             return True  # 如果模板图像无效，直接返回 True
@@ -347,6 +364,8 @@ class RuleImage:
     def test_match(self, image: np.array):
         self.debug_mode = True
         if self.is_template_match:
+            return self.match(image)
+        if self.is_masked_template_match:
             return self.match(image)
         if self.is_multi_scale_template_match:
             return self.match(image)
