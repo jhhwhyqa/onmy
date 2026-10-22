@@ -38,7 +38,9 @@ class ChessLegacyScriptTask(
         """棋局任务的所有截图均检查红叉，关闭遮挡操作的浮窗。"""
         if super()._burst():
             return True
-        if self.appear_then_click(self.I_CLOSE_RED, interval=0.8):
+        # GeneralBuff 的红叉模板只是一小块纯红色, 0.6 阈值在棋局准备界面会误匹配
+        # 血条/棋盘纹理, 连续点击同一位置会触发 GameTooManyClickError
+        if self.appear_then_click(self.I_CLOSE_RED, interval=0.8, threshold=0.8):
             logger.info('Chess: close floating window with red cross')
             return True
         return False

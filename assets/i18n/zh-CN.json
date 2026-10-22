@@ -299,5 +299,19 @@
   "notification_config": "推送配置",
   "push_reward_images": "推送道馆结算截图",
   "push_reward_images_help": "开启后在每次道馆任务自动结束时推送日期和本次任务的全部结算",
-  "task_notify_enable_help": "控制当前任务的全部推送"
+  "task_notify_enable_help": "控制当前任务的全部推送",
+  "Chess": "百鬼棋局",
+  "chess_config": "百鬼棋局配置",
+  "hyakki_draft_enabled": "百鬼环节自动投掷",
+  "lineup_bond": "战斗策略",
+  "rank_protection": "保段位",
+  "rank_protection_help": "勾选启用保段位。",
+  "run_count": "执行次数",
+  "matchmaking_timeout_seconds": "匹配限制时间（秒）",
+  "matchmaking_timeout_seconds_help": "单位：秒，至少10秒。",
+  "limit_time_help": "达到限制时间后不再开始下一局或下一场战斗，已经开始的战斗会正常完成",
+  "coin_full_exit": "刷满鼬乐币",
+  "coin_full_exit_help": "勾选后刷满鼬乐币即停止。",
+  "continue_grigri_refresh_below_nine": "刷新非前40%符咒",
+  "continue_grigri_refresh_below_nine_help": "勾选刷新收益排名前40%以外的符咒。"
 }

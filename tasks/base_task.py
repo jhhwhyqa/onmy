@@ -772,21 +772,40 @@ class BaseTask(GlobalGameAssets, CostumeBase):
                 elif isinstance(click, RuleOcr) and self.ocr_appear_click(click, interval=interval):
                     continue
 
-    def ui_click_until_disappear(self, click, interval: float = 1):
+    def ui_click_until_disappear(self, click, interval: float = 1, *,
+                                 click_target=None, visible=None, guard=None,
+                                 timeout: float | None = None, confirm_frames: int = 1):
+        """点击一个按钮直到消失。
+
+        :param click: 可见性判定所用的目标
+        :param click_target: 实际点击的目标，默认与 click 相同
+        :param visible: 自定义可见性判定，返回 True 表示目标仍在
+        :param guard: 每次点击前的守卫，返回 False 立即停止
+        :param timeout: 超时时间（秒），None 表示不超时
+        :param confirm_frames: 连续多少帧不可见才判定为消失
+        :return: True:出现并点击过, False:没有出现过或被中止
         """
-        点击一个按钮直到消失
-        :param interval:
-        :param click:
-        :return: True:出现并点击过, False:没有出现过
-        """
+        from time import monotonic
         appear_and_clicked = False
-        while 1:
+        missing = 0
+        deadline = monotonic() + timeout if timeout is not None else None
+        while deadline is None or monotonic() < deadline:
             self.screenshot()
-            if not self.appear(click):
-                break
+            if guard is not None and not guard():
+                return False
+            present = visible() if visible is not None else self.appear(click)
+            if not present:
+                missing += 1
+                if missing >= confirm_frames:
+                    return appear_and_clicked
+                continue
+            missing = 0
+            if click_target is not None:
+                if self.click(click_target, interval=interval):
+                    appear_and_clicked = True
             elif self.appear_then_click(click, interval=interval):
                 appear_and_clicked = True
-        return appear_and_clicked
+        return False
 
     def ui_click_until_appear_or_timeout(self, click, stop=None, interval: float = 1, timeout: float = 10) -> bool:
         """
