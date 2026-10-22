@@ -1,4 +1,3 @@
-﻿# copy from alas https://github.com/LmeSzinc/AzurLaneAutoScript
 import os
 import re
 from dataclasses import dataclass

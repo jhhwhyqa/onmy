@@ -13,7 +13,7 @@ def patch_trust_env(file):
 
     To handle untrusted user environment for good. We patch the code file in
     requests directly. Of course, the patch only effect the python env inside
-    Alas.
+    OAS.
 
     Returns:
         bool: If patched.
@@ -38,16 +38,16 @@ def check_running_directory():
     """
     An fool-proof mechanism.
     Show error if user is running Easy Install in compressing software,
-    since Alas can't install in temp directories.
+    since OAS can't install in temp directories.
     """
     file = __file__.replace(r"\\", "/").replace("\\", "/")
-    # C:/Users/<user>/AppData/Local/Temp/360zip$temp/360$3/AzurLaneAutoScript
+    # C:/Users/<user>/AppData/Local/Temp/360zip$temp/360$3/OnmyojiAutoScript
     if 'Temp/360zip' in file:
-        logger.critical('请先解压Oas的压缩包，再安装Oas')
+        logger.critical('请先解压OAS的压缩包，再安装OAS')
         exit(1)
-    # C:/Users/<user>/AppData/Local/Temp/Rar$EXa9248.23428/AzurLaneAutoScript
+    # C:/Users/<user>/AppData/Local/Temp/Rar$EXa9248.23428/OnmyojiAutoScript
     if 'Temp/Rar' in file or 'Local/Temp' in file:
-        logger.critical('Please unzip ALAS installer first')
+        logger.critical('Please unzip OAS installer first')
         exit(1)
 
 

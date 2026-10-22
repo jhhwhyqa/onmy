@@ -1,6 +1,3 @@
-"""
-Copy from https://github.com/LmeSzinc/AzurLaneAutoScript
-"""
 from typing import Optional, Union
 from filelock import FileLock
 

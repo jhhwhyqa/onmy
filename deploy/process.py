@@ -1,5 +1,4 @@
 # This Python file uses the following encoding: utf-8
-# copy from alas https://github.com/LmeSzinc/AzurLaneAutoScript
 from deploy.config import DeployConfig
 from deploy.logger import logger
 from deploy.utils import *
@@ -20,7 +19,7 @@ class ProcessManager(DeployConfig):
     def iter_process_by_name(self, name):
         """
         Args:
-            name (str): process name, such as 'alas.exe'
+            name (str): process name, such as 'oas.exe'
 
         Yields:
             str, str, str: executable_path, process_name, process_id

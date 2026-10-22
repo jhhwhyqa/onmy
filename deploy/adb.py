@@ -1,5 +1,4 @@
 # This Python file uses the following encoding: utf-8
-# copy from alas https://github.com/LmeSzinc/AzurLaneAutoScript
 import logging
 
 from deploy.config import DeployConfig
@@ -14,7 +13,7 @@ def show_fix_tip(module):
     2. Execute the following commands:
         pip uninstall -y {module}
         pip install --no-cache-dir {module}
-    3. Re-open Alas.exe
+    3. Re-open OAS.exe
     """)
 
 

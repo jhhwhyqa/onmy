@@ -355,7 +355,7 @@ class EmulatorConnect:
         """
         Different version of ADB will kill each other when starting.
         Chinese emulators (NoxPlayer, LDPlayer, MemuPlayer, MuMuPlayer) use their own adb,
-        instead of the one in system PATH, so when they start they kill the adb.exe Alas is using.
+        instead of the one in system PATH, so when they start they kill the adb.exe OAS is using.
         Replacing the ADB in emulator is the simplest way to solve this.
 
         Args:

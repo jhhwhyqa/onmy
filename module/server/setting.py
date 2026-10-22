@@ -1,6 +1,3 @@
-"""
-Copy from https://github.com/LmeSzinc/AzurLaneAutoScript
-"""
 import multiprocessing
 import threading
 from multiprocessing.managers import SyncManager

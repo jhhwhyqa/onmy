@@ -63,7 +63,7 @@ class Window(Handle):
         signedIntsArray = saveBitMap.GetBitmapBits(True)
         imgSrceen = frombuffer(signedIntsArray, dtype='uint8')
         imgSrceen.shape = (heightScreen, widthScreen, 4)
-        # 这点很重要 在alas中图片以np.ndarray（RGB）的顺序存储。但是opencv是以BGR
+        # 这点很重要 在OAS中图片以np.ndarray（RGB）的顺序存储。但是opencv是以BGR
         imgSrceen = cv2.cvtColor(imgSrceen, cv2.COLOR_BGR2RGB)
         # imgSrceen = cv2.resize(imgSrceen, (win_size[0], win_size[1]))
         # 很奇怪的

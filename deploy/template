@@ -1,10 +1,10 @@
 Deploy:
   Git:
-    # URL of AzurLaneAutoScript repository
-    # [CN user] Use 'https://gitee.com/lmeszinc/azur-lane-auto-script-mirror' for faster and more stable download
-    # [Other] Use 'https://github.com/LmeSzinc/AzurLaneAutoScript'
+    # URL of OnmyojiAutoScript repository
+    # [CN user] Use a mirror for faster and more stable download
+    # [Other] Use 'https://github.com/runhey/OnmyojiAutoScript'
     Repository: https://e.coding.net/onmyojiautoscript/oas/OnmyojiAutoScript.git
-    # Branch of Alas
+    # Branch of OAS
     # [Developer] Use 'dev', 'app', etc, to try new features
     # [Other] Use 'master', the stable branch
     Branch: master
@@ -16,7 +16,7 @@ Deploy:
     # [CN user] Use your local http proxy (http://127.0.0.1:{port}) or socks5 proxy (socks5://127.0.0.1:{port})
     # [Other] Use null
     GitProxy: null
-    # Update Alas at startup
+    # Update OAS at startup
     # [In most cases] Use true
     AutoUpdate: true
     # Whether to keep local changes during update
@@ -74,7 +74,7 @@ Deploy:
     # Port of ocr server runs by GUI
     # [Default] 22268
     OcrServerPort: 22268
-    # Address of ocr server for alas instance to connect
+    # Address of ocr server for OAS instance to connect
     # [Default] 127.0.0.1:22268
     OcrClientAddress: 127.0.0.1:22268
     # OCR server worker count, 0 means auto detect
@@ -111,15 +111,15 @@ Deploy:
 
   Update:
     # Use auto update and builtin updater feature
-    # This may cause problem https://github.com/LmeSzinc/AzurLaneAutoScript/issues/876
+    # This may cause problem, disable it if you encounter issues.
     EnableReload: true
     # Check update every X minute
     # [Disable] 0
     # [Default] 5
     CheckUpdateInterval: 5
     # Scheduled restart time
-    # If there are updates, Alas will automatically restart and update at this time every day
-    # and run all alas instances that running before restarted
+    # If there are updates, OAS will automatically restart and update at this time every day
+    # and run all OAS instances that running before restarted
     # [Disable] null
     # [Default] 03:50
     AutoRestartTime: 03:50
@@ -130,8 +130,7 @@ Deploy:
 
   RemoteAccess:
     # Enable remote access (using ssh reverse tunnel serve by https://github.com/wang0618/localshare)
-    # ! You need to set Password below to enable remote access since everyone can access to your alas if they have your url.
-    # See here (http://app.azurlane.cloud/en.html) for more infomation.
+    # ! You need to set Password below to enable remote access since everyone can access to your OAS if they have your url.
     EnableRemoteAccess: false
     # Username when login into ssh server
     # [Default] null (will generate a random one when startup)
@@ -166,10 +165,10 @@ Deploy:
     Theme: default
     # Follow system DPI scaling
     # [In most cases] true
-    # [In few cases] false to make Alas smaller, if you have a low resolution but high DPI scaling.
+    # [In few cases] false to make OAS smaller, if you have a low resolution but high DPI scaling.
     DpiScaling: true
     # --key. Password of web ui
-    # Useful when expose Alas to the public network
+    # Useful when expose OAS to the public network
     Password: null
     # --cdn. Use jsdelivr cdn for pywebio static files (css, js).
     # 'true' for jsdelivr cdn
@@ -178,6 +177,6 @@ Deploy:
     CDN: false
     # --run. Auto-run specified config when startup
     # 'null' default no specified config
-    # '["alas"]' specified "alas" config
-    # '["alas","alas2"]' specified "alas" "alas2" configs
+    # '["oas"]' specified "oas" config
+    # '["oas","oas2"]' specified "oas" "oas2" configs
     Run: null

@@ -32,7 +32,7 @@ class GameStuckError(Exception):
 
 
 class GameBugError(Exception):
-    # An error has occurred in Azur Lane game client. Alas is unable to handle.
+    # An error has occurred in Onmyoji game client. OAS is unable to handle.
     # A restart should fix it.
     pass
 
@@ -55,7 +55,7 @@ class GamePageUnknownError(Exception):
 
 class RequestHumanTakeover(Exception):
     # Request human takeover
-    # Alas is unable to handle such error, probably because of wrong settings.
+    # OAS is unable to handle such error, probably because of wrong settings.
     pass
 
 class TaskEnd(Exception):

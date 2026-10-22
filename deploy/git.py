@@ -1,5 +1,4 @@
 # This Python file uses the following encoding: utf-8
-# copy from alas https://github.com/LmeSzinc/AzurLaneAutoScript
 from deploy.config import DeployConfig
 from deploy.logger import logger
 from deploy.utils import *

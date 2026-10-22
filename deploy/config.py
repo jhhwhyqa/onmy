@@ -1,5 +1,4 @@
 # This Python file uses the following encoding: utf-8
-# copy from alas https://github.com/LmeSzinc/AzurLaneAutoScript
 import copy
 from typing import Optional, Union
 
@@ -176,6 +175,6 @@ class DeployConfig(ConfigModel):
         logger.info(f"Last command: {command}")
         logger.info(
             "Please check your deploy settings in config/deploy.yaml "
-            "and re-open Alas.exe"
+            "and re-open OAS.exe"
         )
         logger.info("Take the screenshot of entire window if you need help")

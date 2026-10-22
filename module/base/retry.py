@@ -5,9 +5,6 @@ from functools import partial
 
 from module.logger import logger as logging_logger
 
-"""
-Copied from Alas
-"""
 
 try:
     from decorator import decorator

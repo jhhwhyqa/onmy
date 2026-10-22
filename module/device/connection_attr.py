@@ -1,5 +1,4 @@
 # This Python file uses the following encoding: utf-8
-# copy from alas
 import os
 import re
 
@@ -26,7 +25,7 @@ class ConnectionAttr:
     def __init__(self, config):
         """
         Args:
-            config (AzurLaneConfig, str): Name of the user config under ./config
+            config (Config, str): Name of the user config under ./config
         """
         logger.hr('Device', level=1)
         if isinstance(config, str):

@@ -44,8 +44,8 @@ def docker_requirements_generate(requirements_in='requirements.txt'):
     new = {}
     logger.info(requirements)
     for name, version in requirements.items():
-        # alas-webapp is for windows only
-        if name == 'alas-webapp' or name == 'pywin32':
+        # oas-webapp is for windows only
+        if name == 'oas-webapp' or name == 'pywin32':
             continue
         if name == 'opencv-python':
             name = 'opencv-python-headless'

@@ -139,7 +139,7 @@ def handle_adb_error(e):
         # it does not disappear from the adb device list,
         # but will be displayed as offline.
         # In many cases, such as disconnection and recovery caused by network fluctuations,
-        # or after VMOS reboot when running Alas on a phone,
+        # or after VMOS reboot when running OAS on a phone,
         # the device is still available, but it needs to be disconnected and re-connected.
         logger.error(e)
         return True
@@ -260,7 +260,7 @@ u2.Device = Device
 
 class HierarchyButton:
     """
-    Convert UI hierarchy to an object like the Button in Alas.
+    Convert UI hierarchy to an object like the Button in OAS.
     """
     _name_regex = re.compile('@.*?=[\'\"](.*?)[\'\"]')
 

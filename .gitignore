@@ -1,4 +1,4 @@
-### AzurLaneAutoScript
+### OnmyojiAutoScript
 log
 config/backup/*
 config/*.ini
@@ -18,7 +18,7 @@ dev_tools/debug_tools
 /toolkit
 *.lock
 config/reloadflag
-config/reloadalas
+config/reloadoas
 test.py
 test/
 

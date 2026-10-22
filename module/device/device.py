@@ -258,7 +258,7 @@ class Device(Platform, Screenshot, Control, AppControl):
     def app_start(self):
         if not self.config.script.error.handle_error:
             logger.critical('No app stop/start, because HandleError disabled')
-            logger.critical('Please enable Alas.Error.HandleError or manually login to AzurLane')
+            logger.critical('Please enable script.error.handle_error or manually login to Onmyoji')
             raise RequestHumanTakeover
         super().app_start()
         self.stuck_record_clear()
@@ -267,7 +267,7 @@ class Device(Platform, Screenshot, Control, AppControl):
     def app_stop(self):
         if not self.config.script.error.handle_error:
             logger.critical('No app stop/start, because HandleError disabled')
-            logger.critical('Please enable Alas.Error.HandleError or manually login to AzurLane')
+            logger.critical('Please enable script.error.handle_error or manually login to Onmyoji')
             raise RequestHumanTakeover
         super().app_stop()
         self.stuck_record_clear()

@@ -228,7 +228,7 @@ class Uiautomator2(Connection):
         try:
             self.u2.app_start(package_name)
         except u2.exceptions.BaseError as e:
-            # BaseError: package "com.bilibili.azurlane" not found
+            # BaseError: package "com.netease.onmyoji" not found
             logger.error(e)
             raise PackageNotInstalled(package_name)
 
@@ -262,7 +262,7 @@ class Uiautomator2(Connection):
 
     def resolution_check_uiautomator2(self):
         """
-        Alas does not actively check resolution but the width and height of screenshots.
+        OAS does not actively check resolution but the width and height of screenshots.
         However, some screenshot methods do not provide device resolution, so check it here.
 
         Returns:

@@ -92,7 +92,7 @@ class Connection(ConnectionAttr):
     def __init__(self, config):
         """
         Args:
-            config (AzurLaneConfig, str): Name of the user config under ./config
+            config (Config, str): Name of the user config under ./config
         """
         super().__init__(config)
         if not self.is_over_http:
@@ -330,7 +330,7 @@ class Connection(ConnectionAttr):
     @cached_property
     def reverse_server(self):
         """
-        Setup a server on Alas, access it from emulator.
+        Setup a server on OAS, access it from emulator.
         This will bypass adb shell and be faster.
         """
         del_cached_property(self, '_nc_server_host_port')
@@ -518,7 +518,7 @@ class Connection(ConnectionAttr):
     def adb_connect(self, serial):
         """
         Connect to a serial, try 3 times at max.
-        If there's an old ADB server running while Alas is using a newer one, which happens on Chinese emulators,
+        If there's an old ADB server running while OAS is using a newer one, which happens on Chinese emulators,
         the first connection is used to kill the other one, and the second is the real connect.
 
         Args:
@@ -795,7 +795,7 @@ class Connection(ConnectionAttr):
             logger.error(e)
             if '强迫关闭' in str(e):
                 logger.critical('无法连接至ADB服务，请关闭UU加速器、原神私服、以及一些劣质代理软件。'
-                                '它们会劫持电脑上所有的网络连接，包括Alas与模拟器之间的本地连接。')
+                                '它们会劫持电脑上所有的网络连接，包括OAS与模拟器之间的本地连接。')
         return SelectedGrids(devices)
 
     def detect_device(self):
@@ -805,7 +805,7 @@ class Connection(ConnectionAttr):
         """
         logger.hr('Detect device')
         logger.info('Here are the available devices, '
-                    'copy to Alas.Emulator.Serial to use it or set Alas.Emulator.Serial="auto"')
+                    'copy to script.device.serial to use it or set script.device.serial="auto"')
         devices = self.list_device()
 
         # Show available devices
@@ -827,7 +827,7 @@ class Connection(ConnectionAttr):
         # if self.config.Emulator_Serial == 'auto':
             if available.count == 0:
                 logger.critical('No available device found, auto device detection cannot work, '
-                                'please set an exact serial in Alas.Emulator.Serial instead of using "auto"')
+                                'please set an exact serial in script.device.serial instead of using "auto"')
                 raise RequestHumanTakeover
             elif available.count == 1:
                 logger.info(f'Auto device detection found only one device, using it')
@@ -835,7 +835,7 @@ class Connection(ConnectionAttr):
                 del_cached_property(self, 'adb')
             else:
                 logger.critical('Multiple devices found, auto device detection cannot decide which to choose, '
-                                'please copy one of the available devices listed above to Alas.Emulator.Serial')
+                                'please copy one of the available devices listed above to script.device.serial')
                 raise RequestHumanTakeover
 
         # Handle LDPlayer
@@ -921,7 +921,7 @@ class Connection(ConnectionAttr):
 
         # Show packages
         logger.info(f'Here are the available packages in device "{self.serial}", '
-                    f'copy to Alas.Emulator.PackageName to use it')
+                    f'copy to script.device.package_name to use it')
         if len(packages):
             for package in packages:
                 logger.info(package)
@@ -945,5 +945,5 @@ class Connection(ConnectionAttr):
         else:
             logger.critical(
                 f'Multiple {keywords[0]} packages found, auto package detection cannot decide which to choose, '
-                'please copy one of the available devices listed above to Alas.Emulator.PackageName')
+                'please copy one of the available devices listed above to script.device.package_name')
             raise RequestHumanTakeover

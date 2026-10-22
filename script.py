@@ -82,7 +82,7 @@ class Script:
     @cached_property
     def checker(self):
         """
-        占位函数，在alas中是检查服务器是否正常的
+        占位函数，在OAS中是检查服务器是否正常的
         :return:
         """
         return None
@@ -448,7 +448,7 @@ class Script:
             self.save_error_log()
             self.exception_handler(e=e, command=command)
             logger.warning(f'Game stuck, {self.device.package} will be restarted in 10 seconds')
-            logger.warning('If you are playing by hand, please stop Alas')
+            logger.warning('If you are playing by hand, please stop OAS')
             self.config.notifier.push(title=I18n.task_title(command),
                                       content=f"<{self.config_name}> GameStuckError or GameTooManyClickError")
             self.config.task_call('Restart')
@@ -459,7 +459,7 @@ class Script:
             logger.warning(e)
             self.save_error_log()
             self.exception_handler(e=e, command=command)
-            logger.warning('An error has occurred in Azur Lane game client, Alas is unable to handle')
+            logger.warning('An error has occurred in Onmyoji game client, OAS is unable to handle')
             logger.warning(f'Restarting {self.device.package} to fix it')
             self.config.task_call('Restart')
             self.device.sleep(10)

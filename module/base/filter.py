@@ -1,4 +1,3 @@
-# https://github.com/LmeSzinc/AzurLaneAutoScript/blob/master/module/base/filter.py
 import re
 
 from module.logger import logger

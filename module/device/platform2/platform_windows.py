@@ -476,7 +476,7 @@ class PlatformWindows(PlatformBase, EmulatorManager):
         if not packages:
             return False
 
-        self._log_emulator_watch_once(state, 'package', 'info', f'Found azurlane packages: {packages}')
+        self._log_emulator_watch_once(state, 'package', 'info', f'Found onmyoji packages: {packages}')
         return True
 
     def _is_emulator_window_ready(self, state: EmulatorStartWatchState) -> bool:
@@ -593,7 +593,7 @@ class PlatformWindows(PlatformBase, EmulatorManager):
             msg = str(e)
             # OSError: [WinError 740] 请求的操作需要提升。
             if 'WinError 740' in msg:
-                logger.error('To start/stop MumuAppPlayer, ALAS needs to be run as administrator')
+                logger.error('To start/stop MumuAppPlayer, OAS needs to be run as administrator')
         except EmulatorUnknown as e:
             logger.error(e)
         except Exception as e:

@@ -7,7 +7,7 @@ from dataclasses import dataclass
 
 # module/device/platform/emulator_base.py
 # module/device/platform/emulator_windows.py
-# Will be used in Alas Easy Install, they shouldn't import any Alas modules.
+# Will be used in OAS Easy Install, they shouldn't import any OAS modules.
 from module.device.platform2.emulator_base import (
     EmulatorBase,
     EmulatorInstanceBase,
