@@ -96,14 +96,14 @@ class ScriptTask(
                         'jade_flag': jade_flag,
                     }
                 )
-                if self.is_completed(evozone_final, realmraid_final):
-                    account.assist_complete_date = today
-                    self.config.save()
-                    logger.info(
-                        'AssistBattle completed today for %s-%s',
-                        account.character,
-                        account.svr,
-                    )
+                # 该账号本次流程已跑完，记入缓存，当天重启时不再登录
+                account.assist_complete_date = today
+                self.config.save()
+                logger.info(
+                    'AssistBattle completed today for %s-%s',
+                    account.character,
+                    account.svr,
+                )
         # 输出协战结果
         logger.hr('AssistBattle Result', 2)
         push_content = []
@@ -132,10 +132,13 @@ class ScriptTask(
             push_content.append(f"今日协战任务：")
             for result in results:
                 message = self.account_label(result, ellipsis='…')
-                if self.conf.assist_battle_config.evozone_enable:
-                    message += f"-觉醒{result['evozone_final']}次"
-                if self.conf.assist_battle_config.realmraid_enable:
-                    message += f"-个突{result['realmraid_final']}次"
+                if result.get('cached'):
+                    message += "-今日已完成"
+                else:
+                    if self.conf.assist_battle_config.evozone_enable:
+                        message += f"-觉醒{result['evozone_final']}次"
+                    if self.conf.assist_battle_config.realmraid_enable:
+                        message += f"-个突{result['realmraid_final']}次"
                 push_content.append(message)
         # 推送协战完成结果
         if self.conf.assist_battle_config.result_push_enable:
@@ -151,29 +154,18 @@ class ScriptTask(
 
     @staticmethod
     def completed_result(account: AccountInfo) -> dict:
-        """命中当日完成缓存的账号，按已满额计入结果，不再登录。"""
+        """命中当日完成缓存的账号：不再登录，也不虚构本次/今日次数。"""
         return {
             'account': account.account,
             'character': account.character,
             'svr': account.svr,
             'evozone_done': 0,
             'realmraid_done': 0,
-            'evozone_final': TOTAL_EVOZONE,
-            'realmraid_final': TOTAL_REALMRAID,
+            'evozone_final': 0,
+            'realmraid_final': 0,
             'jade_flag': False,
             'cached': True,
         }
-
-    def is_completed(self, evozone_final: int, realmraid_final: int) -> bool:
-        """启用的协战类型是否都已打满，打满才缓存为已完成。"""
-        conf = self.conf.assist_battle_config
-        if not conf.evozone_enable and not conf.realmraid_enable:
-            return False
-        if conf.evozone_enable and evozone_final < TOTAL_EVOZONE:
-            return False
-        if conf.realmraid_enable and realmraid_final < TOTAL_REALMRAID:
-            return False
-        return True
 
     @staticmethod
     def account_label(result: dict, ellipsis: str = '**') -> str:
