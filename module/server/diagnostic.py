@@ -51,7 +51,6 @@ def _config_summary(name: str) -> dict:
         return {'instance': name, 'error': 'config unreadable'}
     device = {k: deep_get(data, f'script.device.{k}') for k in _DEVICE_FIELDS}
     optimization = data.get('script', {}).get('optimization', {})
-    anti_ban = data.get('script', {}).get('anti_ban', {})
     enabled = []
     for task, cfg in data.items():
         if isinstance(cfg, dict) and deep_get(cfg, 'scheduler.enable') is True:
@@ -60,7 +59,6 @@ def _config_summary(name: str) -> dict:
         'instance': name,
         'device': device,
         'optimization': optimization,
-        'anti_ban': anti_ban,
         'enabled_tasks': sorted(enabled),
     }
 

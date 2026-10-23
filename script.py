@@ -18,7 +18,6 @@ from cached_property import cached_property
 from threading import Thread
 from multiprocessing.queues import Queue
 from module.config.config import Config
-from module.config.anti_ban import AntiBanGuard
 from module.device.env import IS_WINDOWS
 from module.base.utils import load_module
 from module.base.decorator import del_cached_property
@@ -51,7 +50,6 @@ class Script:
         self.task_hoarding_released = False
         # 运行loop的线程
         self.loop_thread: Thread = None
-        self.anti_ban_guard: AntiBanGuard = AntiBanGuard()
 
     @cached_property
     def config(self) -> "Config":
@@ -222,9 +220,6 @@ class Script:
         while True:
             task = self.config.get_next()
             now = datetime.now()
-            antiban_wake = self.anti_ban_guard.wake_time(now, self.config.script.anti_ban)
-            if antiban_wake is not None:
-                task.next_run = max(task.next_run, antiban_wake)
             task = self._hoard_next_task(task, now)
             self.config.task = task
             if self.state_queue:
@@ -330,7 +325,6 @@ class Script:
         start_day = date.today()
         logger.info(f'Start scheduler loop: {self.config_name}')
         self.config.model.running_task = ''
-        self.anti_ban_guard.reset()
 
         # Update GUI 防呆, 读取设置并立刻显示后台模拟器到前台
         if not self.config.script.device.run_background_only and IS_WINDOWS:
@@ -381,13 +375,11 @@ class Script:
             self.device.click_record_clear()
             logger.hr(task, level=0)
             self.config.model.running_task = task
-            _task_start = datetime.now()
             success = self.run(inflection.camelize(task))
             self.config.model.running_task = ''
             logger.info(f'Scheduler: End task `{task}`')
             self._log_image_cache_stats('E')
             self.is_first_task = False
-            self.anti_ban_guard.record_active((datetime.now() - _task_start).total_seconds())
 
             # Check failures
             # failed = deep_get(self.failure_record, keys=task, default=0)
