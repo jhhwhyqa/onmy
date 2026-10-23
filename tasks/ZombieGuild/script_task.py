@@ -2,44 +2,32 @@
 # @brief    Ryou Dokan Toppa (阴阳竂道馆突破功能)
 # @author   AzurTian
 # @note     draft version without full test
-import time
-
 import re
+import time
 from copy import copy
-from datetime import timedelta
+from datetime import datetime
 from pathlib import Path
 from time import sleep
 from uuid import uuid4
 
-from datetime import datetime
-
 from module.atom.animate import RuleAnimate
 from module.base.timer import Timer
-from module.exception import GamePageUnknownError, TaskEnd
 from module.logger import logger
-from tasks.ZombieGuild.task_notify import resolve_task_notifier
+from tasks.Component.DokanCore.task_base import (
+    DokanFinishedError,
+    DokanNotStartedError,
+    DokanRefreshLimitError,
+    DokanTaskBase,
+    position_offset,
+)
 from tasks.Component.GeneralBattle.config_general_battle import GeneralBattleConfig
-from tasks.Component.GeneralBattle.general_battle import GeneralBattle, ExitMatcher, BattleContext, \
-    BattleAction
-from tasks.Component.SwitchSoul.switch_soul import SwitchSoul
-from tasks.Component.config_base import Time
+from tasks.Component.GeneralBattle.general_battle import BattleAction, BattleContext
 from tasks.ZombieGuild.assets import ZombieGuildAssets
 from tasks.ZombieGuild.config import ZombieGuild
 from tasks.ZombieGuild.reward_recognition import count_blue_tickets_in_png
+from tasks.ZombieGuild.task_notify import resolve_task_notifier
 import tasks.ZombieGuild.page as pages
-from tasks.GameUi.game_ui import GameUi
 
-def position_offset(src, offset: tuple):
-    return src[0] + offset[0], src[1] + offset[1], src[2] + offset[2], src[3] + offset[3]
-
-class DokanFinishedError(Exception):
-    pass
-
-class DokanNotStartedError(Exception):
-    pass
-
-class DokanRefreshLimitError(Exception):
-    pass
 
 DOKAN_REWARD_SCREENSHOT_DIR = Path('log/screenshots/dokan')
 DOKAN_REWARD_CAPTURE_DELAY = 1.0
@@ -48,36 +36,30 @@ DOKAN_NEXT_SELECTION_POLL_INTERVAL = 2.0
 DOKAN_LIST_STABLE_INTERVAL = 0.3
 DOKAN_LIST_STABLE_TIMEOUT = 1.5
 MAX_WELFARE_DOKAN_REFRESH_COUNT = 20
-# 主循环里连续识别不到任何页面多久后开始自愈, 以及自愈尝试次数上限(见 run 的 None 分支)
-DOKAN_UNKNOWN_PAGE_TIMEOUT = 10.0
-DOKAN_UNKNOWN_PAGE_RETRY = 3
 
-class ScriptTask(GameUi, SwitchSoul, GeneralBattle, ZombieGuildAssets):
+
+class ScriptTask(DokanTaskBase, ZombieGuildAssets):
     _reuse_image_match_results: bool = True  # 仅道馆启用同帧识别结果和相同规则副本的复用。
     attack_priority_selected: bool = False
     switch_member_soul_done: bool = False
-    dokan_owner_battle: bool = False  # 馆主战标识(会在多个可识别到馆主战的位置进行设置)
+    dokan_owner_battle: bool = False  # 馆主战标识
     found_dokan_cnt: int = 0  # 已经寻找道馆的次数
     second_dokan_ready: bool = False
-    conf: ZombieGuild = None
     # 连续"N 轮在道馆页没有任何可操作标记"就回地图页自愈（见 run_on_dokan 的兜底）
     dokan_no_marker_limit: int = 10
 
-    def _register_custom_pages(self) -> None:
-        page_battle_result = self.navigator.resolve_page(pages.page_battle_result)
-        if page_battle_result is None:
-            return
-        page_battle_result.recognizer = pages.any_of(self.I_RYOU_DOKAN_TOPPA_RANK, self.I_RYOU_DOKAN_WIN,
-                                                     page_battle_result.recognizer)
-        page_battle_result.priority = 75
-        page_reward = self.navigator.resolve_page(pages.page_reward)
-        if page_reward is None:
-            return
-        page_reward.recognizer = pages.any_of(self.I_RYOU_DOKAN_BATTLE_OVER, page_reward.recognizer)
-        page_reward.priority = 75
+    CONFIG_KEY = 'zombie_guild'
+    TASK_NAME = 'ZombieGuild'
+    NEXT_RUN_SERVER = True
+    pages = pages
+    conf: ZombieGuild = None
 
-    def _exit_matcher(self) -> ExitMatcher | None:
-        return pages.any_of(self.I_RYOU_DOKAN_CENTER_TOP, self.I_RYOU_DOKAN_REMAIN_ATTACK_COUNT_DONE)
+    def _on_before_run(self) -> None:
+        self.second_dokan_ready = False
+        self._dokan_reward_captured_context = None
+        self._dokan_reward_captured_round = None
+        self._dokan_reward_captured_outside_battle = False
+        self._dokan_reward_run_directory = None
 
     def _get_battle_screenshot_interval(self, page: pages.Page) -> float | str | None:
         # 馆员战会直接回到准备页，缩短两帧确认等待以便尽快开始下一场。
@@ -106,6 +88,7 @@ class ScriptTask(GameUi, SwitchSoul, GeneralBattle, ZombieGuildAssets):
             return BattleAction.CONTINUE
         return super()._handle_reward(context, config)
 
+    # ---------------------------------- 结算截图 / 推送 ----------------------------------
     def _capture_dokan_reward_if_visible(self, context: BattleContext | None = None) -> bool | None:
         reward_visible = self.appear(self.I_RYOU_DOKAN_BATTLE_OVER) or self.appear(self.I_UI_REWARD)
         if not reward_visible:
@@ -134,6 +117,9 @@ class ScriptTask(GameUi, SwitchSoul, GeneralBattle, ZombieGuildAssets):
         self._dokan_reward_captured_outside_battle = True
         self._save_reward_image(context)
         return True
+
+    def capture_reward_if_visible(self) -> None:
+        self._capture_dokan_reward_if_visible()
 
     def _wait_for_dokan_reward_ready(self) -> bool:
         """结算出现后等待一秒，重新截图并确认仍在奖励页面。"""
@@ -242,225 +228,58 @@ class ScriptTask(GameUi, SwitchSoul, GeneralBattle, ZombieGuildAssets):
         except Exception as exc:
             logger.warning(f'Dokan refresh limit notification failed: {exc}')
 
-    def exit_battle(self, skip_first: bool = False) -> bool:
-        """
-            尝试退出战斗界面
-            1. 普通战斗结束,连续点击即可退出
-                a. 存在战斗奖励
-                b. 战斗失败,
-            2. 在战斗界面,但是战斗还未开始(右下角有准备按钮)
-                需要点击左上角退出按钮,然后点击确定
-            3. 馆主战斗过程中,寮友打败馆主,弹出框体,可点击空白区域取消该框体.
-            综上,点击左上角退出按钮区域
-        """
-        logger.info("try to quit battle...")
-        while True:
-            self.screenshot()
-            if self.appear(self.I_RYOU_DOKAN_CENTER_TOP):
-                return True
-            if self.appear(self.I_RYOU_DOKAN_QUIT_BATTLE_ENSURE):
-                self.ui_click_until_disappear(self.I_RYOU_DOKAN_QUIT_BATTLE_ENSURE)
-                return True
-            self.screenshot()
-            if not self.appear(self.I_RYOU_DOKAN_CENTER_TOP):
-                self.click(self.C_DOKAN_BATTLE_QUIT_AREA, interval=3)
-                continue
-            self.wait_until_appear(self.I_RYOU_DOKAN_CENTER_TOP, True, 3)
-        return False
-
-    def before_run(self):
-        self.dokan_owner_battle = False
-        self.switch_member_soul_done = False
-        self.attack_priority_selected = False
-        self.found_dokan_cnt = 0
-        self.second_dokan_ready = False
-        self._dokan_reward_captured_context = None
-        self._dokan_reward_captured_round = None
-        self._dokan_reward_captured_outside_battle = False
-        self._dokan_reward_run_directory = None
-        pages.page_dokan_rank = self.navigator.add_page(pages.Page(self.I_RYOU_DOKAN_TOPPA_RANK, priority=75, register=False))
-        pages.page_dokan_rank.connect(pages.page_dokan, pages.random_click, key="page_dokan_rank->page_dokan")
-
-    def run(self):
-        self.before_run()
-        self.conf = self.config.model.zombie_guild
-        if self.conf.dokan_config.monday_to_thursday and datetime.now().weekday() >= 4:
-            logger.warning("weekend, exit")
-            self.next_run(True)
-            raise TaskEnd
-        # 清空历史次数，首次进入筛选页面后读取游戏实际剩余次数。
-        self.conf.attack_count_config.init_attack_count(callback=self.config.save)
-        unknown_page_timer = Timer(10)
-        unknown_none_timer = Timer(DOKAN_UNKNOWN_PAGE_TIMEOUT)
-        unknown_none_retry = 0
-        self.goto_page(pages.page_dokan_map)
-        refresh_limit_reached = False
-        try:
-            while True:
-                self.screenshot()
-                self._capture_dokan_reward_if_visible()
-                # 只扫 {global, zombie_guild}: 道馆页面的 key 已在 page.py 里改成
-                # 本任务独有, 作用域内识别得到; 不用 fallback 全量扫描, 否则一旦
-                # 识别不到就会每帧扫一遍所有任务的页面(含别的任务的 OCR 规则)。
-                current_page = self.get_current_page()
-                if current_page is not None:
-                    # 识别到页面说明已经脱离未知界面, 重置自愈计时与次数
-                    unknown_none_retry = 0
-                    unknown_none_timer.reset()
-                match current_page:
-                    case None:
-                        self.device.click_record_clear()
-                        self.device.stuck_record_clear()
-                        # 识别不到任何页面: 可能只是场景切换的过场/加载帧, 先等一下。
-                        # 但持续识别不到说明卡在了未知界面(弹窗、误入的其它页面等),
-                        # 此时不能一直 sleep 空转——原实现会把整个调度队列永久卡住而不报错。
-                        # 这里交给导航器恢复: 它会先尝试关闭未知界面再重新导航到道馆地图,
-                        # 连续多次都恢复不了则抛 GamePageUnknownError, 让任务以报错结束。
-                        if not unknown_none_timer.started():
-                            unknown_none_timer.start()
-                        elif unknown_none_timer.reached():
-                            unknown_none_timer = Timer(DOKAN_UNKNOWN_PAGE_TIMEOUT)
-                            unknown_none_retry += 1
-                            logger.warning(
-                                f'[dokan] 持续识别不到任何页面, 尝试恢复 '
-                                f'{unknown_none_retry}/{DOKAN_UNKNOWN_PAGE_RETRY}'
-                            )
-                            if unknown_none_retry >= DOKAN_UNKNOWN_PAGE_RETRY:
-                                raise GamePageUnknownError('Dokan cannot detect current page')
-                            self.goto_page(pages.page_dokan_map)
-                        time.sleep(0.5)
-                    case pages.page_dokan_map:
-                        self.run_on_dokan_map()
-                    case pages.page_dokan:
-                        self.run_on_dokan()
-                    case pages.page_battle_prepare | pages.page_battle:
-                        self.run_on_battle()
-                    case pages.page_battle_result:
-                        self.click(pages.random_click(ltrb=(False, False, True, False)), interval=1.5)
-                    case _:
-                        if not unknown_page_timer.started():
-                            unknown_page_timer.start()
-                        if unknown_page_timer.started() and unknown_page_timer.reached():  # 10秒都是非道馆界面, 则尝试回到道馆
-                            unknown_page_timer = Timer(10)
-                            self.goto_page(pages.page_dokan)
-        except DokanFinishedError:
-            is_dokan_activated = True
-        except DokanRefreshLimitError:
-            is_dokan_activated = False
-            refresh_limit_reached = True
-        except DokanNotStartedError:
-            is_dokan_activated = False
-        self.goto_page(pages.page_main)
-        self.next_run(skip_today=refresh_limit_reached, is_dokan_activated=is_dokan_activated)
+    def after_run(self, refresh_limit_reached: bool) -> None:
         self._push_current_run_reward_images()
         if refresh_limit_reached:
             self._push_dokan_refresh_limit_notification()
-        raise TaskEnd
 
-    def run_on_dokan(self):
-        """道馆页面逻辑处理"""
-        self.prepare_appear_cache([
-            self.I_RYOU_DOKAN_GATHERING,
-            self.I_RYOU_DOKAN_MASTER_BATTLE,
-            self.I_RYOU_DOKAN_START_CHALLENGE,
-            self.I_RYOU_DOKAN_CD,
-            self.I_RYOU_DOKAN_ABANDONED_TOPPA_ABANDONED,
-            self.I_RYOU_DOKAN_FAILED_VOTE_KEEP_BOUNTY,
-            self.I_RYOU_DOKAN_FAILED_VOTE_BATTLE_AGAIN,
-            self.I_RYOU_DOKAN_TODAY_ATTACK_COUNT,
-            self.I_RYOU_DOKAN_REMAIN_ATTACK_COUNT_DONE,
-            self.I_DOKAN_BOSS_WAITING
-        ])
-        self.device.stuck_record_clear()
-        if self.appear(self.I_RYOU_DOKAN_GATHERING):  # 正在集结
-            logger.debug(f"Dokan is gathering...")
-            self.switch_priority()  # 选择优先级
-            self.switch_soul_in_dokan()  # 切换馆员御魂
-            self.device.click_record_clear()
-            return
-        if self.appear(self.I_DOKAN_BOSS_WAITING) or self.appear(self.I_RYOU_DOKAN_MASTER_BATTLE):  # 馆主战标识
-            self.dokan_owner_battle = True
-        if self.dokan_owner_battle:
-            self.skip_owner_and_battle_again()
-            return
-        if not self.appear(self.I_DOKAN_BOSS_WAITING) and self.appear(self.I_RYOU_DOKAN_START_CHALLENGE):  # 可挑战
-            self.switch_soul_in_dokan()  # 防止进来晚了错过集结阶段的御魂切换
-            if self.click_until_in_battle():
-                self.run_general_battle(self.conf.dokan_member_battle_conf, battle_key='dokan_member')
-            return
-        if not self.appear(self.I_DOKAN_BOSS_WAITING) and self.appear(self.I_RYOU_DOKAN_CD):  # 可观战
-            self.device.click_record_clear()
-            return
-        if (self.appear(self.I_RYOU_DOKAN_FAILED_VOTE_KEEP_BOUNTY)
-                or self.appear(self.I_RYOU_DOKAN_FAILED_VOTE_BATTLE_AGAIN)
-                or self.appear(self.I_RYOU_DOKAN_ABANDONED_TOPPA_ABANDONED)
-                or self.appear(self.I_RYOU_DOKAN_TODAY_ATTACK_COUNT)
-                or self.appear(self.I_RYOU_DOKAN_REMAIN_ATTACK_COUNT_DONE)):
-            self.skip_owner_and_battle_again()
-
-    def click_until_in_battle(self) -> bool:
-        """点击挑战直到进入战斗"""
-        timeout_timer = Timer(5).start()
-        while True:
-            self.screenshot()
-            if self.is_in_battle(False):
-                return True
-            if timeout_timer.reached():
-                break
-            self.appear_then_click(self.I_RYOU_DOKAN_START_CHALLENGE, interval=2)
-        return False
-
-    def run_on_dokan_map(self):
-        """道馆地图页面逻辑处理"""
-        # 诊断：确认"运行这一刻"到底哪张识别图命中（拿旧截图测通不代表现场能命中）
+    # ---------------------------------- 选馆 / 策略 ----------------------------------
+    def select_dokan_target(self) -> None:
+        # 诊断：确认"运行这一刻"到底哪张识别图命中
         logger.info(
             f'[dokan-debug] map: finding={self.appear(self.I_RYOU_DOKAN_FINDING_DOKAN)}, '
             f'found={self.appear(self.I_RYOU_DOKAN_FOUND_DOKAN)}'
         )
-        if self.appear(self.I_RYOU_DOKAN_FINDING_DOKAN):  # 道馆未开启
-            retrying_skipped_owner = self.second_dokan_ready
-            if self.found_dokan_cnt > 0 and not retrying_skipped_owner:
-                raise DokanNotStartedError
-            if retrying_skipped_owner and self.found_dokan_cnt >= 2:
-                raise DokanFinishedError
-            remaining = self.update_remain_attack_count()
-            if remaining < 0:
-                logger.warning('未识别到道馆剩余次数，结束本次筛选')
-                raise DokanNotStartedError
-            if remaining == 0:
-                logger.info('游戏显示道馆剩余0次，结束任务')
-                raise DokanFinishedError
-            if not retrying_skipped_owner and not self.ensure_dokan_created():
-                logger.warning('Create Dokan failed, stop before selecting a target')
-                raise DokanNotStartedError
-            self.second_dokan_ready = False
-            # 寻找合适道馆,找不到直接退出
-            if not self.find_dokan():
-                raise DokanNotStartedError
-            # 寻找到道馆后等一会页面刷新
-            self.wait_until_appear(self.I_RYOU_DOKAN_CENTER_TOP, True, 5)
-            return
-        if self.appear(self.I_RYOU_DOKAN_FOUND_DOKAN):  # 道馆已开启
-            self.goto_page(pages.page_dokan)  # 跳转到道馆
+        retrying_skipped_owner = self.second_dokan_ready
+        if self.found_dokan_cnt > 0 and not retrying_skipped_owner:
+            raise DokanNotStartedError
+        if retrying_skipped_owner and self.found_dokan_cnt >= 2:
+            raise DokanFinishedError
+        remaining = self.update_remain_attack_count()
+        if remaining < 0:
+            logger.warning('未识别到道馆剩余次数，结束本次筛选')
+            raise DokanNotStartedError
+        if remaining == 0:
+            logger.info('游戏显示道馆剩余0次，结束任务')
+            raise DokanFinishedError
+        if not retrying_skipped_owner and not self.ensure_dokan_created():
+            logger.warning('Create Dokan failed, stop before selecting a target')
+            raise DokanNotStartedError
+        self.second_dokan_ready = False
+        # 寻找合适道馆,找不到直接退出
+        if not self.find_dokan():
+            raise DokanNotStartedError
+        # 寻找到道馆后等一会页面刷新
+        self.wait_until_appear(self.I_RYOU_DOKAN_CENTER_TOP, True, 5)
 
-    def run_on_battle(self):
-        """处理战斗页面逻辑(正常来说是一定不会进入该逻辑的)"""
-        if self.appear(self.I_RYOU_DOKAN_BATTLE_MASTER_FIRST) or \
-                self.appear(self.I_RYOU_DOKAN_BATTLE_MASTER_SECOND):
-            self.dokan_owner_battle = True
-            self.run_general_battle(self.build_quick_exit_config(self.conf.dokan_member_battle_conf),
-                                    battle_key='dokan_member')
-            return
-        self.run_general_battle(self.conf.dokan_member_battle_conf, battle_key='dokan_member')
+    def run_owner_battle_from_battle_page(self) -> None:
+        self.run_general_battle(self.build_quick_exit_config(self.conf.dokan_member_battle_conf),
+                                battle_key='dokan_member')
 
-    def switch_priority(self):
-        """选择优先级"""
-        if self.attack_priority_selected:
-            return
-        self.goto_page(pages.page_dokan_priority)
-        self.goto_page(pages.page_dokan)
-        self.attack_priority_selected = True
+    def handle_owner_state(self) -> bool:
+        self.skip_owner_and_battle_again()
+        return True
 
+    def handle_vote_or_finish(self) -> None:
+        self.skip_owner_and_battle_again()
+
+    def prepare_member_soul(self) -> None:
+        self.switch_soul_in_dokan()
+
+    def should_retry_today(self) -> bool:
+        return self.conf.attack_count_config.remain_attack_count == 1
+
+    # ---------------------------------- 福利寮筛选 ----------------------------------
     def _wait_for_dokan_list_ready(self) -> bool:
         """列表连续两次稳定后使用当前帧筛选，避免滑动中读取旧位置。"""
         animation = RuleAnimate(self.I_RIGHTPAD_POINT_BOUNTY, threshold=0.98, name='DOKAN_LIST')
@@ -634,78 +453,6 @@ class ScriptTask(GameUi, SwitchSoul, GeneralBattle, ZombieGuildAssets):
         )
         return False
 
-    def creat_dokan(self) -> bool:
-        # 点击创建道馆
-        # 当 成功建立道馆并关闭道馆信息窗口后退出
-        #  或 点击创建道馆按钮无反应(道馆已经建立的情况下),5秒后退出
-        while True:
-            self.screenshot()
-            if self.appear(self.I_RYOU_DOKAN_DOKAN_INFO_CLOSE):
-                self.ui_click_until_disappear(self.I_RYOU_DOKAN_DOKAN_INFO_CLOSE)
-                logger.info("Create Dokan Success")
-                return True
-            if self.appear(self.I_RYOU_DOKAN_CREATE_DOKAN_ENSURE):
-                self.ui_click_until_appear_or_timeout(self.I_RYOU_DOKAN_CREATE_DOKAN_ENSURE,
-                                                      stop=self.I_RYOU_DOKAN_DOKAN_INFO_CLOSE, interval=2, timeout=10)
-                continue
-            if self.ui_click_until_appear_or_timeout(self.I_RYOU_DOKAN_CREATE_DOKAN,
-                                                     self.I_RYOU_DOKAN_CREATE_DOKAN_ENSURE, 2, 10):
-                continue
-            return False
-
-    def find_all_element(self, item, offset: tuple) -> list[tuple[int, int, int, int]]:
-        """
-        NOTE: 仅适配查找道馆列表
-        在当前对象中查找所有匹配的项目，并返回它们的信息列表。
-
-        此函数的目的是通过循环搜索和匹配给定的项目，并将匹配的项目信息存储到一个列表中。
-        如果项目出现，则将其添加到列表中，并根据预定义的规则调整项目的位置。
-
-        参数:
-        - item: 需要查找的项目。
-        - offset: 如果当前区域查找不到,扩大查找区域的大小
-
-        返回值:
-        返回一个包含所有匹配项目信息的列表。
-        """
-        res_list = []
-        while 1:
-            if (item.roi_back[0] + item.roi_back[2] > (1280 + offset[2])) or (
-                    item.roi_back[1] + item.roi_back[3] > (720 + offset[3])):
-                break
-            if self.appear(item):
-                res_list.append(item.roi_front.copy())
-                # 刷新搜索区域,使用上个搜索结果的Y坐标作为起始点的Y坐标,搜索结果的高度作为起始搜索高度
-                item.roi_back = position_offset(item.roi_back, (
-                    0, item.roi_front[1] + item.roi_front[3] - item.roi_back[1], 0,
-                    item.roi_front[3] - item.roi_back[3]))
-            item.roi_back = position_offset(item.roi_back, offset)
-        return res_list
-
-    def update_remain_attack_count(self) -> int:
-        """
-        根据道馆地图界面 或 打完道馆后 的寮境界面,更新配置信息
-        @return:
-        @rtype:
-        """
-        self.screenshot()
-        count = -1
-        if self.appear(self.I_RYOU_DOKAN_REMAIN_ATTACK_COUNT_ZERO) or self.appear(
-                self.I_RYOU_DOKAN_REMAIN_ATTACK_COUNT_DONE):
-            logger.info("I_RYOU_DOKAN_REMAIN_ATTACK_COUNT_ZERO/DONE found")
-            count = 0
-        elif self.appear(self.I_RYOU_DOKAN_REMAIN_ATTACK_COUNT_ONE):
-            logger.info("I_RYOU_DOKAN_REMAIN_ATTACK_COUNT_ONE found")
-            count = 1
-        elif self.appear(self.I_RYOU_DOKAN_REMAIN_ATTACK_COUNT_TWO):
-            logger.info("I_RYOU_DOKAN_REMAIN_ATTACK_COUNT_TWO found")
-            count = 2
-        else:
-            logger.info("dont find REMAIN_ATTACK_COUNT PIC")
-            count = -1
-        self.config.zombie_guild.attack_count_config.set_attack_count(count, self.config.save)
-        return count
-
     def skip_owner_and_battle_again(self) -> bool:
         """馆主阶段放弃突破；有第二次机会时再战，否则保留赏金。"""
         can_retry = self.can_battle_again()
@@ -820,7 +567,7 @@ class ScriptTask(GameUi, SwitchSoul, GeneralBattle, ZombieGuildAssets):
         self.attack_priority_selected = False
         self.second_dokan_ready = True
 
-    def switch_soul_in_dokan(self):
+    def switch_soul_in_dokan(self) -> None:
         """本次任务仅切换一次馆员御魂，第二次道馆沿用。"""
         if self.switch_member_soul_done:
             return
@@ -838,52 +585,6 @@ class ScriptTask(GameUi, SwitchSoul, GeneralBattle, ZombieGuildAssets):
             logger.info('Skip switch soul')
         self.switch_member_soul_done = True
 
-    def next_run(self, skip_today=False, is_dokan_activated=False):
-        """
-            设置下次运行时间
-            该函数假定道馆时间设置为:每天固定时间尝试开启(例如:19:00),成功后设置为明天固定时间(例如19:00)
-                                失败则在短时间(例如:2分钟)内再次尝试开启道馆任务
-            此假定应该符合绝大多数人需求,如果存在其他需求,,,help yourself
-
-        @param skip_today: 是否跳过今天,True->当作当天的道馆已成功打掉,False->无效
-                            为了跳过周五->周天
-        @type skip_today: bool
-        @param is_dokan_activated:
-        @type is_dokan_activated: bool
-        @return:
-        @rtype:
-        """
-        now = datetime.now()
-        run_time: Time = self.config.model.zombie_guild.dokan_config.dokan_run_time
-        run_time_dt = datetime.combine(now.date(), run_time)
-        if skip_today:
-            if self.conf.dokan_config.monday_to_thursday and now.weekday() >= 4:  # 直接设置下周一的道馆时间
-                self.set_next_run(task="ZombieGuild",
-                                  target=datetime.combine(now.date() + timedelta(days=7 - now.weekday()), run_time))
-                return
-            self.set_next_run(task="ZombieGuild", target=datetime.combine(now.date() + timedelta(days=1), run_time))
-            return
-        # 道馆没有开启
-        if not is_dokan_activated:
-            # 在服务器时间之前,设置为服务器时间
-            if now < run_time_dt:
-                self.set_next_run(task="ZombieGuild", target=run_time_dt)
-                return
-            # 在服务器时间之后,如超过1小时,则直接当作成功;未超过则当作失败
-            if now - run_time_dt > timedelta(hours=1):
-                self.set_next_run(task="ZombieGuild",
-                                  target=datetime.combine(now.date() + timedelta(days=1), run_time))
-                return
-            # 时间在道馆开启时间附近，failure_interval后执行
-            self.set_next_run(task="ZombieGuild", target=now + self.config.zombie_guild.scheduler.failure_interval)
-            return
-        # 道馆已开启
-        # 如果打两次,当前是第一次,设置为failure_interval后运行
-        if self.config.zombie_guild.attack_count_config.remain_attack_count == 1:
-            self.set_next_run(task="ZombieGuild", target=now + self.config.zombie_guild.scheduler.failure_interval)
-            return
-        # 其余情况当作成功
-        self.set_next_run(task="ZombieGuild", target=datetime.combine(now.date() + timedelta(days=1), run_time))
 
 if __name__ == '__main__':
     from module.config.config import Config
