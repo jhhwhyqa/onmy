@@ -319,6 +319,11 @@ class ConfigModel(ConfigBase):
                 item["default"] = value["default"]
                 item["value"] = jsons[key] if key in jsons else value["default"]
                 item["type"] = value["type"] if "type" in value else "enum"
+                # 数值边界，供前端做输入校验
+                if "minimum" in value:
+                    item["minimum"] = value["minimum"]
+                if "maximum" in value:
+                    item["maximum"] = value["maximum"]
                 if '$ref' in value:  # list
                     enum_key = re.search(r"/([^/]+)$", value['$ref']).group(1)
                     item["enumEnum"] = definitions[enum_key]["enum"]

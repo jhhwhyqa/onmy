@@ -20,6 +20,9 @@ from tasks.WantedQuests.config import CooperationType
 from tasks.AssistBattle.assets import AssistBattleAssets
 from tasks.AssistBattle.config import AssistBattleConfig
 
+TOTAL_EVOZONE = 15
+TOTAL_REALMRAID = 3
+
 
 class ScriptTask(
     EvoZoneScriptTask,
@@ -54,7 +57,16 @@ class ScriptTask(
                 }
             )
         else:
+            today = datetime.now().strftime('%Y-%m-%d')
             for account in accounts:
+                if account.assist_complete_date == today:
+                    logger.info(
+                        'Skip %s-%s: AssistBattle already completed today',
+                        account.character,
+                        account.svr,
+                    )
+                    results.append(self.completed_result(account))
+                    continue
                 logger.hr(
                     'Run AssistBattle for %s-%s' % (account.character, account.svr), 2
                 )
@@ -84,6 +96,14 @@ class ScriptTask(
                         'jade_flag': jade_flag,
                     }
                 )
+                if self.is_completed(evozone_final, realmraid_final):
+                    account.assist_complete_date = today
+                    self.config.save()
+                    logger.info(
+                        'AssistBattle completed today for %s-%s',
+                        account.character,
+                        account.svr,
+                    )
         # 输出协战结果
         logger.hr('AssistBattle Result', 2)
         push_content = []
@@ -91,6 +111,11 @@ class ScriptTask(
         for result in results:
             # 账号取前4位，服务器取后4位，角色名取后2位
             message = self.account_label(result)
+            if result.get('cached'):
+                message += '-今日已完成(缓存)'
+                logger.info(message)
+                push_content.append(message)
+                continue
             if self.conf.assist_battle_config.evozone_enable:
                 message += f"-觉醒{result['evozone_done']}次"
             if self.conf.assist_battle_config.realmraid_enable:
@@ -125,6 +150,32 @@ class ScriptTask(
         raise TaskEnd('AssistBattle')
 
     @staticmethod
+    def completed_result(account: AccountInfo) -> dict:
+        """命中当日完成缓存的账号，按已满额计入结果，不再登录。"""
+        return {
+            'account': account.account,
+            'character': account.character,
+            'svr': account.svr,
+            'evozone_done': 0,
+            'realmraid_done': 0,
+            'evozone_final': TOTAL_EVOZONE,
+            'realmraid_final': TOTAL_REALMRAID,
+            'jade_flag': False,
+            'cached': True,
+        }
+
+    def is_completed(self, evozone_final: int, realmraid_final: int) -> bool:
+        """启用的协战类型是否都已打满，打满才缓存为已完成。"""
+        conf = self.conf.assist_battle_config
+        if not conf.evozone_enable and not conf.realmraid_enable:
+            return False
+        if conf.evozone_enable and evozone_final < TOTAL_EVOZONE:
+            return False
+        if conf.realmraid_enable and realmraid_final < TOTAL_REALMRAID:
+            return False
+        return True
+
+    @staticmethod
     def account_label(result: dict, ellipsis: str = '**') -> str:
         """账号取前4位，服务器取后4位，角色名取后2位。
 
@@ -139,7 +190,6 @@ class ScriptTask(
         )
 
     def run_current_account(self, account: AccountInfo = None):
-        total_evozone, total_realmraid = 15, 3
         evozone_done, realmraid_done = 0, 0
         evozone_final, realmraid_final = 0, 0
         jade_flag = False
@@ -209,8 +259,8 @@ class ScriptTask(
             evozone_done = start_evozone - end_evozone
             realmraid_done = start_realmraid - end_realmraid
             # 今天已经完成的任务
-            evozone_final = total_evozone - end_evozone
-            realmraid_final = total_realmraid - end_realmraid
+            evozone_final = TOTAL_EVOZONE - end_evozone
+            realmraid_final = TOTAL_REALMRAID - end_realmraid
             if self.conf.assist_battle_config.evozone_enable:
                 logger.info(
                     "本次协战完成：觉醒 %s 次，结界突破 %s 次",

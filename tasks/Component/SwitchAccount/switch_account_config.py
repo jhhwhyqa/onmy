@@ -22,9 +22,11 @@ class AccountInfo(BaseModel):
     last_complete_time: DateTime = Field(default=DateTime.fromisoformat("2023-01-01 00:00:00"), description="last_complete_time_help")
     # 一键协战：该账号上次购买寄售券的日期(YYYY-MM-DD)，用于「每周一次、以周一为界」判断
     consignment_date: str = Field(default='2023-01-01', description="consignment_date_help")
+    # 一键协战：该账号上次完成协战的日期(YYYY-MM-DD)，当天重启任务时不再登录该账号
+    assist_complete_date: str = Field(default='', description="assist_complete_date_help")
 
     # 运行状态记录，不需要给用户改
-    hide_fields = dynamic_hide('consignment_date')
+    hide_fields = dynamic_hide('consignment_date', 'assist_complete_date')
 
     def is_account_alias(self, ocr_account):
         tmp_account = AccountInfo.preprocessAccount(self.account)
