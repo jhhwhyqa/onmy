@@ -458,9 +458,18 @@ class ScriptTask(DokanTaskBase, ZombieGuildAssets):
         can_retry = self.can_battle_again()
         remaining = None
         retry_wait_logged = False
+        abandon_clicked = False
+        vote_click_failures = 0
         timeout = Timer(15).start()
         while not timeout.reached():
             self.screenshot()
+            # 放弃突破的投票确认弹窗是模态的，会吞掉其它按钮的点击，必须最先处理
+            if self.appear(self.I_DOKAN_ABANDONED_TOPPA_ENSURE):
+                logger.info('Confirm abandon Dokan vote')
+                self.appear_then_click(self.I_DOKAN_ABANDONED_TOPPA_ENSURE, interval=1)
+                abandon_clicked = True
+                sleep(0.5)
+                continue
             settlement_visible = (self.appear(self.I_RYOU_DOKAN_TODAY_ATTACK_COUNT)
                                   or self.appear(self.I_RYOU_DOKAN_REMAIN_ATTACK_COUNT_DONE))
             if settlement_visible and (remaining is None or remaining < 0):
@@ -475,6 +484,12 @@ class ScriptTask(DokanTaskBase, ZombieGuildAssets):
                         logger.info("Skipped owner battle and selected Battle Again")
                         self.wait_for_next_dokan_selection()
                         return True
+                    vote_click_failures += 1
+                    if vote_click_failures >= 3:
+                        logger.warning(
+                            'Battle Again did not respond; stop clicking to avoid the click limit'
+                        )
+                        return False
             elif not can_retry and self.appear(self.I_RYOU_DOKAN_FAILED_VOTE_KEEP_BOUNTY):
                 if self.appear_then_click(self.I_RYOU_DOKAN_FAILED_VOTE_KEEP_BOUNTY, interval=1):
                     self.wait_until_disappear(self.I_RYOU_DOKAN_FAILED_VOTE_KEEP_BOUNTY, timeout=3)
@@ -483,6 +498,12 @@ class ScriptTask(DokanTaskBase, ZombieGuildAssets):
                         self.dokan_owner_battle = False
                         logger.info("Skipped owner battle and kept the bounty on the last attempt")
                         return True
+                    vote_click_failures += 1
+                    if vote_click_failures >= 3:
+                        logger.warning(
+                            'Keep Bounty did not respond; stop clicking to avoid the click limit'
+                        )
+                        return False
             elif self.appear(self.I_RYOU_DOKAN_TOPPA_RANK):
                 self.click(self.C_DOKAN_TOPPA_RANK_CLOSE_AREA, interval=1)
             elif (self.appear(self.I_DOKAN_ABANDONED_TOPPA_TITLE)
@@ -498,12 +519,12 @@ class ScriptTask(DokanTaskBase, ZombieGuildAssets):
                     self.dokan_owner_battle = False
                     logger.info("Dokan challenge ended while skipping owner battle")
                     raise DokanFinishedError
-            elif self.appear(self.I_DOKAN_ABANDONED_TOPPA_ENSURE):
-                self.appear_then_click(self.I_DOKAN_ABANDONED_TOPPA_ENSURE, interval=1)
-            elif self.appear(self.I_DOKAN_ABANDONED_TOPPA_RIGHT):
-                self.appear_then_click(self.I_DOKAN_ABANDONED_TOPPA_RIGHT, interval=1)
-            elif self.appear(self.I_DOKAN_ABANDONED_TOPPA):
-                self.appear_then_click(self.I_DOKAN_ABANDONED_TOPPA, interval=1)
+            elif not abandon_clicked and self.appear(self.I_DOKAN_ABANDONED_TOPPA_RIGHT):
+                if self.appear_then_click(self.I_DOKAN_ABANDONED_TOPPA_RIGHT, interval=1):
+                    abandon_clicked = True
+            elif not abandon_clicked and self.appear(self.I_DOKAN_ABANDONED_TOPPA):
+                if self.appear_then_click(self.I_DOKAN_ABANDONED_TOPPA, interval=1):
+                    abandon_clicked = True
             sleep(0.5)
         logger.warning("Skip owner battle timed out before voting")
         return False
