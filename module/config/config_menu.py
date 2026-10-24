@@ -28,7 +28,6 @@ class ConfigMenu:
             "EvoZone",
             "GoryouRealm",
             "Exploration",
-            "Hyakkiyakou",
             "HeroTest",
             "FindJade",
             "MemoryScrolls",

@@ -1316,53 +1316,6 @@
       "team_name": ""
     }
   },
-  "hyakkiyakou": {
-    "scheduler": {
-      "enable": false,
-      "next_run": "2023-01-01 00:00:00",
-      "priority": 5,
-      "success_interval": "01 00:00:00",
-      "failure_interval": "01 00:00:00",
-      "server_update": "09:00:00",
-      "delay_date": 1,
-      "float_time": "00:00:00"
-    },
-    "hyakkiyakou_config": {
-      "hya_limit_time": "00:20:00",
-      "hya_limit_count": 10,
-      "hya_invite_friend": false,
-      "hya_onmyoji": "神乐",
-      "hya_auto_bean": false,
-      "hya_bean_threshold_low": 10,
-      "hya_priorities": "",
-      "hya_sp": 1.0,
-      "hya_ssr": 1.0,
-      "hya_sr": 0.7,
-      "hya_r": 0.3,
-      "hya_n": 0.0,
-      "hya_g": 0.0,
-      "hya_buff_prob_up": 2.2,
-      "hya_buff_speed_up": 2.0,
-      "hya_buff_add_beans": 2.0,
-      "hya_buff_slow_down": 2.0,
-      "hya_buff_freeze": 2.0
-    },
-    "hyakkiyakou_models": {
-      "conf_threshold": 0.6,
-      "iou_threshold": 0.7,
-      "model_precision": "FP32",
-      "inference_engine": "Onnxruntime"
-    },
-    "debug_config": {
-      "hya_show": false,
-      "hya_info": false,
-      "continuous_learning": false,
-      "hya_save_result": false,
-      "hya_interval": 300,
-      "hya_screenshot_method": "window_background",
-      "hya_control_method": "window_message"
-    }
-  },
   "hero_test": {
     "scheduler": {
       "enable": false,

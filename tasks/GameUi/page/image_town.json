@@ -108,24 +108,6 @@
     "description": "description"
   },
   {
-    "itemName": "town_goto_hyakkiyakou",
-    "imageName": "page_town_goto_hyakkiyakou.png",
-    "roiFront": "880,165,53,69",
-    "roiBack": "827,149,148,100",
-    "method": "Template matching",
-    "threshold": 0.8,
-    "description": "町中进入百鬼标志"
-  },
-  {
-    "itemName": "check_kyakkiyakou",
-    "imageName": "page_check_kyakkiyakou.png",
-    "roiFront": "1062,564,84,73",
-    "roiBack": "68,519,1185,141",
-    "method": "Template matching",
-    "threshold": 0.8,
-    "description": "百鬼夜行标志"
-  },
-  {
     "itemName": "check_demon_encounter_2",
     "imageName": "page_check_demon_encounter_2.png",
     "roiFront": "501,441,53,122",
