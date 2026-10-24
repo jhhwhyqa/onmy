@@ -1,4 +1,5 @@
 from module.atom.image import RuleImage
+from module.atom.frame import RuleFrame, Image, Ocr, Click
 from module.atom.click import RuleClick
 from module.atom.long_click import RuleLongClick
 from module.atom.swipe import RuleSwipe
@@ -12,31 +13,31 @@ class DemonRetreatAssets:
 
 	# Image Rule Assets
 	# 神社 
-	I_SHRINE = RuleImage(roi_front=(870,624,65,61), roi_back=(870,624,65,61), threshold=0.8, method="Template matching", file="./tasks/DemonRetreat/DemonRetreat/DemonRetreat_shrine.png")
+	I_SHRINE = RuleImage(roi_front=(870,624,65,61), roi_back=(870,624,65,61), threshold=0.8, method="Template matching", profile="High", file="./tasks/DemonRetreat/DemonRetreat/DemonRetreat_shrine.png")
 	# 首领退治 
-	I_HUNT = RuleImage(roi_front=(698,228,122,78), roi_back=(661,164,187,165), threshold=0.8, method="Template matching", file="./tasks/DemonRetreat/DemonRetreat/DemonRetreat_hunt.png")
+	I_HUNT = RuleImage(roi_front=(698,228,122,78), roi_back=(661,164,187,165), threshold=0.8, method="Template matching", profile="High", file="./tasks/DemonRetreat/DemonRetreat/DemonRetreat_hunt.png")
 	# 首领退治开启界面的标识（顶部标题） 
-	I_HUNT_CHECK = RuleImage(roi_front=(542,4,204,55), roi_back=(542,4,204,55), threshold=0.8, method="Template matching", file="./tasks/DemonRetreat/DemonRetreat/DemonRetreat_hunt_check.png")
+	I_HUNT_CHECK = RuleImage(roi_front=(542,4,204,55), roi_back=(542,4,204,55), threshold=0.8, method="Template matching", profile="High", file="./tasks/DemonRetreat/DemonRetreat/DemonRetreat_hunt_check.png")
 	# description 
-	I_DEMON_GATHER = RuleImage(roi_front=(26,487,76,48), roi_back=(26,487,76,48), threshold=0.8, method="Template matching", file="./tasks/DemonRetreat/DemonRetreat/DemonRetreat_demon_gather.png")
+	I_DEMON_GATHER = RuleImage(roi_front=(26,487,76,48), roi_back=(26,487,76,48), threshold=0.8, method="Template matching", profile="High", file="./tasks/DemonRetreat/DemonRetreat/DemonRetreat_demon_gather.png")
 	# 非退治时间进行检查 
-	I_DEMON_BACK_CHECK = RuleImage(roi_front=(27,26,42,36), roi_back=(14,2,86,86), threshold=0.7, method="Template matching", file="./tasks/DemonRetreat/DemonRetreat/DemonRetreat_demon_back_check.png")
+	I_DEMON_BACK_CHECK = RuleImage(roi_front=(27,26,42,36), roi_back=(14,2,86,86), threshold=0.7, method="Template matching", profile="High", file="./tasks/DemonRetreat/DemonRetreat/DemonRetreat_demon_back_check.png")
 	# 迟到直接进入战斗 
-	I_ENTER_FIRE = RuleImage(roi_front=(1141,581,100,67), roi_back=(1141,581,100,67), threshold=0.8, method="Template matching", file="./tasks/DemonRetreat/DemonRetreat/DemonRetreat_enter_fire.png")
+	I_ENTER_FIRE = RuleImage(roi_front=(1141,581,100,67), roi_back=(1141,581,100,67), threshold=0.8, method="Template matching", profile="High", file="./tasks/DemonRetreat/DemonRetreat/DemonRetreat_enter_fire.png")
 	# 取消退出 
-	I_QUIT_BACK = RuleImage(roi_front=(488,401,100,44), roi_back=(488,401,100,44), threshold=0.8, method="Template matching", file="./tasks/DemonRetreat/DemonRetreat/DemonRetreat_new.png")
+	I_QUIT_BACK = RuleImage(roi_front=(488,401,100,44), roi_back=(488,401,100,44), threshold=0.8, method="Template matching", profile="High", file="./tasks/DemonRetreat/DemonRetreat/DemonRetreat_new.png")
 	# 退治排行榜 
-	I_RANK_LSIT = RuleImage(roi_front=(73,186,135,41), roi_back=(73,186,135,41), threshold=0.8, method="Template matching", file="./tasks/DemonRetreat/DemonRetreat/DemonRetreat_rank_lsit.png")
+	I_RANK_LSIT = RuleImage(roi_front=(73,186,135,41), roi_back=(73,186,135,41), threshold=0.8, method="Template matching", profile="High", file="./tasks/DemonRetreat/DemonRetreat/DemonRetreat_rank_lsit.png")
 	# 全部领取 
-	I_REWARD_ALL = RuleImage(roi_front=(535,540,177,60), roi_back=(535,540,177,60), threshold=0.8, method="Template matching", file="./tasks/DemonRetreat/DemonRetreat/DemonRetreat_reward_all.png")
+	I_REWARD_ALL = RuleImage(roi_front=(535,540,177,60), roi_back=(535,540,177,60), threshold=0.8, method="Template matching", profile="High", file="./tasks/DemonRetreat/DemonRetreat/DemonRetreat_reward_all.png")
 	# 祈愿 
-	I_PRAY = RuleImage(roi_front=(1176,385,43,70), roi_back=(1176,385,43,70), threshold=0.8, method="Template matching", file="./tasks/DemonRetreat/DemonRetreat/DemonRetreat_pray.png")
-	# 首领退治右下角「开启狭间」按钮 
-	I_OPEN_ABYSS = RuleImage(roi_front=(1132,549,99,58), roi_back=(1126,540,112,76), threshold=0.8, method="Template matching", file="./tasks/DemonRetreat/DemonRetreat/DemonRetreat_open_abyss.png")
+	I_PRAY = RuleImage(roi_front=(1176,385,43,70), roi_back=(1176,385,43,70), threshold=0.8, method="Template matching", profile="High", file="./tasks/DemonRetreat/DemonRetreat/DemonRetreat_pray.png")
+	# 首领退治右下角「开启退治」按钮 
+	I_OPEN_ABYSS = RuleImage(roi_front=(1132,549,99,58), roi_back=(1126,540,112,76), threshold=0.8, method="Template matching", profile="High", file="./tasks/DemonRetreat/DemonRetreat/DemonRetreat_open_abyss.png")
 	# 「开启狭间」的确认按钮 
-	I_OPEN_ABYSS_CONFIRM = RuleImage(roi_front=(699,405,83,41), roi_back=(699,405,83,41), threshold=0.8, method="Template matching", file="./tasks/DemonRetreat/DemonRetreat/DemonRetreat_open_abyss_confirm.png")
+	I_OPEN_ABYSS_CONFIRM = RuleImage(roi_front=(699,405,83,41), roi_back=(699,405,83,41), threshold=0.8, method="Template matching", profile="High", file="./tasks/DemonRetreat/DemonRetreat/DemonRetreat_open_abyss_confirm.png")
 	# 首领退治挑战界面的标识 
-	I_CHALLENGE_CHECK = RuleImage(roi_front=(575,15,128,43), roi_back=(575,15,128,43), threshold=0.8, method="Template matching", file="./tasks/DemonRetreat/DemonRetreat/DemonRetreat_challenge_check.png")
+	I_CHALLENGE_CHECK = RuleImage(roi_front=(575,15,128,43), roi_back=(575,15,128,43), threshold=0.8, method="Template matching", profile="High", file="./tasks/DemonRetreat/DemonRetreat/DemonRetreat_challenge_check.png")
 
 
 	# Ocr Rule Assets

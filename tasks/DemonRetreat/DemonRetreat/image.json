@@ -96,7 +96,7 @@
     "roiBack": "1126,540,112,76",
     "method": "Template matching",
     "threshold": 0.8,
-    "description": "首领退治右下角「开启狭间」按钮"
+    "description": "首领退治右下角「开启退治」按钮"
   },
   {
     "itemName": "open_abyss_confirm",

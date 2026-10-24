@@ -245,8 +245,8 @@
   {
     "itemName": "btn_start",
     "imageName": "res_btn_start.png",
-    "roiFront": "1120,570,100,120",
-    "roiBack": "1120,570,100,120",
+    "roiFront": "1131,606,75,44",
+    "roiBack": "1131,606,75,44",
     "method": "Template matching",
     "threshold": 0.8,
     "description": "开启按钮"
@@ -254,8 +254,8 @@
   {
     "itemName": "start_ensure",
     "imageName": "res_start_ensure.png",
-    "roiFront": "660,390,190,80",
-    "roiBack": "660,390,190,80",
+    "roiFront": "715,420,75,41",
+    "roiBack": "715,420,75,41",
     "method": "Template matching",
     "threshold": 0.8,
     "description": "开启确认按钮"
