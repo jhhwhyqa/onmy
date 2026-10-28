@@ -70,6 +70,7 @@ class BaseTask(GlobalGameAssets, CostumeBase):
         游戏界面突发异常检测
         :return: 没有出现返回False, 其他True
         """
+        jade_flag = False
         # 好友邀请是低频事件，不必每帧都发一次匹配 RPC；采样间隔沿用 appear 的 interval 机制。
         appear_invitation = self.appear(self.I_G_ACCEPT, interval=self.BURST_CHECK_INTERVAL)
         if not appear_invitation:
@@ -106,13 +107,26 @@ class BaseTask(GlobalGameAssets, CostumeBase):
                 raise ScriptError(f'Unknown friend invitation type: {invite_type}')
         if not click_button:
             raise ScriptError(f'Unknown click button type: {invite_type}')
+        if (
+            self.appear(self.I_G_JADE)
+            or self.appear(self.I_G_CAT_FOOD)
+            or self.appear(self.I_G_DOG_FOOD)
+        ):
+            jade_flag = True
         while 1:
             self.device.screenshot()
             if not self.appear(target=click_button):
                 logger.info('Deal with invitation done')
                 break
             if self.appear_then_click(click_button, interval=0.8):
+                # 拒绝勾/粮类协作邀请会再弹一次确认框，等它出现后点掉
+                if jade_flag and (
+                    click_button == self.I_G_IGNORE or click_button == self.I_G_REJECT
+                ):
+                    self.device.screenshot()
+                    self.wait_until_appear_then_click(self.I_UI_CONFIRM, wait_time=3)
                 continue
+
         # 有的时候长战斗 点击后会取消战斗状态
         self.device.detect_record = detect_record
         # 如果接受邀请则立即执行悬赏任务
