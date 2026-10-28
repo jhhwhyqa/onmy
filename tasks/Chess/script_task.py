@@ -3,6 +3,7 @@
 import time
 from datetime import datetime, timedelta
 
+from module.atom.image import RuleImage
 from module.exception import GameStuckError, TaskEnd
 from module.logger import logger
 from tasks.Chess.assets import ChessAssets
@@ -15,8 +16,20 @@ from tasks.Chess.runtime.round_state import ChessRoundStateMixin
 from tasks.Chess.runtime.settings import ChessRuntimeSettings
 from tasks.Chess.runtime.state_loop import ChessStateLoopMixin
 from tasks.Component.GeneralBattle.general_battle import GeneralBattle
+from tasks.Component.GeneralBuff.assets import GeneralBuffAssets
 from tasks.GameUi.game_ui import GameUi
 from tasks.GameUi.page import page_chess
+
+
+# GeneralBuff 会把 GeneralBuffAssets.I_CLOSE_RED 的 roi_back 改成 buff 开关区域；
+# Chess 需要稳定的红叉搜索区域，因此使用一份独立规则。
+_CHESS_CLOSE_RED = RuleImage(
+    roi_front=(773, 365, 12, 20),
+    roi_back=(764, 134, 38, 369),
+    threshold=0.8,
+    method='Template matching',
+    file=GeneralBuffAssets.I_CLOSE_RED.file,
+)
 
 
 class ChessLegacyScriptTask(
@@ -40,7 +53,7 @@ class ChessLegacyScriptTask(
             return True
         # GeneralBuff 的红叉模板只是一小块纯红色, 0.6 阈值在棋局准备界面会误匹配
         # 血条/棋盘纹理, 连续点击同一位置会触发 GameTooManyClickError
-        if self.appear_then_click(self.I_CLOSE_RED, interval=0.8, threshold=0.8):
+        if self.appear_then_click(_CHESS_CLOSE_RED, interval=0.8):
             logger.info('Chess: close floating window with red cross')
             return True
         return False

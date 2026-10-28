@@ -78,11 +78,20 @@ class ChessEconomyMixin:
 
     def _read_shop_gold(self) -> int | None:
         """读取当前金币；OCR 异常时返回 None，避免误停购买流程。"""
-        value = self.O_GOLD.ocr(self.device.image)
-        if not isinstance(value, int) or value < 0:
-            logger.warning(f'Chess gold OCR invalid: [{value}]')
+        # O_GOLD 是 Digit 模式，Digit.ocr_digit() 在识别失败时返回 0，
+        # 会把“没读到”和“真的 0 金”混为一谈。这里读原始文本再判断。
+        raw = self.O_GOLD.ocr_single(self.device.image)
+        text = ''.join(str(raw or '').split()).replace(',', '')
+        for old, new in (
+                ('I', '1'), ('D', '0'), ('S', '5'),
+                ('B', '8'), ('O', '0'), ('o', '0'), ('d', '6'),
+                ('？', '2'), ('?', '2'), ('→', '1')):
+            text = text.replace(old, new)
+        match = re.search(r'\d+', text)
+        if match is None:
+            logger.warning(f'Chess gold OCR invalid: [{raw}]')
             return None
-        return value
+        return int(match.group())
 
     @staticmethod
     def _parse_coin_text(raw_text: str) -> dict | None:
@@ -426,6 +435,9 @@ class ChessEconomyMixin:
                 f'attempt={attempts}, source={current_match["source"]}, '
                 f'identity_score={current_match["score"]:.3f})'
             )
+            # 同一个商店槽位是合法的重试目标；每次尝试独立计数，
+            # 避免 10 次重试后触发全局 GameTooManyClickError。
+            self.device.click_record_remove(click_rule)
             clicked_and_gone = self.ui_click_until_disappear(
                 click_rule,
                 click_target=click_rule,

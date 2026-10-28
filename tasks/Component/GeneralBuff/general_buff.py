@@ -2,6 +2,7 @@
 # @author runhey
 # github https://github.com/runhey
 import time
+from copy import copy
 
 from tasks.Component.GeneralBuff.assets import GeneralBuffAssets
 from module.atom.ocr import RuleOcr
@@ -80,6 +81,13 @@ class GeneralBuff(BaseTask, GeneralBuffAssets):
         :param area:
         :return:
         """
+        # 这两个规则是 GeneralBuffAssets 的类级共享对象。直接改 roi_back
+        # 会污染同一进程内后续任务（例如 Chess 的 _burst），因此先复制到
+        # 当前任务实例，再只修改实例副本。
+        self.I_OPEN_YELLOW = copy(self.I_OPEN_YELLOW)
+        self.I_CLOSE_RED = copy(self.I_CLOSE_RED)
+        self.I_OPEN_YELLOW.roi_front = list(self.I_OPEN_YELLOW.roi_front)
+        self.I_CLOSE_RED.roi_front = list(self.I_CLOSE_RED.roi_front)
         self.I_OPEN_YELLOW.roi_back = list(area)  # 动态设置roi
         self.I_CLOSE_RED.roi_back = list(area)
 

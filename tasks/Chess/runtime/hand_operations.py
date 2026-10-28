@@ -24,6 +24,9 @@ from tasks.Chess.strategy.shikigami_catalog import (
 )
 
 
+SELL_HAND_CONTROL_NAME = 'CHESS_SELL_UNKNOWN_HAND_CARD'
+
+
 class ChessHandOperationsMixin:
     """Internal mixin; use through ``ScriptTask`` only."""
 
@@ -125,9 +128,13 @@ class ChessHandOperationsMixin:
             hold_duration=(0.2, 0.3),
             point_random=(-3, -3, 3, 3),
             swipe_duration=0.5,
-            name='CHESS_SELL_UNKNOWN_HAND_CARD',
+            name=SELL_HAND_CONTROL_NAME,
         )
         self.close_shikigami_specifics_if_open()
+
+    def _clear_sell_click_record(self) -> None:
+        """卖卡成功后才清记录，保留同一张卡反复卖不掉时的点击保护。"""
+        self.device.click_record_remove(SELL_HAND_CONTROL_NAME)
 
     def _wait_hand_card_removed(self, count_before: int, count_cards) -> bool:
         """按新截图确认手牌数量减少，处理误开的详情页，不固定空等。"""
@@ -221,6 +228,7 @@ class ChessHandOperationsMixin:
             'Emergency Chess lineup-card sale confirmed: '
             f'count={count_before}->{count_after}'
         )
+        self._clear_sell_click_record()
         return {
             'type': 'lineup',
             'name': identity['name'],
@@ -1520,6 +1528,7 @@ class ChessHandOperationsMixin:
                     'emblem', badge_target['name'],
                 )
                 self.sell_hand_card(badge_target['position'])
+                badge_sale_key = ('emblem', badge_target['name'])
                 if self._wait_hand_card_removed(
                     before,
                     lambda: self._hand_card_identity_count(
@@ -1527,6 +1536,23 @@ class ChessHandOperationsMixin:
                     ),
                 ):
                     sold.append(badge_target['position'])
+                    failed_sale_attempts.pop(badge_sale_key, None)
+                    self._clear_sell_click_record()
+                else:
+                    failed_sale_attempts[badge_sale_key] = (
+                        failed_sale_attempts.get(badge_sale_key, 0) + 1
+                    )
+                    logger.warning(
+                        'Chess emblem sale not confirmed: '
+                        f'name={badge_target["name"]}, '
+                        f'attempt={failed_sale_attempts[badge_sale_key]}/2'
+                    )
+                    if failed_sale_attempts[badge_sale_key] >= 2:
+                        logger.warning(
+                            'Stop Chess hand cleanup after repeated emblem '
+                            'sale failure'
+                        )
+                        break
                 clean_confirm_frames = 0
                 continue
 
@@ -1631,6 +1657,7 @@ class ChessHandOperationsMixin:
             if confirmed:
                 sold.append(sell_target['position'])
                 failed_sale_attempts.pop(sale_key, None)
+                self._clear_sell_click_record()
                 clean_confirm_frames = 0
                 logger.info(
                     'Chess card sale confirmed: '
@@ -1840,6 +1867,7 @@ class ChessHandOperationsMixin:
     ) -> list[str]:
         """识别并装备纹章；全部候选失败或无合法目标时出售。"""
         equipped = []
+        failed_sales = Counter()
         for _ in range(self.SOUL_EQUIP_SAFETY_LIMIT):
             cards = self._recognized_emblem_hand_cards()
             if not cards:
@@ -1913,10 +1941,25 @@ class ChessHandOperationsMixin:
                 )
                 before = self._hand_card_identity_count('emblem', latest['name'])
                 self.sell_hand_card(latest['position'])
-                self._wait_hand_card_removed(
+                confirmed = self._wait_hand_card_removed(
                     before,
                     lambda: self._hand_card_identity_count('emblem', latest['name']),
                 )
+                if confirmed:
+                    self._clear_sell_click_record()
+                else:
+                    failed_sales[latest['name']] += 1
+                    logger.warning(
+                        'Chess emblem sale not confirmed: '
+                        f'name={latest["name"]}, '
+                        f'attempt={failed_sales[latest["name"]]}/2'
+                    )
+                    if failed_sales[latest['name']] >= 2:
+                        logger.warning(
+                            'Stop selling Chess emblem after repeated '
+                            'sale failure'
+                        )
+                        break
         return equipped
 
     def _find_badge_hand_card(self) -> dict | None:
