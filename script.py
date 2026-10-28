@@ -48,6 +48,9 @@ class Script:
         self.last_task_runtime_outcome: dict[str, Any] | None = None
         self.task_hoarding_until: datetime | None = None
         self.task_hoarding_released = False
+        # 最近一次错误现场目录，用于错误推送附带截图
+        self._last_error_log_dir: str | None = None
+        self._last_error_log_task: str | None = None
         # 运行loop的线程
         self.loop_thread: Thread = None
 
@@ -85,7 +88,7 @@ class Script:
         """
         return None
 
-    def save_error_log(self):
+    def save_error_log(self) -> str | None:
         """
         保存错误现场到 ./log/error/<script_name>_<timestamp_ms>。
 
@@ -96,33 +99,76 @@ class Script:
         说明:
         - 新错误目录名会带上脚本名, 便于前端区分不同脚本产生的错误。
         - 目录名和脚本名都会经过统一净化, 避免路径注入。
+        - 返回错误现场目录；未启用保存或保存失败时返回 None。
         """
         from module.base.utils import save_image
         from module.handler.sensitive_info import (handle_sensitive_image,
                                                    handle_sensitive_logs)
-        if self.config.script.error.save_error:
-            if not os.path.exists('./log/error'):
-                os.mkdir('./log/error')
-            # 用统一规则生成错误目录名, 目录格式为 <script_name>_<timestamp_ms>。
-            folder_name = build_error_log_dir_name(self.config_name, int(time.time() * 1000))
-            folder = f'./log/error/{folder_name}'
-            logger.warning(f'Saving error: {folder}')
-            os.mkdir(folder)
-            for data in self.device.screenshot_deque:
-                image_time = datetime.strftime(data['time'], '%Y-%m-%d_%H-%M-%S-%f')
-                image = handle_sensitive_image(data['image'])
-                save_image(image, f'{folder}/{image_time}.png')
-            with open(logger.log_file, 'r', encoding='utf-8') as f:
-                lines = f.readlines()
-                start = 0
-                for index, line in enumerate(lines):
-                    line = line.strip(' \r\t\n')
-                    if re.match('^═{15,}$', line):
-                        start = index
-                lines = lines[start - 2:]
-                lines = handle_sensitive_logs(lines)
-            with open(f'{folder}/log.txt', 'w', encoding='utf-8') as f:
-                f.writelines(lines)
+        self._last_error_log_dir = None
+        if not self.config.script.error.save_error:
+            return None
+        if not os.path.exists('./log/error'):
+            os.mkdir('./log/error')
+        # 用统一规则生成错误目录名, 目录格式为 <script_name>_<timestamp_ms>。
+        folder_name = build_error_log_dir_name(self.config_name, int(time.time() * 1000))
+        folder = f'./log/error/{folder_name}'
+        logger.warning(f'Saving error: {folder}')
+        os.mkdir(folder)
+        for data in self.device.screenshot_deque:
+            image_time = datetime.strftime(data['time'], '%Y-%m-%d_%H-%M-%S-%f')
+            image = handle_sensitive_image(data['image'])
+            save_image(image, f'{folder}/{image_time}.png')
+        with open(logger.log_file, 'r', encoding='utf-8') as f:
+            lines = f.readlines()
+            start = 0
+            for index, line in enumerate(lines):
+                line = line.strip(' \r\t\n')
+                if re.match('^═{15,}$', line):
+                    start = index
+            lines = lines[start - 2:]
+            lines = handle_sensitive_logs(lines)
+        with open(f'{folder}/log.txt', 'w', encoding='utf-8') as f:
+            f.writelines(lines)
+        self._last_error_log_dir = folder
+        return folder
+
+    MAX_ERROR_PUSH_IMAGES = 5
+
+    def _safe_save_error_log(self) -> str | None:
+        """保存错误现场；失败时只记录日志，不影响后续推送。"""
+        try:
+            return self.save_error_log()
+        except Exception as e:
+            logger.warning(f'Failed to save error log for notification: {e}')
+            return None
+
+    def _error_push_attachments(self, folder: str | None) -> tuple[list[bytes], list[str]]:
+        """读取错误现场截图；仅当当前推送渠道支持附件时返回。"""
+        if not folder or not self.config.notifier.supports_images:
+            return [], []
+        error_dir = Path(folder)
+        if not error_dir.is_dir():
+            return [], []
+        images: list[bytes] = []
+        filenames: list[str] = []
+        screenshots = sorted(error_dir.glob('*.png'))[-self.MAX_ERROR_PUSH_IMAGES:]
+        for screenshot in screenshots:
+            try:
+                images.append(screenshot.read_bytes())
+                filenames.append(screenshot.name)
+            except OSError as e:
+                logger.warning(f'Read error screenshot failed: {screenshot}: {e}')
+        return images, filenames
+
+    def _push_error(self, command: str, content: str, folder: str | None = None) -> None:
+        """推送错误通知；支持的渠道附带错误现场截图。"""
+        images, filenames = self._error_push_attachments(folder)
+        self.config.notifier.push(
+            title=I18n.task_title(command),
+            content=content,
+            images=images,
+            filenames=filenames,
+        )
 
     @staticmethod
     def _log_image_cache_stats(stage: str = '') -> None:
@@ -394,10 +440,16 @@ class Script:
                 logger.critical("Possible reason #2: There is a problem with this task. "
                                 "Please contact developers or try to fix it yourself.")
                 logger.critical('Request human takeover')
-                # 添加失败三次的推送通知
-                self.config.notifier.push(
-                    title=I18n.task_title(task),
-                    content=f"<{self.config_name}> 任务连续失败三次，请上线查看"
+                # 添加失败三次的推送通知；如果本任务留下过错误现场，
+                # 一并附带截图（仅支持附件的渠道）。
+                error_log_dir = (
+                    self._last_error_log_dir
+                    if self._last_error_log_task == task else None
+                )
+                self._push_error(
+                    task,
+                    f"<{self.config_name}> 任务连续失败三次，请上线查看",
+                    error_log_dir,
                 )
                 # 关闭模拟器
                 if self.config.script.error.error_repeated:
@@ -437,19 +489,26 @@ class Script:
 
         if isinstance(e, (GameStuckError, GameTooManyClickError)):
             logger.error(e)
-            self.save_error_log()
+            error_log_dir = self._safe_save_error_log()
+            if error_log_dir:
+                self._last_error_log_task = command
             self.exception_handler(e=e, command=command)
             logger.warning(f'Game stuck, {self.device.package} will be restarted in 10 seconds')
             logger.warning('If you are playing by hand, please stop OAS')
-            self.config.notifier.push(title=I18n.task_title(command),
-                                      content=f"<{self.config_name}> GameStuckError or GameTooManyClickError")
+            self._push_error(
+                command,
+                f"<{self.config_name}> GameStuckError or GameTooManyClickError",
+                error_log_dir,
+            )
             self.config.task_call('Restart')
             self.device.sleep(10)
             return False
 
         if isinstance(e, GameBugError):
             logger.warning(e)
-            self.save_error_log()
+            error_log_dir = self._safe_save_error_log()
+            if error_log_dir:
+                self._last_error_log_task = command
             self.exception_handler(e=e, command=command)
             logger.warning('An error has occurred in Onmyoji game client, OAS is unable to handle')
             logger.warning(f'Restarting {self.device.package} to fix it')
@@ -466,11 +525,14 @@ class Script:
                 logger.info('GotoMain failed during server update window, delayed pending tasks and reschedule')
                 return False
             logger.critical('Game page unknown')
-            self.save_error_log()
+            error_log_dir = self._safe_save_error_log()
+            if error_log_dir:
+                self._last_error_log_task = command
             self.exception_handler(e=e, command=command)
-            self.config.notifier.push(
-                title=I18n.task_title(command),
-                content=f"<{self.config_name}> GamePageUnknownError",
+            self._push_error(
+                command,
+                f"<{self.config_name}> GamePageUnknownError",
+                error_log_dir,
             )
             self.config.task_call('Restart')
             self.device.sleep(10)
@@ -480,9 +542,13 @@ class Script:
             logger.critical(e)
             self.exception_handler(e=e, command=command)
             logger.critical('This is likely to be a mistake of developers, but sometimes just random issues')
-            self.config.notifier.push(
-                title=I18n.task_title(command),
-                content=f"<{self.config_name}> ScriptError",
+            error_log_dir = self._safe_save_error_log()
+            if error_log_dir:
+                self._last_error_log_task = command
+            self._push_error(
+                command,
+                f"<{self.config_name}> ScriptError",
+                error_log_dir,
             )
             exit(1)
 
@@ -490,19 +556,26 @@ class Script:
             logger.critical(e)
             self.exception_handler(e=e, command=command)
             logger.critical('Request human takeover')
-            self.config.notifier.push(
-                title=I18n.task_title(command),
-                content=f"<{self.config_name}> RequestHumanTakeover",
+            error_log_dir = self._safe_save_error_log()
+            if error_log_dir:
+                self._last_error_log_task = command
+            self._push_error(
+                command,
+                f"<{self.config_name}> RequestHumanTakeover",
+                error_log_dir,
             )
             exit(1)
 
         # generic
         logger.exception(e)
         self.exception_handler(e=e, command=command)
-        self.save_error_log()
-        self.config.notifier.push(
-            title=I18n.task_title(command),
-            content=f"<{self.config_name}> Exception occured",
+        error_log_dir = self._safe_save_error_log()
+        if error_log_dir:
+            self._last_error_log_task = command
+        self._push_error(
+            command,
+            f"<{self.config_name}> Exception occured",
+            error_log_dir,
         )
         exit(1)
         return False
