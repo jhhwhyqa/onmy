@@ -230,6 +230,7 @@ class ScriptTask(WQExplore, SecretScriptTask, WantedQuestsAssets):
         :return:
         """
         logger.hr('Start wanted quests')
+        self.screenshot()
         if not self.appear(self.I_GOTO_1):
             # 如果没有出现 '前往'按钮， 那就是这个可能是神秘任务但是没有解锁
             logger.info('This is a secret mission but not unlock')
@@ -347,14 +348,14 @@ class ScriptTask(WQExplore, SecretScriptTask, WantedQuestsAssets):
         get_timer.start()
         while 1:
             self.screenshot()
+            if get_timer.reached():
+                raise GameTooManyClickError('Talks too long, force to restart')
             if self.appear(self.I_UI_BACK_RED) or self.appear(self.I_WQSE_FIRE):
                 break
-            if self.appear(self.I_WQC_BATTLE_END_TALKS):
+            else:
                 self.click(random_click(ltrb=(True, False, False, False)), interval=0.3)
                 self.device.click_record_clear()
                 continue
-            if get_timer.reached():
-                raise GameTooManyClickError('Talks too long, force to restart')
 
     def secret(self, goto, num=1):
         self.ui_click(goto, self.I_WQSE_FIRE)
@@ -373,15 +374,10 @@ class ScriptTask(WQExplore, SecretScriptTask, WantedQuestsAssets):
                     self.run_general_battle(self.build_secret_battle_conf(first_battle=i == 0),
                                             battle_key='wq_secret',
                                             exit_matcher=any_of(self.I_UI_BACK_RED, self.I_WQSE_SPECIAL_FIRE))
-                    # 在没有命中 exit_matcher 但是出现奖励的情况时，认为是剧情对话进行判定
-                    # 部分秘闻（如金鱼姬）的结算对话会先弹出角色面板，对话标志此时识别不到，
-                    # 因此只要既没有挑战按钮也没有返回键，同样按剧情对话处理
+                    # 结算后统一交给 click_talk_until_disappear：出现返回键或挑战按钮即返回，
+                    # 否则按剧情对话继续点击（角色面板等遮挡画面也走这条路）
                     self.screenshot()
-                    if self.appear(self.I_WQC_BATTLE_END_TALKS) or (
-                        not self.appear(self.I_WQSE_SPECIAL_FIRE)
-                        and not self.appear(self.I_UI_BACK_RED)
-                    ):
-                        self.click_talk_until_disappear()
+                    self.click_talk_until_disappear()
                     break
                 if self.appear_then_click(self.I_WQSE_FIRE, interval=1):
                     continue
