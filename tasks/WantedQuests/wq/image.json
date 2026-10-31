@@ -93,7 +93,7 @@
     "itemName": "goto_4",
     "imageName": "wq_goto_4.png",
     "roiFront": "1060,507,87,42",
-    "roiBack": "1060,503,87,57",
+    "roiBack": "1060,505,87,46",
     "method": "Template matching",
     "threshold": 0.8,
     "description": "description"
@@ -142,5 +142,14 @@
     "method": "Template matching",
     "threshold": 0.8,
     "description": "探索界面,左侧任务列表右上角右下角标志"
+  },
+  {
+    "itemName": "wq_secret_mark",
+    "imageName": "wq_wq_secret_mark.png",
+    "roiFront": "1072,382,52,44",
+    "roiBack": "1060,354,84,105",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "神秘妖怪界面咨询助手标志"
   }
 ]

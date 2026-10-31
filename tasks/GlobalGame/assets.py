@@ -1,4 +1,5 @@
 from module.atom.image import RuleImage
+from module.atom.frame import RuleFrame, Image, Ocr, Click
 from module.atom.click import RuleClick
 from module.atom.long_click import RuleLongClick
 from module.atom.swipe import RuleSwipe
@@ -22,7 +23,7 @@ class GlobalGameAssets:
 	# 狗粮 
 	I_G_DOG_FOOD = RuleImage(roi_front=(578,507,60,63), roi_back=(569,501,75,76), threshold=0.8, method="Template matching", file="./tasks/GlobalGame/gg/gg_g_dog_food.png")
 	# 忽略 
-	I_G_IGNORE = RuleImage(roi_front=(863,80,21,21), roi_back=(850,66,48,48), threshold=0.8, method="Template matching", file="./tasks/GlobalGame/gg/gg_g_ignore.png")
+	I_G_IGNORE = RuleImage(roi_front=(863,80,21,21), roi_back=(768,66,130,64), threshold=0.8, method="Template matching", file="./tasks/GlobalGame/gg/gg_g_ignore.png")
 	# 网络异常 
 	I_NETWORK_ABNORMAL = RuleImage(roi_front=(583,330,221,67), roi_back=(583,330,221,67), threshold=0.8, method="Template matching", file="./tasks/GlobalGame/gg/gg_network_abnormal.png")
 	# 已端口游戏服务器，需要重新连接，这种情况一般是断开很久了 
@@ -34,7 +35,7 @@ class GlobalGameAssets:
 
 
 	# Click Rule Assets
-	# description 
+	# description
 	C_UI_REWARD = RuleClick(roi_front=(919,160,208,368), roi_back=(72,107,244,503), name="ui_reward")
 
 

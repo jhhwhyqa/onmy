@@ -97,8 +97,17 @@ class ScriptTask(
                     }
                 )
                 # 该账号本次流程已跑完，记入缓存，当天重启时不再登录
-                account.assist_complete_date = today
-                self.config.save()
+                # 从当前 model 重取对象（防中途 reload 错位），找不到就跳过写入
+                current = self._current_model_account(account)
+                if current is None:
+                    logger.warning(
+                        'mark completed: %s-%s not found in current config model, skip writing',
+                        account.character,
+                        account.svr,
+                    )
+                else:
+                    current.assist_complete_date = today
+                    self.config.save()
                 logger.info(
                     'AssistBattle completed today for %s-%s',
                     account.character,
@@ -276,6 +285,18 @@ class ScriptTask(
             hour=0, minute=0, second=0, microsecond=0
         )
 
+    def _current_model_account(self, account: AccountInfo):
+        """从当前 config.model 找回账号对象（防中途 reload 导致写旧 model、save 落新 model）"""
+        current_conf = self.config.model.assist_battle
+        for candidate in current_conf.account_list or []:
+            if (
+                candidate.character == account.character
+                and candidate.svr == account.svr
+                and candidate.account == account.account
+            ):
+                return candidate
+        return None
+
     def run_consignment(self, account: AccountInfo = None):
         """每周（以周一为界）前往寄售屋购买寄售券"""
         if account is None:
@@ -294,9 +315,19 @@ class ScriptTask(
         self.execute_consignment(ConsignmentConfig(enable=True, buy_sale_ticket=True))
         self.back_mall()
         # 无论本次买没买到，都记为本周已尝试，避免同一周内反复进商城
-        account.consignment_date = datetime.now().strftime('%Y-%m-%d')
-        logger.info('Consignment: recorded %s for this week', account.consignment_date)
-        self.config.save()
+        # 从当前 model 重取对象（防中途 reload 错位），找不到就跳过写入
+        today = datetime.now().strftime('%Y-%m-%d')
+        current = self._current_model_account(account)
+        if current is None:
+            logger.warning(
+                'Consignment: %s-%s not found in current config model, skip writing',
+                account.character,
+                account.svr,
+            )
+        else:
+            current.consignment_date = today
+            self.config.save()
+            logger.info('Consignment: recorded %s for this week', today)
         self.goto_page(page_main)
 
     def find_jade(self):

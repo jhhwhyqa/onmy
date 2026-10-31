@@ -12,9 +12,10 @@ from cached_property import cached_property
 
 from module.atom.image import RuleImage
 from module.atom.ocr import RuleOcr
+from module.ocr.base_ocr import OcrMode
 from module.base.timer import Timer
 from module.exception import GameTooManyClickError, TaskEnd
-from module.image.recipes import match_highlight_rule
+from module.image.recipes import match_highlight_rule, match_button_enabled
 from module.logger import logger
 from tasks.Component.Costume.config import MainType
 from tasks.Component.GeneralBattle.config_general_battle import GeneralBattleConfig
@@ -30,6 +31,8 @@ class ScriptTask(WQExplore, SecretScriptTask, WantedQuestsAssets):
     unwanted_boss_name_list: list = []
     # 已经执行过的悬赏封印(仅记录执行过的, 不一定成功运行)
     wq_executed_set: set[WQInfo] = set()
+    # 已确认的未解锁神秘妖怪数: 无法取消追踪、占着列表顶部, find_wq 跳过前 N 个候选
+    secret_youkai_skip_count: int = 0
 
     def run(self):
         con = self.config.model.wanted_quests
@@ -95,7 +98,7 @@ class ScriptTask(WQExplore, SecretScriptTask, WantedQuestsAssets):
         timeout_timer = Timer(5).start()
         while not timeout_timer.reached():
             self.screenshot()
-            if self.appear(self.I_TRACE_TRUE):
+            if self.appear(self.I_TRACE_TRUE) or self.appear(self.I_WQ_SECRET_MARK):
                 return True
             self.click(self.O_WQ_TEXT_ALL, interval=1.2)
         return False
@@ -220,7 +223,7 @@ class ScriptTask(WQExplore, SecretScriptTask, WantedQuestsAssets):
             # 防止点击后界面来不及刷新
             sleep(1.5)
         # 关闭单个任务的追踪界面
-        self.ui_click_until_smt_disappear(self.C_WQ_TRACE_ONE_CLOSE, stop=self.I_WQ_TRACE_ONE_CHECK_OPENED,
+        self.ui_click_until_smt_disappear(self.I_UI_BACK_RED, stop=self.I_WQ_TRACE_ONE_CHECK_OPENED,
                                           interval=1.5)
 
     def execute_mission(self, num_want: int):
@@ -232,9 +235,14 @@ class ScriptTask(WQExplore, SecretScriptTask, WantedQuestsAssets):
         logger.hr('Start wanted quests')
         self.screenshot()
         if not self.appear(self.I_GOTO_1):
-            # 如果没有出现 '前往'按钮， 那就是这个可能是神秘任务但是没有解锁
-            logger.info('This is a secret mission but not unlock')
-            self.ui_click(self.I_TRACE_TRUE, self.I_TRACE_FALSE)
+            # 无'前往': 神秘妖怪详情页见标志就计数, 点红叉退出
+            if self.appear(self.I_WQ_SECRET_MARK):
+                self.secret_youkai_skip_count += 1
+                logger.info(
+                    'Locked secret youkai detected, skip count=%s, close and skip',
+                    self.secret_youkai_skip_count,
+                )
+            self.ui_click_until_disappear(self.I_UI_BACK_RED, interval=1)
             return False
         # 跳过不想打的
         monster_name = self.O_WQ_MONSTER_TYPE.detect_text(self.device.image)
@@ -289,10 +297,14 @@ class ScriptTask(WQExplore, SecretScriptTask, WantedQuestsAssets):
             wq_info = self.build_wq_info(wq_type_ocr[i], wq_info_ocr[i], goto_btn_list[i], num_want)
             if not wq_info:
                 continue
-            # 跳过高层秘闻
-            if wq_info.dest[-1] in {"捌", "玖", "拾", "番外"}:
-                logger.warning('This secret layer is too high, skip')
-                continue
+            # 秘闻只允许低层(壹~柒)
+            if wq_info.type == WQType.SECRET:
+                layer = wq_info.dest.rsplit('·', 1)[-1].strip()
+                if layer not in {'壹', '贰', '叁', '肆', '伍', '陆', '柒'}:
+                    logger.warning(
+                        f'Secret layer unknown or too high, skip: {wq_info.dest}'
+                    )
+                    continue
             # 跳过已经执行过的(例:都是探索第5层4只怪, 上次计算需要打2次但是这次还是打2次, 肯定出问题了也不需要执行了)
             if wq_info in self.wq_executed_set:
                 logger.warning('This wanted quest has been executed, skip')
@@ -302,6 +314,53 @@ class ScriptTask(WQExplore, SecretScriptTask, WantedQuestsAssets):
         type_ordered_list = self.get_config()._wq_type_ordered_list
         wq_info_list.sort(key=lambda x: type_ordered_list.index(x.type))
         return wq_info_list
+
+    @staticmethod
+    def _match_wq_type(ocr_txt: str) -> Optional[WQType]:
+        """将OCR识别到的类型文本对齐到已知悬赏类型（剥装饰字符后双向包含匹配）。"""
+        import re
+
+        if not ocr_txt:
+            return None
+        cleaned = re.sub(
+            r"[\s\[\]【】()（）'\"“”‘’「」『』：:、，,。.·…—\-_]", "", ocr_txt
+        )
+        if not cleaned:
+            return None
+        # 式神碎片即挑战
+        if '式神' in cleaned:
+            return WQType.CHALLENGE
+        for wq_type in WQType:
+            if wq_type.value in cleaned or cleaned in wq_type.value:
+                return wq_type
+        return None
+
+    @staticmethod
+    def _extract_wq_info(txt: str):
+        """从「XXX(数量：N)」样式的文本中提取 (目的地, 数量)，解析失败返回 None。"""
+        import re
+
+        txt = txt.replace('：', ':').replace('（', '(').replace('）', ')')
+        match = re.search(r"(.+?)\s*\(?[数教]量[:：]\s*(\d+)", txt)
+        if not match:
+            return None
+        return match.group(1).strip(), int(match.group(2))
+
+    def _ocr_wq_info_text(self, info_rule: RuleOcr) -> str:
+        """读取一条悬赏目的地文本，整行识别丢字符时退回文本检测。"""
+        if info_rule.mode == OcrMode.FULL:
+            return info_rule.detect_text(self.device.image)
+        wq_info_txt = info_rule.ocr(self.device.image)
+        if self._extract_wq_info(wq_info_txt) is not None:
+            return wq_info_txt
+        results = info_rule.detect_and_ocr(self.device.image, logDisplay=False)
+        det_txt = ' '.join(
+            r.ocr_text for r in sorted(results, key=lambda r: r.box[0][0])
+        )
+        if self._extract_wq_info(det_txt) is not None:
+            logger.info(f'Wq info fallback detect: {wq_info_txt!r} -> {det_txt!r}')
+            return det_txt
+        return wq_info_txt
 
     def build_wq_info(self, type_rule: RuleOcr, info_rule: RuleOcr, goto_btn_rule: RuleImage, num_want: int) -> Optional[WQInfo]:
         """
@@ -313,24 +372,24 @@ class ScriptTask(WQExplore, SecretScriptTask, WantedQuestsAssets):
         :return: WQInfo
         """
         wq_type_txt = type_rule.ocr(self.device.image)
-        # 适配老逻辑, 将式神碎片改为挑战
-        wq_type_txt = '挑战' if wq_type_txt == '式神' else wq_type_txt
-        if wq_type_txt == '' or not WQType.contains(wq_type_txt):
+        wq_type = self._match_wq_type(wq_type_txt)
+        if wq_type is None:
             logger.warning(f'Unknown wq type: {wq_type_txt}')
             return None
-        wq_type = WQType(wq_type_txt)
         type_ordered_list = self.get_config()._wq_type_ordered_list
         if wq_type not in type_ordered_list:
             logger.warning(f'{wq_type.value} is not in the order list')
             return None
-        wq_info_txt = info_rule.ocr(self.device.image)
-        wq_info_txt = wq_info_txt.replace('：', ':').replace('（', '(').replace('）', ')')
-        import re
-        match = re.search(r"(.+?)\s*\(?[数教]量[:：]\s*(\d+)", wq_info_txt)
-        if not match:
+        # 前往按钮未解锁时整体变暗, 归一化模板匹配分数照样高; 用亮度比二次校验
+        if not match_button_enabled(goto_btn_rule, self.device.image):
+            logger.info(f'{wq_type_txt} 前往按钮未解锁(亮度不符), 跳过该行')
+            return None
+        wq_info_txt = self._ocr_wq_info_text(info_rule)
+        parsed = self._extract_wq_info(wq_info_txt)
+        if parsed is None:
             logger.warning(f'Unknown wq info: {wq_info_txt}')
             return None
-        wq_dest, wq_number = match.group(1).strip(), int(match.group(2))
+        wq_dest, wq_number = parsed
         do_num = num_want // wq_number + (num_want % wq_number > 0)
         return WQInfo(wq_type, wq_dest, wq_number, goto_btn_rule, do_num)
 
@@ -661,6 +720,8 @@ class ScriptTask(WQExplore, SecretScriptTask, WantedQuestsAssets):
         reg_XX = re.compile(r'^(\d+)\1$')
         # 过滤掉协或者未知悬赏等其他无用字符
         reg_other = re.compile(r'[?？协边]')
+        # 未完成候选序号, 前 N 个是已确认的神秘妖怪
+        candidate_idx = 0
         for index, res in enumerate(res_list):
             if reg_fengyin.match(res.ocr_text):
                 continue
@@ -680,8 +741,16 @@ class ScriptTask(WQExplore, SecretScriptTask, WantedQuestsAssets):
                     logger.warning('Current number of wanted quests is greater than total number')
                     cu = cu % 10
                 if cu == total:
-                    # 该任务已完成，一般是悬赏任务，邀请人没有做导致的
+                    # 已完成仍占位的任务, 跳过
                     continue
+                # 跳过前 N 个已确认的神秘妖怪
+                if candidate_idx < self.secret_youkai_skip_count:
+                    logger.info(
+                        'Skip candidate #%s (locked secret youkai)', candidate_idx
+                    )
+                    candidate_idx += 1
+                    continue
+                candidate_idx += 1
                 logger.info(f'find wq {res.ocr_text} @ {xywh}')
                 return cu, re, total, xywh
             # 例如：1414 66 1212

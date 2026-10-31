@@ -1,8 +1,8 @@
 [
   {
     "itemName": "wq_number",
-    "roiFront": "604,8,97,41",
-    "roiBack": "604,8,97,41",
+    "roiFront": "550,18,81,28",
+    "roiBack": "550,18,81,28",
     "mode": "Digit",
     "method": "Default",
     "keyword": "",
@@ -10,8 +10,8 @@
   },
   {
     "itemName": "wq_type_1",
-    "roiFront": "635,284,74,36",
-    "roiBack": "635,284,74,36",
+    "roiFront": "635,284,62,35",
+    "roiBack": "635,284,62,35",
     "mode": "Single",
     "method": "Default",
     "keyword": "",
@@ -19,8 +19,8 @@
   },
   {
     "itemName": "wq_type_2",
-    "roiFront": "638,362,69,32",
-    "roiBack": "638,362,69,32",
+    "roiFront": "645,362,55,32",
+    "roiBack": "645,362,55,32",
     "mode": "Single",
     "method": "Default",
     "keyword": "",
@@ -28,8 +28,8 @@
   },
   {
     "itemName": "wq_type_3",
-    "roiFront": "636,436,72,33",
-    "roiBack": "636,436,72,33",
+    "roiFront": "647,438,55,30",
+    "roiBack": "647,438,55,30",
     "mode": "Single",
     "method": "Default",
     "keyword": "",
@@ -37,8 +37,8 @@
   },
   {
     "itemName": "wq_type_4",
-    "roiFront": "636,510,73,36",
-    "roiBack": "636,510,73,36",
+    "roiFront": "644,512,55,30",
+    "roiBack": "644,512,55,30",
     "mode": "Single",
     "method": "Default",
     "keyword": "",
@@ -46,8 +46,8 @@
   },
   {
     "itemName": "wq_info_1",
-    "roiFront": "712,278,309,45",
-    "roiBack": "712,278,309,45",
+    "roiFront": "712,286,309,30",
+    "roiBack": "712,286,309,30",
     "mode": "Single",
     "method": "Default",
     "keyword": "",
@@ -55,8 +55,8 @@
   },
   {
     "itemName": "wq_info_2",
-    "roiFront": "711,355,298,41",
-    "roiBack": "711,355,298,41",
+    "roiFront": "714,361,298,30",
+    "roiBack": "714,361,298,30",
     "mode": "Single",
     "method": "Default",
     "keyword": "",
@@ -64,8 +64,8 @@
   },
   {
     "itemName": "wq_info_3",
-    "roiFront": "711,428,305,44",
-    "roiBack": "711,428,305,44",
+    "roiFront": "715,436,305,30",
+    "roiBack": "715,436,305,30",
     "mode": "Single",
     "method": "Default",
     "keyword": "",
@@ -73,8 +73,8 @@
   },
   {
     "itemName": "wq_info_4",
-    "roiFront": "714,506,315,44",
-    "roiBack": "714,506,315,44",
+    "roiFront": "715,512,315,30",
+    "roiBack": "715,512,315,30",
     "mode": "Single",
     "method": "Default",
     "keyword": "",

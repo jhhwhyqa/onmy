@@ -2,8 +2,8 @@
   {
     "itemName": "wq_invite_1",
     "imageName": "invite_wq_invite_1.png",
-    "roiFront": "102,400,35,37",
-    "roiBack": "83,358,100,100",
+    "roiFront": "155,400,35,37",
+    "roiBack": "133,359,100,100",
     "method": "Template matching",
     "threshold": 0.8,
     "description": "description"
@@ -11,8 +11,8 @@
   {
     "itemName": "wq_invite_2",
     "imageName": "invite_wq_invite_2.png",
-    "roiFront": "383,400,36,34",
-    "roiBack": "369,362,100,100",
+    "roiFront": "434,399,36,34",
+    "roiBack": "408,363,100,100",
     "method": "Template matching",
     "threshold": 0.8,
     "description": "description"
@@ -20,8 +20,8 @@
   {
     "itemName": "wq_invite_3",
     "imageName": "invite_wq_invite_3.png",
-    "roiFront": "672,401,35,34",
-    "roiBack": "650,361,100,100",
+    "roiFront": "720,404,35,34",
+    "roiBack": "690,364,100,100",
     "method": "Template matching",
     "threshold": 0.8,
     "description": "description"
