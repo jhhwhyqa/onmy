@@ -138,11 +138,13 @@ class GeneralRoom(BaseTask, GeneralRoomAssets):
         pos = self.list_find(self.L_TEAM_LIST, name)
         if not pos:
             return False
+        list_name = name
         if name == '愤怒的石距' or name == '喷怒的石距':
             name = '价悠的石距'
         self.O_GR_ZONES_NAME.keyword = name
         click_timer = Timer(1.1)
         click_timer.start()
+        misses = 0
         while 1:
             self.screenshot()
 
@@ -159,6 +161,14 @@ class GeneralRoom(BaseTask, GeneralRoomAssets):
                 break
             if click_timer.reached():
                 click_timer.reset()
+                # 进入组队页时副本列表可能仍在滚动，最初取到的行坐标会漂移；
+                # 连续点不中时重新定位目标所在行，避免一直点错行
+                if misses >= 2:
+                    refreshed = self.list_find(self.L_TEAM_LIST, list_name)
+                    if refreshed and refreshed != (0, 0):
+                        pos = refreshed
+                    misses = 0
                 self.device.click(x=pos[0] + randint(-5, 5), y=pos[1] + randint(-5, 5))
+                misses += 1
 
         return True
