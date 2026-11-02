@@ -23,7 +23,12 @@ class WQExplore(ExplorationScriptTask, HighLight):
     _right_swipes: int = 0  # 找高亮怪时向右滑过的屏数
     _left_swipes: int = 0  # 回扫时已向左滑的次数
     _up_fought: bool = False
+    _lock_checked: bool = False
     _MAX_SWIPES = 12  # 单个方向最大滑动次数, 防止空转
+
+    # 探索主界面的锁阵容图标: 已在 ExplorationAssets 注册
+    # I_LOCK_ON(未锁定时的按钮) / I_LOCK_OFF(已锁定时显示的图标),
+    # 位置与其它副本准备页不同。
 
     def _default_detect_categories(self) -> set[str]:
         categories = super()._default_detect_categories()
@@ -58,6 +63,31 @@ class WQExplore(ExplorationScriptTask, HighLight):
         # 地图走到底且没有可打的怪时退出，避免空转
         return self.need_exit
 
+    def _ensure_team_locked(self) -> bool:
+        """在探索主界面检查并开启锁阵容。
+
+        使用探索自己的锁图标(lock_on/lock_off)，与其它副本准备页位置不同。
+        识别不到时打印警告并跳过，不会卡住战斗。
+        :return: 本次是否点击过锁定按钮
+        """
+        clicked = False
+        for _ in range(5):
+            self.screenshot()
+            if self.appear(self.I_LOCK_OFF):  # 已锁定
+                logger.info('Explore team is locked')
+                return clicked
+            if self.appear(self.I_LOCK_ON):  # 未锁定, 点一下开启
+                logger.info('Lock explore team')
+                self.click(self.I_LOCK_ON)
+                clicked = True
+                continue
+            break
+        logger.warning(
+            'Explore team lock icon not recognized; skip locking. '
+            'Check tasks/Exploration/res/lock_on.png and lock_off.png.'
+        )
+        return clicked
+
     def run_on_exp_main(self):
         """高亮怪 → 回扫左侧小怪 → 向右清图直到 boss。"""
         if self.pre_page and self.pre_page != pages.page_exp_main:
@@ -71,6 +101,12 @@ class WQExplore(ExplorationScriptTask, HighLight):
             if not self.appear(self.I_TEAM_EMOJI):
                 logger.info('Friend disappeared, quit')
                 self.quit_exp_main()
+                return
+        # 先锁阵容, 再处理轮换, 避免轮换先换掉队伍
+        if not self._lock_checked:
+            self._lock_checked = True
+            if self._ensure_team_locked():
+                # 点过锁定按钮, 先让画面刷新一帧
                 return
         if self.switch_rotate() or self.user_status == UserStatus.MEMBER:
             return
@@ -123,6 +159,7 @@ class WQExplore(ExplorationScriptTask, HighLight):
         self._right_swipes = 0
         self._left_swipes = 0
         self._up_fought = False
+        self._lock_checked = False
         self.fire_monster_type = ''
         while True:
             self.screenshot()

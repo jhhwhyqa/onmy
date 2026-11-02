@@ -124,6 +124,10 @@ class ExplorationAssets:
 	I_CHECK_MAIN_TITLE = RuleImage(roi_front=(1150,457,32,32), roi_back=(1069,222,113,336), threshold=0.85, method="Template matching", profile="High", file="./tasks/Exploration/res/res_check_main_title.png")
 	# 玩法tab中“御魂” 
 	I_CHECK_PLAY_TITLE = RuleImage(roi_front=(1073,214,40,32), roi_back=(1065,210,190,316), threshold=0.85, method="Template matching", profile="High", file="./tasks/Exploration/res/res_check_play_title.png")
+	# 锁定阵容关闭 
+	I_LOCK_OFF = RuleImage(roi_front=(894,651,28,29), roi_back=(888,644,155,53), threshold=0.85, method="Template matching", profile="High", file="./tasks/Exploration/res/lock_off.png")
+	# 锁定阵容开启 
+	I_LOCK_ON = RuleImage(roi_front=(892,650,33,35), roi_back=(888,644,155,53), threshold=0.85, method="Template matching", profile="High", file="./tasks/Exploration/res/lock_on.png")
 
 
 	# Long Click Rule Assets

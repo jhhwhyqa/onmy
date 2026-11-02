@@ -277,5 +277,23 @@
     "method": "Template matching",
     "threshold": 0.85,
     "description": "玩法tab中“御魂”"
+  },
+  {
+    "itemName": "lock_off",
+    "imageName": "lock_off.png",
+    "roiFront": "894,651,28,29",
+    "roiBack": "888,644,155,53",
+    "method": "Template matching",
+    "threshold": 0.85,
+    "description": "锁定阵容关闭"
+  },
+  {
+    "itemName": "lock_on",
+    "imageName": "lock_on.png",
+    "roiFront": "892,650,33,35",
+    "roiBack": "888,644,155,53",
+    "method": "Template matching",
+    "threshold": 0.85,
+    "description": "锁定阵容开启"
   }
 ]
