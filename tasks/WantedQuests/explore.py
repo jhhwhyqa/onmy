@@ -18,23 +18,87 @@ class WQExplore(ExplorationScriptTask, HighLight):
     _explor_cnt: int = 0  # 探索次数
     _max_cnt: int = 0  # 探索最大次数
 
+    # 清图阶段: up=找高亮怪, left=回扫高亮怪左侧的小怪, right=向右清到 boss
+    _wq_phase: str = 'up'
+    _right_swipes: int = 0  # 找高亮怪时向右滑过的屏数
+    _left_swipes: int = 0  # 回扫时已向左滑的次数
+    _up_fought: bool = False
+    _MAX_SWIPES = 12  # 单个方向最大滑动次数, 防止空转
+
     def _default_detect_categories(self) -> set[str]:
         categories = super()._default_detect_categories()
         categories.add("exploration")
         return categories
 
     def search_up_fight(self, up_type: UpType = None) -> Optional[RuleImage | RuleGif]:
+        # 优先打高亮怪
         if self.appear(self.TEMPLATE_GIF):
             self.fire_monster_type = 'wq_normal'
             return self.TEMPLATE_GIF
+        # 找高亮怪的阶段不接普通怪; 高亮怪打完后继续清沿途小怪
+        if self._wq_phase != 'up' and self.appear(self.I_NORMAL_BATTLE_BUTTON, interval=0.3):
+            self.fire_monster_type = 'normal'
+            return self.I_NORMAL_BATTLE_BUTTON
+        return None
+
+    def get_fire_button(self):
+        # 先清高亮怪和小怪; 清完后遇到 boss 就直接挑战
+        button = self.search_up_fight()
+        if button is not None:
+            return button
+        if self._wq_phase != 'up' and self.appear(self.I_BOSS_BATTLE_BUTTON):
+            self.fire_monster_type = 'boss'
+            return self.I_BOSS_BATTLE_BUTTON
         return None
 
     def check_exit(self, current_page: pages.Page | None) -> bool:
-        need_exit = self._explor_cnt >= self._max_cnt
-        # 探索次数已经够了但是任何怪物都没打过
-        if need_exit and self.fire_monster_type == '':
-            raise ExploreWantedBoss
-        return need_exit
+        # 打完探索 boss 并回到探索主界面，本次探索才算完成
+        if self.fire_monster_type == 'boss' and current_page == pages.page_exp_main:
+            return True
+        # 地图走到底且没有可打的怪时退出，避免空转
+        return self.need_exit
+
+    def run_on_exp_main(self):
+        """高亮怪 → 回扫左侧小怪 → 向右清图直到 boss。"""
+        if self.pre_page and self.pre_page != pages.page_exp_main:
+            self.device.click_record_clear()
+        if self.collect_reward():
+            return
+        if self.fire_monster_type == 'boss':
+            # boss 已打完，不再接战，交给 check_exit 结束本次探索
+            return
+        if self.user_status != UserStatus.ALONE:
+            if not self.appear(self.I_TEAM_EMOJI):
+                logger.info('Friend disappeared, quit')
+                self.quit_exp_main()
+                return
+        if self.switch_rotate() or self.user_status == UserStatus.MEMBER:
+            return
+        fire_button = self.get_fire_button()
+        if fire_button is not None and self.fire(fire_button):
+            return
+        # 当前屏幕没有可打的怪，按阶段决定滑动方向
+        if self._wq_phase == 'left':
+            if self._left_swipes < self._right_swipes and self._left_swipes < self._MAX_SWIPES:
+                if self.swipe(self.S_SWIPE_BACKGROUND_LEFT, interval=1.5):
+                    self._left_swipes += 1
+                    # 连续左滑也会计入点击保护, 到阈值前清一次
+                    if self.device.click_record.count(self.S_SWIPE_BACKGROUND_LEFT.name) >= 5:
+                        self.device.click_record_clear()
+                    return
+            logger.info('WQ explore: back to the start, sweep right to the boss')
+            self._wq_phase = 'right'
+            return
+        if self.swipe(self.S_SWIPE_BACKGROUND_RIGHT, interval=1.5):
+            if self._wq_phase == 'up':
+                self._right_swipes += 1
+            if self.arrive_end():
+                if self._wq_phase == 'up':
+                    # 还没找到高亮怪就到头了，回头扫一遍
+                    logger.info('WQ explore: end reached without the highlighted monster, sweep back')
+                    self._wq_phase = 'left'
+                else:
+                    self.quit_exp_main()
 
     def arrive_end(self) -> bool:
         arrived_end = BaseExploration.arrive_end(self)
@@ -43,6 +107,11 @@ class WQExplore(ExplorationScriptTask, HighLight):
 
     def fire(self, button) -> bool:
         fired = super().fire(button)
+        if fired and self.fire_monster_type == 'wq_normal' and not self._up_fought:
+            # 高亮怪已打完，先回扫它左侧没打过的小怪
+            self._up_fought = True
+            self._wq_phase = 'left'
+            logger.info('Highlighted monster defeated, sweep back for the remaining monsters')
         self._explor_cnt += 1 if fired and self.fire_monster_type == 'boss' else 0
         return fired
 
@@ -50,6 +119,11 @@ class WQExplore(ExplorationScriptTask, HighLight):
         logger.info(f'Start exploring with number: {num}')
         self._max_cnt = num
         self._explor_cnt = 0
+        self._wq_phase = 'up'
+        self._right_swipes = 0
+        self._left_swipes = 0
+        self._up_fought = False
+        self.fire_monster_type = ''
         while True:
             self.screenshot()
             if pages.page_exp_entrance == self.get_current_page():
