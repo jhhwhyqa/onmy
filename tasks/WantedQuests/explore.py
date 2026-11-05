@@ -1,3 +1,5 @@
+import re
+
 from module.atom.gif import RuleGif
 from module.atom.image import RuleImage
 from module.logger import logger
@@ -24,6 +26,7 @@ class WQExplore(ExplorationScriptTask, HighLight):
     _left_swipes: int = 0  # 回扫时已向左滑的次数
     _up_fought: bool = False
     _lock_checked: bool = False
+    _wq_check_after_battle: bool = False  # 刚打完一场, 回到地图后检查悬赏进度
     _MAX_SWIPES = 12  # 单个方向最大滑动次数, 防止空转
 
     # 探索主界面的锁阵容图标: 已在 ExplorationAssets 注册
@@ -88,8 +91,26 @@ class WQExplore(ExplorationScriptTask, HighLight):
         )
         return clicked
 
+    def wq_count_enough(self) -> bool:
+        """读取地图上的悬赏进度 y/x, 打满(y==x)时返回 True。"""
+        text = self.O_WQ_TRACK_PROGRESS.ocr(self.device.image)
+        matched = re.search(r'(\d+)\s*[7/]\s*(\d+)', str(text or ''))
+        if not matched:
+            return False
+        current, required = int(matched.group(1)), int(matched.group(2))
+        if required <= 0:
+            return False
+        logger.info(f'Wanted quest progress: {current}/{required}')
+        return current >= required
+
     def run_on_exp_main(self):
         """高亮怪 → 回扫左侧小怪 → 向右清图直到 boss。"""
+        if self._wq_check_after_battle:
+            self._wq_check_after_battle = False
+            if self.wq_count_enough():
+                logger.info('Wanted quest finished, quit exploration')
+                self.quit_exp_main()
+                return
         if self.pre_page and self.pre_page != pages.page_exp_main:
             self.device.click_record_clear()
         if self.collect_reward():
@@ -143,6 +164,9 @@ class WQExplore(ExplorationScriptTask, HighLight):
 
     def fire(self, button) -> bool:
         fired = super().fire(button)
+        if fired:
+            # 战斗结束后回到地图, 先检查一次悬赏进度
+            self._wq_check_after_battle = True
         if fired and self.fire_monster_type == 'wq_normal' and not self._up_fought:
             # 高亮怪已打完，先回扫它左侧没打过的小怪
             self._up_fought = True
@@ -160,6 +184,7 @@ class WQExplore(ExplorationScriptTask, HighLight):
         self._left_swipes = 0
         self._up_fought = False
         self._lock_checked = False
+        self._wq_check_after_battle = False
         self.fire_monster_type = ''
         while True:
             self.screenshot()

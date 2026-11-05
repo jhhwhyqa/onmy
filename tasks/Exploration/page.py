@@ -32,7 +32,9 @@ def inherit_transitions(source: Page, *targets: Page) -> None:
 
 
 # 探索副本入口
-page_exp_entrance = Page(ExplorationAssets.I_E_EXPLORATION_CLICK)
+# 退出探索的过场里会短暂落在探索主界面/玩法页，这里用 65 压过 page_mainline/page_gameplay(60)，
+# 避免关卡页被误判后执行返回动作把它关掉。
+page_exp_entrance = Page(ExplorationAssets.I_E_EXPLORATION_CLICK, priority=65)
 page_exp_entrance.connect(page_exploration, GlobalGameAssets.I_UI_BACK_YELLOW, key="page_exp_entrance->page_exploration")
 page_mainline.connect(page_exp_entrance, action=lambda task: task.open_expect_level,
                       key="page_mainline->page_exp_entrance")

@@ -106,5 +106,14 @@
     "method": "Default",
     "keyword": "悬赏封印",
     "description": "是否有悬赏封印检查"
+  },
+  {
+    "itemName": "wq_track_progress",
+    "roiFront": "12,579,73,21",
+    "roiBack": "12,579,73,21",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "探索地图上的悬赏击杀进度"
   }
 ]
