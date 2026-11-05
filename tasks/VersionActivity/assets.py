@@ -1,4 +1,5 @@
 from module.atom.image import RuleImage
+from module.atom.frame import RuleFrame, Image, Ocr, Click
 from module.atom.click import RuleClick
 from module.atom.long_click import RuleLongClick
 from module.atom.swipe import RuleSwipe
@@ -11,22 +12,20 @@ class VersionActivityAssets:
 
 
 	# Image Rule Assets
-	# moon_entry 
-	I_MOON_ENTRY = RuleImage(roi_front=(1180,289,54,59), roi_back=(1115,100,165,490), threshold=0.8, method="Template matching", file="./tasks/VersionActivity/as/moonlight/moon_entry.png")
-	# moon_lobby 
-	I_MOON_LOBBY = RuleImage(roi_front=(151,23,130,31), roi_back=(125,10,185,65), threshold=0.8, method="Template matching", file="./tasks/VersionActivity/as/moonlight/moon_lobby.png")
-	# moon_enter_battle 
-	I_MOON_ENTER_BATTLE = RuleImage(roi_front=(470,110,31,119), roi_back=(435,70,110,215), threshold=0.8, method="Template matching", file="./tasks/VersionActivity/as/moonlight/moon_enter_battle.png")
-	# moon_battle 
-	I_MOON_BATTLE = RuleImage(roi_front=(158,30,120,28), roi_back=(125,10,190,70), threshold=0.8, method="Template matching", file="./tasks/VersionActivity/as/moonlight/moon_battle.png")
-	# moon_challenge 
-	I_MOON_CHALLENGE = RuleImage(roi_front=(1144,609,76,34), roi_back=(1100,568,165,132), threshold=0.8, method="Template matching", file="./tasks/VersionActivity/as/moonlight/moon_challenge.png")
+	# version_entry 
+	I_VERSION_ENTRY = RuleImage(roi_front=(1180,289,54,59), roi_back=(1115,100,165,490), threshold=0.8, method="Template matching", profile="High", file="./tasks/VersionActivity/as/version_activity/version_entry.png")
+	# version_lobby 
+	I_VERSION_LOBBY = RuleImage(roi_front=(151,19,135,36), roi_back=(137,7,178,71), threshold=0.8, method="Template matching", profile="High", file="./tasks/VersionActivity/as/version_activity/version_lobby.png")
+	# version_enter_battle 
+	I_VERSION_ENTER_BATTLE = RuleImage(roi_front=(906,357,29,53), roi_back=(906,357,29,53), threshold=0.8, method="Template matching", profile="High", file="./tasks/VersionActivity/as/version_activity/version_enter_battle.png")
+	# version_battle 
+	I_VERSION_BATTLE = RuleImage(roi_front=(153,15,134,43), roi_back=(130,6,198,68), threshold=0.8, method="Template matching", profile="High", file="./tasks/VersionActivity/as/version_activity/version_battle.png")
+	# version_challenge 
+	I_VERSION_CHALLENGE = RuleImage(roi_front=(1144,594,78,43), roi_back=(1111,571,139,111), threshold=0.8, method="Template matching", profile="High", file="./tasks/VersionActivity/as/version_activity/version_challenge.png")
 
 
 	# Ocr Rule Assets
-	# 月华流光挑战资源数量 
-	O_MOON_RESOURCE = RuleOcr(roi=(1110,24,102,39), area=(1110,24,102,39), mode="Digit", method="Default", keyword="", name="moon_resource")
-	# 月华流光奖励已达上限的提示文本 
-	O_MOON_REWARD_NOTICE = RuleOcr(roi=(410,255,445,78), area=(410,255,445,78), mode="Full", method="Default", keyword="", name="moon_reward_notice")
+	# 版本活动剩余次数（剩x/30次） 
+	O_VERSION_REMAIN_TIMES = RuleOcr(roi=(1124,664,116,32), area=(1124,664,116,32), mode="Single", method="Default", keyword="", name="version_remain_times")
 
 

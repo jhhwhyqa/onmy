@@ -1,5 +1,5 @@
 # This Python file uses the following encoding: utf-8
-"""限时活动：版本活动（月华流光）的配置。"""
+"""限时活动：版本活动（锦绣南行 · 学艺切磋）的配置。"""
 from datetime import time, timedelta
 
 from pydantic import Field

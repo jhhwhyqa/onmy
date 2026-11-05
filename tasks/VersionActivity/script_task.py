@@ -1,17 +1,16 @@
 # This Python file uses the following encoding: utf-8
-"""限时活动：版本活动（月华流光）。
+"""限时活动：版本活动（锦绣南行 · 学艺切磋）。
 
 按本地 `BaseAct`（`tasks/ActivityShikigami/base_act.py`）的状态机写法实现：
-用异常做流程控制（次数上限 / 时间上限 / 资源不足），主体在 `run_moonlight` 里
-「定位入口 -> 进挑战页 -> 读资源 -> 点挑战 -> 处理弹窗 -> 打一场」循环。
+用异常做流程控制（次数上限 / 时间上限），主体在 `run_version_activity` 里
+「定位入口 -> 进挑战页 -> 读剩余次数 -> 点挑战 -> 打一场」循环。
 开跑前若 `switch_soul_config` 勾选，会先回式神录按配置切换御魂（复用
 `tasks/Component/SwitchSoul`）。
 
-与上游 tomoe1-1/OnmyojiAutoScript @ d52612c1 的 `tasks/Moonlight` 的差异：
-那条流程依赖上游的 action_type 活动框架（`action_limit` / `prepare_next_action` /
-`record_action` / `finish_activity_task` 等），本地没有，所以按本地架构重写；
-识别素材与判定条件（资源阈值 6、奖励上限弹窗文案、战斗配置覆盖）与上游一致。
+剩余次数读取挑战页右下角的「剩x/30次」；x 为 0 或达到
+`challenge_limit` 时结束本次运行。
 """
+import re
 import time
 from datetime import datetime
 
@@ -31,8 +30,8 @@ from tasks.VersionActivity.assets import VersionActivityAssets
 from tasks.VersionActivity.config import VersionActivity
 import tasks.VersionActivity.page as pages
 
-# 每次挑战消耗的挑战资源，低于该值不再挑战（与上游一致）
-CHALLENGE_RESOURCE_COST = 6
+# 挑战页剩余次数的上限
+MAX_REMAIN_TIMES = 30
 # 点击挑战后等待进入战斗的超时（秒）
 ENTER_BATTLE_TIMEOUT = 30
 
@@ -45,12 +44,8 @@ class LimitTimeOut(Exception):
     """运行时间已达上限。"""
 
 
-class ResourceNotEnough(Exception):
-    """挑战资源不足，提前结束。"""
-
-
 class ScriptTask(GeneralBattle, GameUi, SwitchSoul, VersionActivityAssets):
-    """月华流光：按次数与时间上限循环挑战。"""
+    """版本活动（锦绣南行 · 学艺切磋）：按剩余次数与时间上限循环挑战。"""
 
     conf: VersionActivity = None
     count: int = 0
@@ -65,7 +60,7 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, VersionActivityAssets):
         """每次挑战前检查次数与时间上限，超出则抛异常结束。"""
         if self.count >= self.conf.version_activity_config.challenge_limit:
             logger.info(
-                'Moonlight challenge count reached: %s/%s',
+                'VersionActivity challenge count reached: %s/%s',
                 self.count,
                 self.conf.version_activity_config.challenge_limit,
             )
@@ -74,15 +69,15 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, VersionActivityAssets):
             datetime.now() - self.start_time
             >= self.conf.version_activity_config.limit_time_v
         ):
-            logger.info('Moonlight time limit reached')
+            logger.info('VersionActivity time limit reached')
             raise LimitTimeOut
 
     def run(self):
         self.count = 0
         self.switch_soul()
         try:
-            self.run_moonlight()
-        except (LimitCountOut, LimitTimeOut, ResourceNotEnough) as e:
+            self.run_version_activity()
+        except (LimitCountOut, LimitTimeOut) as e:
             logger.info(f'VersionActivity finished this run: {type(e).__name__}')
         self.finish_activity_task()
 
@@ -101,26 +96,25 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, VersionActivityAssets):
             self.goto_page(page_shikigami_records)
             self.run_switch_soul_by_name(cfg.group_name, cfg.team_name)
 
-    def run_moonlight(self):
-        logger.hr('Start activity: 月华流光', 1)
+    def run_version_activity(self):
+        logger.hr('Start activity: 锦绣南行', 1)
         self.goto_page(page_main)
-        if not pages.find_moonlight_entry(self):
-            raise GamePageUnknownError('Cannot find Moonlight entry')
-        self.goto_page(pages.page_moon_battle)
+        if not pages.find_version_entry(self):
+            raise GamePageUnknownError('Cannot find VersionActivity entry')
+        self.goto_page(pages.page_version_battle)
         first_battle = True
         while True:
             self.update_status()
             # 上一场打完会回到挑战页；若被挤到别处（结算/奖励页）由导航器带回
-            self.goto_page(pages.page_moon_battle)
-            if not self.enter_moonlight_battle():
-                raise ResourceNotEnough
+            self.goto_page(pages.page_version_battle)
+            self.enter_version_battle()
             self.count += 1
             if self.conf.version_activity_config.random_sleep:
                 random_sleep(probability=0.2)
             self.run_general_battle(
                 config=self.build_battle_conf(first_battle),
-                battle_key='version_activity_moonlight',
-                exit_matcher=self.I_MOON_BATTLE,
+                battle_key='version_activity',
+                exit_matcher=self.I_VERSION_BATTLE,
             )
             first_battle = False
 
@@ -137,7 +131,7 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, VersionActivityAssets):
     # ------------------------------------------------------------------ 战斗
 
     def build_battle_conf(self, first_battle: bool) -> GeneralBattleConfig:
-        """按上游做法覆盖战斗配置：只在第一场用预设出战、不锁阵容、不连续战斗。"""
+        """只在第一场用预设出战、不锁阵容、不连续战斗。"""
         source = self.conf.battle_conf
         return source.model_copy(
             update={
@@ -148,76 +142,65 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, VersionActivityAssets):
             }
         )
 
-    def enter_moonlight_battle(self) -> bool:
-        """在挑战页点一次挑战并等待进入战斗。
-
-        只在确认处于挑战页时点击；资源不足（连续两次读数都低于消耗）或出现
-        未知确认弹窗时安全退出，返回 False 让上层结束本次运行。
-        """
+    def _read_remaining_times_once(self) -> int | None:
+        """读取一次剩余次数；区域不存在/文字为空时返回 None。"""
         self.screenshot()
-        if not self.appear(self.I_MOON_BATTLE):
-            raise GameStuckError('Moonlight challenge page is not visible')
-        resource = self.O_MOON_RESOURCE.ocr_digit(self.device.image)
-        if resource < CHALLENGE_RESOURCE_COST:
-            # 资源是实时刷新/有延迟的，再读一次确认
-            time.sleep(0.3)
-            self.screenshot()
-            if not self.appear(self.I_MOON_BATTLE):
-                raise GameStuckError(
-                    'Moonlight page changed while checking challenge resource'
-                )
-            resource = self.O_MOON_RESOURCE.ocr_digit(self.device.image)
-            if resource < CHALLENGE_RESOURCE_COST:
-                logger.info(
-                    'Moonlight challenge resource %s below %s on two reads; stop challenges',
-                    resource,
-                    CHALLENGE_RESOURCE_COST,
-                )
-                return False
-        # 不做盲点击：按钮没出现就报错
-        if not self.appear_then_click(self.I_MOON_CHALLENGE, interval=1):
+        text = ''.join(
+            str(self.O_VERSION_REMAIN_TIMES.ocr_single(self.device.image) or '').split()
+        )
+        if not text:
+            return None
+        match = re.search(r'(\d+)\s*[/／]\s*30', text)
+        if match is None:
             raise GameStuckError(
-                'Moonlight challenge button is not visible or click was blocked'
+                f'VersionActivity remaining times unreadable: [{text}]'
+            )
+        value = int(match.group(1))
+        if not 0 <= value <= MAX_REMAIN_TIMES:
+            raise GameStuckError(
+                f'VersionActivity remaining times out of range: {value}'
+            )
+        return value
+
+    def read_remaining_times(self) -> int:
+        """读取剩余次数；连续两次读不到才视为 0。"""
+        value = self._read_remaining_times_once()
+        if value is not None:
+            logger.info(
+                f'VersionActivity remaining times: {value}/{MAX_REMAIN_TIMES}'
+            )
+            return value
+        # 页面刷新/动画瞬间可能暂时读不到，再确认一次
+        time.sleep(0.3)
+        value = self._read_remaining_times_once()
+        if value is None:
+            logger.info(
+                'VersionActivity remaining times area is absent; treat as 0'
+            )
+            return 0
+        logger.info(f'VersionActivity remaining times: {value}/{MAX_REMAIN_TIMES}')
+        return value
+
+    def enter_version_battle(self):
+        """在挑战页确认还有次数后点击挑战，并等待进入战斗。"""
+        self.screenshot()
+        if not self.appear(self.I_VERSION_BATTLE):
+            raise GameStuckError('VersionActivity challenge page is not visible')
+        remaining = self.read_remaining_times()
+        if remaining == 0:
+            logger.info('VersionActivity remaining challenge times is 0')
+            raise LimitCountOut
+        if not self.appear_then_click(self.I_VERSION_CHALLENGE, interval=1):
+            raise GameStuckError(
+                'VersionActivity challenge button is not visible or click was blocked'
             )
         deadline = Timer(ENTER_BATTLE_TIMEOUT).start()
-        reward_cap_confirmed = False
         while not deadline.reached():
             self.screenshot()
             if self.is_in_battle(False):
-                return True
-            if self.appear(self.I_UI_CONFIRM) or self.appear(self.I_UI_CONFIRM_SAMLL):
-                notice = ''.join(
-                    result.ocr_text
-                    for result in self.O_MOON_REWARD_NOTICE.detect_and_ocr(
-                        self.device.image
-                    )
-                ).replace(' ', '')
-                if '奖励已达获取上限' in notice and '继续挑战' in notice:
-                    # 「奖励已达获取上限，是否继续挑战」——只有这一种弹窗才确认
-                    if not reward_cap_confirmed:
-                        if not (
-                            self.appear_then_click(self.I_UI_CONFIRM, interval=1)
-                            or self.appear_then_click(self.I_UI_CONFIRM_SAMLL, interval=1)
-                        ):
-                            raise GameStuckError(
-                                'Moonlight reward-cap confirmation could not be clicked'
-                            )
-                        reward_cap_confirmed = True
-                    time.sleep(0.3)
-                    continue
-                # 其它未知确认框一律取消，不盲点确认
-                logger.warning(
-                    'Moonlight challenge blocked by unknown confirmation dialog; stop safely'
-                )
-                if self.appear_then_click(
-                    self.I_UI_CANCEL, interval=1
-                ) or self.appear_then_click(self.I_UI_CANCEL_SAMLL, interval=1):
-                    return False
-                raise GameStuckError(
-                    'Moonlight confirmation dialog could not be cancelled'
-                )
+                return
             time.sleep(0.3)
-        raise GameStuckError('Moonlight did not enter battle after challenge')
+        raise GameStuckError('VersionActivity did not enter battle after challenge')
 
 
 if __name__ == '__main__':

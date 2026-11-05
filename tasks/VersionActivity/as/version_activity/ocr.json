@@ -1,0 +1,11 @@
+[
+  {
+    "itemName": "version_remain_times",
+    "roiFront": "1124,664,116,32",
+    "roiBack": "1124,664,116,32",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "版本活动剩余次数（剩x/30次）"
+  }
+]

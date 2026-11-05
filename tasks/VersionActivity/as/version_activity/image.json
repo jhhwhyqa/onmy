@@ -1,0 +1,47 @@
+[
+  {
+    "itemName": "version_entry",
+    "imageName": "version_entry.png",
+    "roiFront": "1180,289,54,59",
+    "roiBack": "1115,100,165,490",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "version_entry"
+  },
+  {
+    "itemName": "version_lobby",
+    "imageName": "version_lobby.png",
+    "roiFront": "151,19,135,36",
+    "roiBack": "137,7,178,71",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "version_lobby"
+  },
+  {
+    "itemName": "version_enter_battle",
+    "imageName": "version_enter_battle.png",
+    "roiFront": "906,357,29,53",
+    "roiBack": "906,357,29,53",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "version_enter_battle"
+  },
+  {
+    "itemName": "version_battle",
+    "imageName": "version_battle.png",
+    "roiFront": "153,15,134,43",
+    "roiBack": "130,6,198,68",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "version_battle"
+  },
+  {
+    "itemName": "version_challenge",
+    "imageName": "version_challenge.png",
+    "roiFront": "1144,594,78,43",
+    "roiBack": "1111,571,139,111",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "version_challenge"
+  }
+]
