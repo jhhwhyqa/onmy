@@ -9,10 +9,31 @@ from module.image.operators import threshold_bgr_to_inverted_rgb
 from module.logger import logger
 from tasks.Component.SwitchAccount.assets import SwitchAccountAssets
 from tasks.Component.SwitchAccount.switch_account_config import AccountInfo
+from tasks.Restart.assets import RestartAssets
 from tasks.base_task import BaseTask
 
 
 class LoginAccount(BaseTask, SwitchAccountAssets):
+
+    @staticmethod
+    def _fuzzy_equal(item: str, character_name: str) -> bool:
+        """OCR 丢首字兜底: '灰星四号' 被识别成 '星四号' 时视为同一角色"""
+        if not item or item == character_name:
+            return False  # 精确匹配在主流程已处理
+        stripped = character_name[1:]
+        return len(stripped) >= 3 and item.strip() == stripped
+
+    @staticmethod
+    def _match_character_index(character_name_list, character_name: str):
+        """列表里找目标角色: 精确匹配优先; OCR 丢首字时去首字兜底(须唯一命中)"""
+        for index, item in enumerate(character_name_list):
+            if item == character_name:
+                return index
+        fallback = [
+            i for i, item in enumerate(character_name_list)
+            if LoginAccount._fuzzy_equal(item, character_name)
+        ]
+        return fallback[0] if len(fallback) == 1 else None
 
     def get_svr_name(self):
         self.screenshot()
@@ -91,6 +112,9 @@ class LoginAccount(BaseTask, SwitchAccountAssets):
             self.screenshot()
             if self.appear(self.O_SA_CHECK_SELECT_SVR, interval=2):
                 break
+            if self.ocr_appear_click(RestartAssets.O_CANCEL_UPDATE, interval=0.8):
+                logger.info('Cancel update new engine')
+                continue
             self.click(self.C_SA_LOGIN_FORM_SWITCH_SVR_BTN, interval=2)
             self.device.click_record_clear()
         # 改成对比是否出现 已有角色
@@ -116,9 +140,9 @@ class LoginAccount(BaseTask, SwitchAccountAssets):
             characterNameList = [ocrResItem.ocr_text.lstrip('1234567890 ([<>])【】（）《》') for ocrResItem in ocrRes]
             logger.info(characterNameList)
             ocrResBoxList = [ocrResItem.box for ocrResItem in ocrRes]
-            for index, item in enumerate(characterNameList):
-                if item != characterName:
-                    continue
+
+            def click_svr_icon(index: int) -> bool:
+                """点击该行角色对应的服务器图标(点击角色名没有反应, 需点上移30px的图标)"""
                 tmp = self.O_SA_SELECT_SVR_CHARACTER_LIST
                 from copy import deepcopy
                 tmpClick = RuleClick(
@@ -130,14 +154,15 @@ class LoginAccount(BaseTask, SwitchAccountAssets):
                         ocrResBoxList[index][2][1] - ocrResBoxList[index][1][1]],
                     name="tmpClick"
                 )
-
-                # 此时 tmp 内存储的时角色名位置,而点击角色名没有反应
-                # 所以需要获取到对应的服务器图标位置
                 tmpClick.roi_front[1] -= 30
                 self.ui_click_until_disappear(tmpClick, stop=self.I_SA_CHECK_SELECT_SVR_2,
                                               interval=3)
                 logger.info("character %s found,and clicked svr icon", characterName)
                 return True
+
+            match_index = self._match_character_index(characterNameList, characterName)
+            if match_index is not None:
+                return click_svr_icon(match_index)
             if lastCharacterNameList == characterNameList:
                 break
             logger.info(f'{characterName} not found,start swipe')
@@ -255,6 +280,9 @@ class LoginAccount(BaseTask, SwitchAccountAssets):
         while 1:
             time.sleep(0.8)
             self.screenshot()
+            if self.ocr_appear_click(RestartAssets.O_CANCEL_UPDATE, interval=0.8):
+                logger.info('Cancel update new engine')
+                continue
             # 处于 选择服务器界面 直接点击空白区域退出该界面 进入切换账号流程
             if self.appear(self.I_SA_CHECK_SELECT_SVR_1) or self.appear(self.I_SA_CHECK_SELECT_SVR_2):
                 self.click(self.I_SA_LOGIN_FORM_CANCEL_SVR_SELECT)

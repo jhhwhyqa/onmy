@@ -39,6 +39,8 @@ class ScriptTask(
         self.conf = self.config.model.assist_battle
         accounts = [account for account in self.conf.account_list if account.is_valid()]
         results = []
+        # 切换失败的账号单独记录，推送里直接列出
+        switch_failed_accounts = []
         if not accounts:
             logger.info('No AssistBattle account configured; run on current account')
             evozone_done, realmraid_done, evozone_final, realmraid_final, jade_flag = (
@@ -58,64 +60,33 @@ class ScriptTask(
             )
         else:
             today = datetime.now().strftime('%Y-%m-%d')
+            failed_accounts = []
             for account in accounts:
-                if account.assist_complete_date == today:
-                    logger.info(
-                        'Skip %s-%s: AssistBattle already completed today',
-                        account.character,
-                        account.svr,
-                    )
-                    results.append(self.completed_result(account))
-                    continue
-                logger.hr(
-                    'Run AssistBattle for %s-%s' % (account.character, account.svr), 2
-                )
-                if not SwitchAccount(self.config, self.device, account).switchAccount():
-                    logger.warning(
-                        'Switch to %s-%s failed; skip it',
-                        account.character,
-                        account.svr,
-                    )
-                    continue
-                (
-                    evozone_done,
-                    realmraid_done,
-                    evozone_final,
-                    realmraid_final,
-                    jade_flag,
-                ) = self.run_current_account(account)
-                results.append(
-                    {
-                        'account': account.account,
-                        'character': account.character,
-                        'svr': account.svr,
-                        'evozone_done': evozone_done,
-                        'realmraid_done': realmraid_done,
-                        'evozone_final': evozone_final,
-                        'realmraid_final': realmraid_final,
-                        'jade_flag': jade_flag,
-                    }
-                )
-                # 该账号本次流程已跑完，记入缓存，当天重启时不再登录
-                # 从当前 model 重取对象（防中途 reload 错位），找不到就跳过写入
-                current = self._current_model_account(account)
-                if current is None:
-                    logger.warning(
-                        'mark completed: %s-%s not found in current config model, skip writing',
-                        account.character,
-                        account.svr,
-                    )
-                else:
-                    current.assist_complete_date = today
-                    self.config.save()
-                logger.info(
-                    'AssistBattle completed today for %s-%s',
-                    account.character,
-                    account.svr,
-                )
+                if not self.run_one_account(account, results, today):
+                    failed_accounts.append(account)
+            # 切号失败的账号最后再尝试一次：切换角色时滑动幅度过大个别账号会被跳过
+            if failed_accounts and self.conf.assist_battle_config.retry_failed_account_enable:
+                logger.hr('Retry %s account(s) which failed to switch' % len(failed_accounts), 2)
+                still_failed = []
+                for account in failed_accounts:
+                    if not self.run_one_account(account, results, today):
+                        still_failed.append(account)
+                failed_accounts = still_failed
+            switch_failed_accounts = failed_accounts
         # 输出协战结果
         logger.hr('AssistBattle Result', 2)
         push_content = []
+        # 切换失败的账号单独列出, 避免用户去日志里翻
+        if switch_failed_accounts:
+            push_content.append(f"切换失败（{len(switch_failed_accounts)}个账号）：")
+            for account in switch_failed_accounts:
+                message = self.account_label({
+                    'account': account.account,
+                    'character': account.character,
+                    'svr': account.svr,
+                })
+                logger.info(message)
+                push_content.append(message)
         push_content.append(f"本次执行任务：")
         for result in results:
             # 账号取前4位，服务器取后4位，角色名取后2位
@@ -175,6 +146,62 @@ class ScriptTask(
             'jade_flag': False,
             'cached': True,
         }
+
+    def run_one_account(self, account: AccountInfo, results: list, today: str) -> bool:
+        """切换账号并执行该账号的协战流程, 切换失败返回 False（由上层决定是否重试）"""
+        if account.assist_complete_date == today:
+            logger.info(
+                'Skip %s-%s: AssistBattle already completed today',
+                account.character,
+                account.svr,
+            )
+            results.append(self.completed_result(account))
+            return True
+        logger.hr('Run AssistBattle for %s-%s' % (account.character, account.svr), 2)
+        if not SwitchAccount(self.config, self.device, account).switchAccount():
+            logger.warning(
+                'Switch to %s-%s failed; skip it',
+                account.character,
+                account.svr,
+            )
+            return False
+        (
+            evozone_done,
+            realmraid_done,
+            evozone_final,
+            realmraid_final,
+            jade_flag,
+        ) = self.run_current_account(account)
+        results.append(
+            {
+                'account': account.account,
+                'character': account.character,
+                'svr': account.svr,
+                'evozone_done': evozone_done,
+                'realmraid_done': realmraid_done,
+                'evozone_final': evozone_final,
+                'realmraid_final': realmraid_final,
+                'jade_flag': jade_flag,
+            }
+        )
+        # 该账号本次流程已跑完，记入缓存，当天重启时不再登录
+        # 从当前 model 重取对象（防中途 reload 错位），找不到就跳过写入
+        current = self._current_model_account(account)
+        if current is None:
+            logger.warning(
+                'mark completed: %s-%s not found in current config model, skip writing',
+                account.character,
+                account.svr,
+            )
+        else:
+            current.assist_complete_date = today
+            self.config.save()
+        logger.info(
+            'AssistBattle completed today for %s-%s',
+            account.character,
+            account.svr,
+        )
+        return True
 
     @staticmethod
     def account_label(result: dict, ellipsis: str = '**') -> str:

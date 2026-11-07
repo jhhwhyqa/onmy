@@ -52,6 +52,10 @@ class AssistBattleConfig(BaseModel):
         default=False,
         description='读取结界蹭卡模块配置，请确保结界能正常进入，不用开启结界蹭卡任务',
     )
+    retry_failed_account_enable: bool = Field(
+        default=True,
+        description='切号失败的账号最后再尝试一次',
+    )
 
 
 class AssistBattle(ConfigBase):
