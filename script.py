@@ -142,8 +142,8 @@ class Script:
             logger.warning(f'Failed to save error log for notification: {e}')
             return None
 
-    def _error_push_attachments(self, folder: str | None) -> tuple[list[bytes], list[str]]:
-        """读取错误现场截图；仅当当前推送渠道支持附件时返回。"""
+    def _error_push_images(self, folder: str | None) -> tuple[list[bytes], list[str]]:
+        """读取错误现场截图；仅当当前推送渠道支持内嵌图片时返回。"""
         if not folder or not self.config.notifier.supports_images:
             return [], []
         error_dir = Path(folder)
@@ -162,7 +162,7 @@ class Script:
 
     def _push_error(self, command: str, content: str, folder: str | None = None) -> None:
         """推送错误通知；支持的渠道附带错误现场截图。"""
-        images, filenames = self._error_push_attachments(folder)
+        images, filenames = self._error_push_images(folder)
         self.config.notifier.push(
             title=I18n.task_title(command),
             content=content,
@@ -441,7 +441,7 @@ class Script:
                                 "Please contact developers or try to fix it yourself.")
                 logger.critical('Request human takeover')
                 # 添加失败三次的推送通知；如果本任务留下过错误现场，
-                # 一并附带截图（仅支持附件的渠道）。
+                # 一并附带截图（截图内嵌正文，仅支持内嵌图片的渠道）。
                 error_log_dir = (
                     self._last_error_log_dir
                     if self._last_error_log_task == task else None

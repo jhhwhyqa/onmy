@@ -51,17 +51,25 @@ class Notifier:
 
     @property
     def supports_images(self) -> bool:
-        """目前只有 smtp 渠道（例如 QQ 邮箱）能把图片当附件发出去。"""
+        """目前只有 smtp 渠道（例如 QQ 邮箱）支持把图片内嵌进正文。"""
         return (self.enable and self.notifier is not None
                 and self.provider_name.lower() == "smtp")
 
+    @staticmethod
+    def _inline_image_cid(index: int) -> str:
+        """内嵌图片的 Content-ID，正文用 `cid:` 引用同一个值。"""
+        return f"oas-image-{index}@oas.local"
+
     def _build_mail_message(self, title: str, content: str, images, filenames=None):
-        """为 smtp 渠道拼一封带 PNG 附件的邮件，交给 onepush 直接发送。
+        """为 smtp 渠道拼一封图片内嵌在正文里的邮件，交给 onepush 直接发送。
 
         onepush 的 smtp provider 支持传入自定义 Message，这里用它绕开默认的
-        纯文本解析器，把截图作为附件带上。
+        纯文本解析器。截图以 Content-ID 内联在 HTML 正文中
+        （`Content-Disposition: inline`），收件客户端渲染正文即可看到，
+        不再出现在附件区。
         """
         from email.message import EmailMessage
+        from html import escape
 
         message = EmailMessage()
         message["Subject"] = title
@@ -71,15 +79,35 @@ class Notifier:
             message["From"] = sender
         if receiver:
             message["To"] = receiver
-        message.set_content(content or "")
+
         names = list(filenames or [])
-        for index, image in enumerate(images, start=1):
+
+        def _name(index: int) -> str:
             if index <= len(names) and names[index - 1]:
-                filename = names[index - 1]
-            else:
-                filename = f"reward_{index}.png"
-            message.add_attachment(bytes(image), maintype="image", subtype="png",
-                                   filename=filename)
+                return str(names[index - 1])
+            return f"reward_{index}.png"
+
+        # 正文做 HTML 转义，避免日志内容里的尖括号被当成标签；
+        # 调用方习惯用 <br> 换行，这里先还原成换行再统一转换。
+        text = escape((content or "").replace("<br>", "\n")).replace("\n", "<br>\n")
+        pictures = "".join(
+            f'<div><img src="cid:{self._inline_image_cid(index)}" '
+            f'alt="{escape(_name(index), quote=True)}" style="max-width:100%"></div>'
+            for index in range(1, len(images) + 1)
+        )
+        message.set_content(
+            f"<html><body><div>{text}</div>{pictures}</body></html>",
+            subtype="html",
+        )
+
+        for index, image in enumerate(images, start=1):
+            # add_related 会设为 inline 并写 Content-ID，正文才能用 cid: 引用到
+            message.add_related(
+                bytes(image),
+                maintype="image",
+                subtype="png",
+                cid=f"<{self._inline_image_cid(index)}>",
+            )
         return message
 
     def push(self, images: list = None, filenames: list = None, **kwargs) -> bool:
@@ -112,7 +140,7 @@ class Notifier:
                 self.config["token"] = access_token
 
 
-        # 附件只在本次调用生效，不能写回 self.config 污染后续推送
+        # 内嵌图片只在本次调用生效，不能写回 self.config 污染后续推送
         payload = self.config
         if images and self.supports_images:
             payload = dict(self.config)

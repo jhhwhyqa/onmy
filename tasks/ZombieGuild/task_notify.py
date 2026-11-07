@@ -7,8 +7,8 @@
 这里提供同名函数，返回带 `enable / push / push_images` 的对象，
 让调用侧写法保持不变。
 
-注意：`push_images` 只在渠道支持附件时（smtp，例如 QQ 邮箱）真的把截图发出去；
-其余渠道退化为纯文字通知，不会静默丢弃。
+注意：`push_images` 只在渠道支持内嵌图片时（smtp，例如 QQ 邮箱）真的把截图发出去，
+截图内嵌在正文里而不是放在附件区；其余渠道退化为纯文字通知，不会静默丢弃。
 """
 from module.logger import logger
 from module.notify.notify import Notifier
@@ -32,10 +32,10 @@ class TaskNotifier:
 
     def push_images(self, images, title: str = '', content: str = '',
                     filenames=None, **kwargs) -> bool:
-        """把截图当附件发送；渠道不支持附件时退化为文字通知。
+        """把截图内嵌在正文里发送；渠道不支持时退化为文字通知。
 
         :param images: PNG 字节流列表
-        :param filenames: 与 images 一一对应的附件名，缺省按序号命名
+        :param filenames: 与 images 一一对应的图片名，用作正文里的插图说明
         """
         if not self.enable:
             return False
@@ -43,7 +43,7 @@ class TaskNotifier:
         if images and self._notifier.supports_images:
             return self._notifier.push(title=title, content=content,
                                        images=images, filenames=filenames, **kwargs)
-        logger.info(f'当前推送渠道不支持附件，{len(images)} 张截图未发送，仅推送文字通知')
+        logger.info(f'当前推送渠道不支持内嵌图片，{len(images)} 张截图未发送，仅推送文字通知')
         return self.push(title=title, content=content, **kwargs)
 
 
