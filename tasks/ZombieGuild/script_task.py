@@ -156,6 +156,9 @@ class ScriptTask(DokanTaskBase, ZombieGuildAssets):
         run_dir = getattr(self, '_dokan_reward_run_directory', None)
         if run_dir is None or not run_dir.exists():
             return
+        if not self.conf.notification_config.push_reward_screenshot:
+            logger.info(f'Dokan reward screenshot push is disabled; screenshots kept: {run_dir}')
+            return
         screenshots = sorted(run_dir.glob('*.png'))
         if not screenshots:
             return
@@ -165,10 +168,7 @@ class ScriptTask(DokanTaskBase, ZombieGuildAssets):
         except Exception as exc:
             logger.warning(f'Dokan reward screenshots could not be read: {exc}')
             return
-        if not self.conf.dokan_config.push_reward_images:
-            logger.info('Dokan reward screenshots kept because dojo notifications are disabled')
-            return
-        notifier = resolve_task_notifier(self.config, getattr(self.conf, 'notification_config', None))
+        notifier = resolve_task_notifier(self.config, self.conf.notification_config.push_reward_screenshot)
         if not notifier.enable:
             logger.info('Dokan reward screenshots kept because notifications are disabled')
             return
@@ -216,7 +216,10 @@ class ScriptTask(DokanTaskBase, ZombieGuildAssets):
         return '\n'.join([headline, *details])
 
     def _push_dokan_refresh_limit_notification(self) -> None:
-        notifier = resolve_task_notifier(self.config, getattr(self.conf, 'notification_config', None))
+        if not self.conf.notification_config.push_refresh_limit:
+            logger.info('Dokan refresh limit notification is disabled')
+            return
+        notifier = resolve_task_notifier(self.config, self.conf.notification_config.push_refresh_limit)
         if not notifier.enable:
             logger.warning('Dokan refresh limit reached, but notifications are disabled')
             return

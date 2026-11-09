@@ -47,13 +47,13 @@ class TaskNotifier:
         return self.push(title=title, content=content, **kwargs)
 
 
-def resolve_task_notifier(config, task_cfg=None) -> TaskNotifier:
+def resolve_task_notifier(config, enable: bool = False) -> TaskNotifier:
     """按"任务级开关 + 全局通知配置"得到一个可用的通知器。
 
     :param config: 当前 Config 对象
-    :param task_cfg: 任务自己的通知配置（只有一个 enable 开关）
+    :param enable: 本次推送对应开关的状态（结算截图、刷新上限提醒各自独立）
     """
-    enable = bool(getattr(task_cfg, 'enable', False))
+    enable = bool(enable)
     notifier = Notifier('', enable=False)
     if enable:
         try:

@@ -5,7 +5,7 @@
 # github    https://github.com/roarhill/oas
 from datetime import datetime
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from tasks.Component.GeneralBattle.config_general_battle import GeneralBattleConfig
 from tasks.Component.SwitchSoul.switch_soul_config import SwitchSoulConfig
@@ -55,8 +55,6 @@ class DokanConfig(BaseModel):
     dokan_attack_priority: int = Field(default=0, description='dokan_attack_priority_help')
     # 只在周一到周四开启道馆
     monday_to_thursday: bool = Field(default=True, description='monday_to_thursday_help')
-    # 任务结束时推送本次运行的结算截图；关闭时仍保存截图
-    push_reward_images: bool = Field(default=True, description='push_reward_images_help')
     # 道馆最小人数限制
     min_people_num: int = Field(default=-1, description='min_people_num_help')
     # 超过此刷新次数后将最低防守人数减半，最多刷新20次
@@ -75,7 +73,10 @@ class DokanBattleConfig(GeneralBattleConfig):
 class TaskNotifyConfig(BaseModel):
     """任务级通知开关；推送渠道沿用仓库全局的 script.error.notify_config（见 task_notify.py）。"""
 
-    enable: bool = Field(default=False, description='task_notify_enable_help')
+    # 任务结束时推送本次运行的道馆结算截图；关闭时截图只保存在本地
+    push_reward_screenshot: bool = Field(default=False, description='push_reward_screenshot_help')
+    # 达到最大刷新次数仍未找到道馆时推送提醒
+    push_refresh_limit: bool = Field(default=False, description='push_refresh_limit_help')
 
 
 class ZombieGuild(ConfigBase):
@@ -87,3 +88,22 @@ class ZombieGuild(ConfigBase):
     attack_count_config: AttackAccountConfig = Field(default_factory=AttackAccountConfig)
 
     hide_fields = dynamic_hide('attack_count_config')
+
+    @model_validator(mode='before')
+    @classmethod
+    def migrate_legacy_notify(cls, value):
+        """旧配置的推送开关（dokan_config.push_reward_images + notification_config.enable）
+        拆成两个独立开关时，保持原有用户的推送行为。"""
+        if not isinstance(value, dict):
+            return value
+        notify = value.get('notification_config')
+        if not isinstance(notify, dict) or 'enable' not in notify:
+            return value
+        legacy_enable = bool(notify.pop('enable'))
+        dokan = value.get('dokan_config')
+        legacy_screenshot = legacy_enable
+        if isinstance(dokan, dict):
+            legacy_screenshot = bool(dokan.pop('push_reward_images', True)) and legacy_enable
+        notify.setdefault('push_reward_screenshot', legacy_screenshot)
+        notify.setdefault('push_refresh_limit', legacy_enable)
+        return value
