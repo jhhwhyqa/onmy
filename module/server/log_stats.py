@@ -22,6 +22,9 @@ _EQ_LINE_RE = re.compile(r"^═{15,}\s*$")
 _EQ_TITLE_LINE_RE = re.compile(r"^═{10,}\s+(?P<title>.*?)\s+═{10,}\s*$")
 _TITLE_LINE_RE = re.compile(r"^─{10,}\s*(?P<title>.*?)\s*─{10,}\s*$")
 _TASK_ENDED_RE = re.compile(r"^(?P<title>.+?)\s+task ended\b", re.IGNORECASE)
+# 调度器结束任务的日志: "Scheduler: End task `WeeklyTrifles`"
+_SCHEDULER_END_RE = re.compile(r"Scheduler:\s*End task\s+`(?P<title>[^`]+)`")
+_NO_TASK_PENDING = "No task pending"
 _BATTLE_TITLE = "GENERAL BATTLE START"
 _START_TITLE = "START"
 _SIX_REALMS_TITLE = "SIXREALMS"
@@ -281,6 +284,12 @@ class LogStatsParser:
         task_ended_title = self._extract_task_ended_title(line)
         if task_ended_title is not None:
             self._handle_task_ended(task_ended_title)
+
+        # 调度器结束任务或已无待执行任务: 之后的等待时间不属于任何任务,
+        # 否则最后一个任务会把到下一个任务之间的空闲时间算进自己的时长
+        if _SCHEDULER_END_RE.search(line) or _NO_TASK_PENDING in line:
+            self._close_active_battle()
+            self._close_active_task()
 
     def _consume_runtime_timestamp(self, ts: datetime) -> None:
         runtime = self.runtime
