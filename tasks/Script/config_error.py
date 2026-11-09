@@ -1,8 +1,7 @@
 # This Python file uses the following encoding: utf-8
 # @author runhey
 # github https://github.com/runhey
-from pydantic import BaseModel, ValidationError, validator, Field
-from tasks.Component.config_base import MultiLine
+from pydantic import BaseModel, Field, model_validator
 
 from module.logger import logger
 
@@ -21,6 +20,13 @@ class Error(BaseModel):
     )
     notify_enable: bool = Field(default=False,
                                 description='')
-    notify_config: MultiLine = Field(default='provider: null', description='notify_config_help')
+
+    @model_validator(mode='before')
+    @classmethod
+    def drop_legacy_notify_config(cls, value):
+        """渠道内容已统一到 config/notify_channel.yaml，忽略旧配置里残留的 notify_config。"""
+        if isinstance(value, dict):
+            value.pop('notify_config', None)
+        return value
 
 

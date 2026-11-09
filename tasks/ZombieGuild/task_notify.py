@@ -1,8 +1,8 @@
 # This Python file uses the following encoding: utf-8
 """任务级通知适配层。
 
-本仓库没有 `module/notify/task_notify.py`，全局通知走 `script.error.notify_config`
-这条（构造方式见 module/config/config.py 里的 `Notifier(...)`）。
+本仓库没有 `module/notify/task_notify.py`，推送渠道统一走全局渠道文件
+`config/notify_channel.yaml`（见 module/notify/channel.py）。
 
 这里提供同名函数，返回带 `enable / push / push_images` 的对象，
 让调用侧写法保持不变。
@@ -11,6 +11,7 @@
 截图内嵌在正文里而不是放在附件区；其余渠道退化为纯文字通知，不会静默丢弃。
 """
 from module.logger import logger
+from module.notify.channel import load_notify_channel
 from module.notify.notify import Notifier
 
 
@@ -57,10 +58,9 @@ def resolve_task_notifier(config, enable: bool = False) -> TaskNotifier:
     notifier = Notifier('', enable=False)
     if enable:
         try:
-            global_cfg = config.model.script.error
             notifier = Notifier(
-                global_cfg.notify_config,
-                enable=bool(global_cfg.notify_enable),
+                load_notify_channel(),
+                enable=bool(config.model.script.error.notify_enable),
             )
         except Exception as exc:
             logger.warning(f'初始化通知器失败，通知已禁用: {exc}')

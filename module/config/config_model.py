@@ -381,6 +381,12 @@ class ConfigModel(ConfigBase):
             value = False
 
         task_object = getattr(self, task, None)
+        # 任务可接管某些参数的写入（返回 None 表示未接管，由默认逻辑处理）
+        select_arg = getattr(task_object, 'select_oasx_arg', None)
+        if callable(select_arg):
+            handled = select_arg(group, argument, value)
+            if handled is not None:
+                return bool(handled)
         # 任务可先按自己的动态枚举契约接管赋值（返回 None 表示未接管）
         select_lineup = getattr(task_object, 'select_oasx_lineup', None)
         if callable(select_lineup) and group == 'chess_config' and argument == 'lineup_bond':

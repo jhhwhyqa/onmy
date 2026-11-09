@@ -20,8 +20,7 @@
       "error_repeated": false,
       "save_error": true,
       "screenshot_length": 1,
-      "notify_enable": false,
-      "notify_config": "provider: null"
+      "notify_enable": false
     },
     "optimization": {
       "screenshot_interval": 0.3,

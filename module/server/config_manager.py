@@ -23,7 +23,6 @@ CONFIG_REDACTION_VALUE = "XXX"
 CONFIG_REDACTION_PATHS = (
     "wanted_quests.wanted_quests_config.invite_friend_name",
     "*.invite_config.friend_list",
-    "script.error.notify_config",
     "global_game.server.password",
     "script.device.serial",
     "script.device.handle",
@@ -40,6 +39,10 @@ CONFIG_REDACTION_KEYS = {
     "access_token",
     "cookie",
     "authorization",
+}
+# 已迁移到其它位置的旧字段：导入旧配置时忽略，不当作未知字段报错。
+CONFIG_DEPRECATED_PATHS = {
+    "script.error.notify_config",
 }
 
 
@@ -159,6 +162,8 @@ class ConfigManager:
         for key, value in data.items():
             field_path = ConfigManager._join_field_path(prefix, str(key))
             if key == 'config_name' and model_type is ConfigModel:
+                continue
+            if field_path in CONFIG_DEPRECATED_PATHS:
                 continue
             if key not in fields:
                 dynamic_field = ConfigManager._dynamic_list_item_model(str(key), fields)

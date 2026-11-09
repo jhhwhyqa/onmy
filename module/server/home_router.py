@@ -4,7 +4,7 @@
 import asyncio
 import json
 import threading
-from fastapi import APIRouter, Body
+from fastapi import APIRouter, Body, Request
 from pathlib import Path
 
 from module.config.utils import write_file
@@ -47,9 +47,46 @@ async def ocr_server_info():
     return get_ocr_client(refresh=True).get_server_info()
 
 
+@home_app.get('/notify_channel')
+async def get_notify_channel():
+    """读取全局推送渠道配置内容。"""
+    from module.notify.channel import load_notify_channel
+    return load_notify_channel()
+
+
+@home_app.put('/notify_channel')
+async def put_notify_channel(request: Request):
+    """写入全局推送渠道配置（YAML 文本）。
+
+    同时兼容三种传法：JSON `{"content": "..."}`、原始文本正文、`?content=` 查询参数。
+    """
+    import yaml
+    from module.notify.channel import save_notify_channel
+
+    content = request.query_params.get('content', '')
+    if not content:
+        raw = (await request.body()).decode('utf-8', errors='replace')
+        try:
+            data = json.loads(raw)
+        except json.JSONDecodeError:
+            content = raw
+        else:
+            content = data.get('content', '') if isinstance(data, dict) else raw
+    try:
+        save_notify_channel(content)
+    except yaml.YAMLError as e:
+        return {'success': False, 'message': f'YAML 解析失败: {e}'}
+    except OSError as e:
+        return {'success': False, 'message': str(e)}
+    return {'success': True}
+
+
 @home_app.post('/notify_test')
-async def notify_test(setting: str, title: str, content: str):
+async def notify_test(title: str, content: str, setting: str = ''):
+    from module.notify.channel import load_notify_channel
     from module.notify.notify import Notifier
+    if not setting:
+        setting = load_notify_channel()
     try:
         notifier = Notifier(setting, True)
         if notifier.push(title=title, content=content):

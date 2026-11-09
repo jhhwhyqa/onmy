@@ -71,7 +71,7 @@ class DokanBattleConfig(GeneralBattleConfig):
 
 
 class TaskNotifyConfig(BaseModel):
-    """任务级通知开关；推送渠道沿用仓库全局的 script.error.notify_config（见 task_notify.py）。"""
+    """任务级通知开关；推送渠道统一读取 config/notify_channel.yaml（见 task_notify.py）。"""
 
     # 任务结束时推送本次运行的道馆结算截图；关闭时截图只保存在本地
     push_reward_screenshot: bool = Field(default=False, description='push_reward_screenshot_help')

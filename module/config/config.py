@@ -123,7 +123,8 @@ class Config(ConfigState, ConfigManual, ConfigWatcher, ConfigMenu):
 
     @cached_property
     def notifier(self):
-        notifier = Notifier(self.model.script.error.notify_config, enable=self.model.script.error.notify_enable)
+        from module.notify.channel import load_notify_channel
+        notifier = Notifier(load_notify_channel(), enable=self.model.script.error.notify_enable)
         notifier.config_name = self.config_name.upper()
         logger.info(f'Notifier: {notifier.config_name}')
         return notifier
