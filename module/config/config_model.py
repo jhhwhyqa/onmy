@@ -345,6 +345,11 @@ class ConfigModel(ConfigBase):
                         groups_value[key] = groups[group_name]
             result[key] = merge_value(groups_value[key], value, schema["$defs"])
 
+        # 任务可自定义导出的参数列表（如动态枚举、隐藏辅助字段）
+        oasx_args = getattr(task, 'oasx_args', None)
+        if callable(oasx_args):
+            result = oasx_args(result)
+
         return result
 
     def script_set_arg(self, task: str, group: str, argument: str, value) -> bool:
@@ -376,6 +381,14 @@ class ConfigModel(ConfigBase):
             value = False
 
         task_object = getattr(self, task, None)
+        # 任务可先按自己的动态枚举契约接管赋值（返回 None 表示未接管）
+        select_lineup = getattr(task_object, 'select_oasx_lineup', None)
+        if callable(select_lineup) and group == 'chess_config' and argument == 'lineup_bond':
+            handled = select_lineup(value)
+            if handled is not None:
+                if handled:
+                    self.save()
+                return handled
         group_object = getattr(task_object, group, None)
         if group_object is None:  # deal list
             matchs = re.findall(r'\d+', group)
