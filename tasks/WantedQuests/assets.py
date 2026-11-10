@@ -115,13 +115,13 @@ class WantedQuestsAssets:
 	# 小号不追踪 
 	I_TRACE_FALSE = RuleImage(roi_front=(1156,574,78,68), roi_back=(1113,524,159,167), threshold=0.8, method="Template matching", profile="High", file="./tasks/WantedQuests/wq/wq_trace_false.png")
 	# description 
-	I_GOTO_1 = RuleImage(roi_front=(1059,280,87,45), roi_back=(1057,270,93,63), threshold=0.8, method="Template matching", profile="High", file="./tasks/WantedQuests/wq/wq_goto_1.png")
+	I_GOTO_1 = RuleImage(roi_front=(1059,280,87,45), roi_back=(1047,270,113,63), threshold=0.8, method="Template matching", profile="High", file="./tasks/WantedQuests/wq/wq_goto_1.png")
 	# description 
-	I_GOTO_2 = RuleImage(roi_front=(1059,355,88,43), roi_back=(1059,346,88,58), threshold=0.8, method="Template matching", profile="High", file="./tasks/WantedQuests/wq/wq_goto_2.png")
+	I_GOTO_2 = RuleImage(roi_front=(1059,355,88,43), roi_back=(1049,346,108,58), threshold=0.8, method="Template matching", profile="High", file="./tasks/WantedQuests/wq/wq_goto_2.png")
 	# description 
-	I_GOTO_3 = RuleImage(roi_front=(1058,436,88,32), roi_back=(1058,419,88,62), threshold=0.8, method="Template matching", profile="High", file="./tasks/WantedQuests/wq/wq_goto_3.png")
+	I_GOTO_3 = RuleImage(roi_front=(1058,436,88,32), roi_back=(1048,419,108,62), threshold=0.8, method="Template matching", profile="High", file="./tasks/WantedQuests/wq/wq_goto_3.png")
 	# description 
-	I_GOTO_4 = RuleImage(roi_front=(1060,507,87,42), roi_back=(1060,505,87,46), threshold=0.8, method="Template matching", profile="High", file="./tasks/WantedQuests/wq/wq_goto_4.png")
+	I_GOTO_4 = RuleImage(roi_front=(1060,507,87,42), roi_back=(1050,505,107,46), threshold=0.8, method="Template matching", profile="High", file="./tasks/WantedQuests/wq/wq_goto_4.png")
 	# 庭院悬赏任务界面 单个任务点开后 左上角是否追踪 
 	I_WQ_TRACE_ONE_ENABLE = RuleImage(roi_front=(1152,575,79,67), roi_back=(1113,524,159,167), threshold=0.8, method="Template matching", profile="High", file="./tasks/WantedQuests/wq/wq_trace_one_enable.png")
 	# 庭院悬赏任务界面 单个任务点开后 左上角是否追踪 
