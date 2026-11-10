@@ -11,7 +11,7 @@
   {
     "itemName": "harvest_mail_copy",
     "imageName": "dt_harvest_mail_copy.png",
-    "roiFront": "257,509,29,21",
+    "roiFront": "888,431,29,21",
     "roiBack": "192,382,928,190",
     "method": "Template matching",
     "threshold": 0.8,
@@ -47,7 +47,7 @@
   {
     "itemName": "dt_harvest_mail_copy2",
     "imageName": "dt_harvest_mail_copy2.png",
-    "roiFront": "1158,18,22,20",
+    "roiFront": "1160,8,23,19",
     "roiBack": "1127,0,61,56",
     "method": "Template matching",
     "threshold": 0.9,

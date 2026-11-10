@@ -30,7 +30,7 @@ class WQExplore(ExplorationScriptTask, HighLight):
     _MAX_SWIPES = 12  # 单个方向最大滑动次数, 防止空转
 
     # 探索主界面的锁阵容图标: 已在 ExplorationAssets 注册
-    # I_LOCK_ON(未锁定时的按钮) / I_LOCK_OFF(已锁定时显示的图标),
+    # I_LOCK_OFF(未锁定时较暗的图标) / I_LOCK_ON(已锁定时较亮的图标),
     # 位置与其它副本准备页不同。
 
     def _default_detect_categories(self) -> set[str]:
@@ -76,12 +76,12 @@ class WQExplore(ExplorationScriptTask, HighLight):
         clicked = False
         for _ in range(5):
             self.screenshot()
-            if self.appear(self.I_LOCK_OFF):  # 已锁定
+            if self.appear(self.I_LOCK_ON):  # 已锁定
                 logger.info('Explore team is locked')
                 return clicked
-            if self.appear(self.I_LOCK_ON):  # 未锁定, 点一下开启
+            if self.appear(self.I_LOCK_OFF):  # 未锁定, 点一下开启
                 logger.info('Lock explore team')
-                self.click(self.I_LOCK_ON)
+                self.click(self.I_LOCK_OFF)
                 clicked = True
                 continue
             break
