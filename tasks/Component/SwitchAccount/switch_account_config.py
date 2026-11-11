@@ -24,9 +24,11 @@ class AccountInfo(BaseModel):
     consignment_date: str = Field(default='2023-01-01', description="consignment_date_help")
     # 一键协战：该账号上次完成协战的日期(YYYY-MM-DD)，当天重启任务时不再登录该账号
     assist_complete_date: str = Field(default='', description="assist_complete_date_help")
+    # 切换账号：该账号当天已切号(成功或失败)的日期(YYYY-MM-DD)，当天重启/重跑时不再切回
+    switch_date: str = Field(default='', description="switch_date_help")
 
     # 运行状态记录，不需要给用户改
-    hide_fields = dynamic_hide('consignment_date', 'assist_complete_date')
+    hide_fields = dynamic_hide('consignment_date', 'assist_complete_date', 'switch_date')
 
     def is_account_alias(self, ocr_account):
         tmp_account = AccountInfo.preprocessAccount(self.account)
