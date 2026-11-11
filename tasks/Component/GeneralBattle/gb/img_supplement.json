@@ -20,11 +20,11 @@
   {
     "itemName": "confirm_close_diff_soul",
     "imageName": "gb_confirm_close_diff_soul.png",
-    "roiFront": "570,411,135,54",
-    "roiBack": "517,374,226,112",
+    "roiFront": "684,411,135,54",
+    "roiBack": "664,405,178,69",
     "method": "Template matching",
     "threshold": 0.8,
-    "description": "关闭御魂不一致提示弹窗"
+    "description": "关闭御魂不一致提示弹窗(确定)"
   },
   {
     "itemName": "disable_7days_diff_soul",
