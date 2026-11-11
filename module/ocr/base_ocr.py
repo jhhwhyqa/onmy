@@ -129,6 +129,15 @@ class BaseCor:
     def __repr__(self):
         return f"{self.name}"
 
+    # 是否输出 OCR 结果日志；`RuleOcr.ocr(..., log=False)` 调用期间临时关闭
+    _log_enabled: bool = True
+
+    def _log_result(self, start_time: float, text: str) -> None:
+        """按 `_log_enabled` 输出识别结果日志，供高频调用方静默 OCR。"""
+        if not self._log_enabled:
+            return
+        logger.attr(name='%s %ss' % (self.name, float2str(time.time() - start_time)), text=text)
+
     @cached_property
     def model(self) -> Any:
         return get_ocr_model(self.lang)
@@ -176,8 +185,7 @@ class BaseCor:
         # after proces
         result = self.after_process(result)
         # logger.info("ocr result score: %s%s" % (result,score))
-        logger.attr(name='%s %ss' % (self.name, float2str(time.time() - start_time)),
-                    text=f'[{result}]')
+        self._log_result(start_time, f'[{result}]')
         return result
 
     def ocr_single_line(self, image):
@@ -206,8 +214,7 @@ class BaseCor:
         # after proces
         result = self.after_process(result)
         # logger.info("ocr result score: %s" % score)
-        logger.attr(name='%s %ss' % (self.name, float2str(time.time() - start_time)),
-                    text=f'[{result}]')
+        self._log_result(start_time, f'[{result}]')
         return result
 
     def detect_and_ocr(self, image, logDisplay: bool = True, **kwargs) -> list[BoxedResult]:
@@ -234,8 +241,7 @@ class BaseCor:
             result.ocr_text = self.after_process(result.ocr_text)
             results.append(result)
         if logDisplay:
-            logger.attr(name='%s %ss' % (self.name, float2str(time.time() - start_time)),
-                        text=str([result.ocr_text for result in results]))
+            self._log_result(start_time, str([result.ocr_text for result in results]))
         return results
 
     def match(self, result: str, included: bool=False) -> bool:
@@ -314,8 +320,7 @@ class BaseCor:
                 continue
             results += result.ocr_text
         # logger.info("ocr result score: %s" % score)
-        logger.attr(name='%s %ss' % (self.name, float2str(time.time() - start_time)),
-                    text=f'[{results}]')
+        self._log_result(start_time, f'[{results}]')
         return results
 
 

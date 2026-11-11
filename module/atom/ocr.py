@@ -57,23 +57,30 @@ class RuleOcr(Digit, DigitCounter, Duration, Single, Full, Quantity):
             case _:
                 return result
 
-    def ocr(self, image, keyword=None):
+    def ocr(self, image, keyword=None, log: bool = True):
+        """识别一次。
 
-        match self.mode:
-            case OcrMode.FULL:
-                return Full.ocr_full(self, image, keyword)
-            case OcrMode.SINGLE:
-                return Single.ocr_single(self, image)
-            case OcrMode.DIGIT:
-                return Digit.ocr_digit(self, image)
-            case OcrMode.DIGITCOUNTER:
-                return DigitCounter.ocr_digit_counter(self, image)
-            case OcrMode.DURATION:
-                return Duration.ocr_duration(self, image)
-            case OcrMode.QUANTITY:
-                return Quantity.ocr_quantity(self, image)
-            case _:
-                return None
+        :param log: False 时不输出本次识别的结果日志，供每帧都会调用的高频场景使用
+        """
+        self._log_enabled = log
+        try:
+            match self.mode:
+                case OcrMode.FULL:
+                    return Full.ocr_full(self, image, keyword)
+                case OcrMode.SINGLE:
+                    return Single.ocr_single(self, image)
+                case OcrMode.DIGIT:
+                    return Digit.ocr_digit(self, image)
+                case OcrMode.DIGITCOUNTER:
+                    return DigitCounter.ocr_digit_counter(self, image)
+                case OcrMode.DURATION:
+                    return Duration.ocr_duration(self, image)
+                case OcrMode.QUANTITY:
+                    return Quantity.ocr_quantity(self, image)
+                case _:
+                    return None
+        finally:
+            self._log_enabled = True
 
     def coord(self) -> tuple:
         """
