@@ -89,14 +89,18 @@ class AccountSwitch(ConfigBase):
         return value
 
     @model_serializer()
-    def serializer_model(self) -> Dict[str, Any]:
+    def serializer_model(self, info) -> Dict[str, Any]:
+        # 把 context 透传给子模型，否则账号卡上的隐藏字段（如 switch_date）露出来
+        context = info.context if info is not None else None
         data = {}
         for key, value in self.__dict__.items():
             if isinstance(value, list):
                 for index, item in enumerate(value):
-                    data[f'{key}_{index + 1}'] = item.model_dump()
+                    data[f'{key}_{index + 1}'] = item.model_dump(context=context)
             else:
                 data[key] = (
-                    value.model_dump() if isinstance(value, BaseModel) else value
+                    value.model_dump(context=context)
+                    if isinstance(value, BaseModel)
+                    else value
                 )
         return data

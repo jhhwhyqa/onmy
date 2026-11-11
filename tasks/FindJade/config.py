@@ -139,13 +139,15 @@ class FindJade(ConfigBase):
         return v
 
     @model_serializer()
-    def serializer_model(self, value: Any) -> Dict[str, Any]:
+    def serializer_model(self, info) -> Dict[str, Any]:
+        # 把 context 透传给子模型，否则账号卡上的隐藏字段会露出来
+        context = info.context if info is not None else None
         properties = self.__dict__
         data = {}
 
         def v_dump(v):
             try:
-                return v.model_dump()
+                return v.model_dump(context=context)
             except AttributeError as e:
                 logger.error(e)
                 return v
