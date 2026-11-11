@@ -77,6 +77,7 @@ from tasks.HeroTest.config import HeroTest
 from tasks.FindJade.config import FindJade
 from tasks.MemoryScrolls.config import MemoryScrolls
 from tasks.AssistBattle.config import AssistBattle
+from tasks.AccountSwitch.config import AccountSwitch
 from tasks.LevelRush.config import LevelRush
 # ----------------------------------------------------------------------------------------------------------------------
 
@@ -148,6 +149,7 @@ class ConfigModel(ConfigBase):
     find_jade: FindJade = Field(default_factory=FindJade)
     memory_scrolls: MemoryScrolls = Field(default_factory=MemoryScrolls)
     assist_battle: AssistBattle = Field(default_factory=AssistBattle)
+    account_switch: AccountSwitch = Field(default_factory=AccountSwitch)
     level_rush: LevelRush = Field(default_factory=LevelRush)
 
     # 这些是每周任务

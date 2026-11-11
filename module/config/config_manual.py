@@ -20,6 +20,7 @@ class ConfigManual:
         > Secret > WeeklyTrifles > MysteryShop > Duel > Chess
         > TrueOrochi > RichMan
         > MetaDemon > FrogBoss > FloatParade > DyeTrials > Quiz > GuguArtStudio > FrogChallenge > DemonDrill > MemoryScrolls > AssistBattle > IbukiArena > VersionActivity > LBS
+        > AccountSwitch
         """
 
     DEVICE_OVER_HTTP = False

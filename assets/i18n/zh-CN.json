@@ -343,5 +343,14 @@
   "group_number": "预设组编号",
   "preset_number": "预设编号",
   "preset_name": "预设名称",
-  "mode": "选择方式"
+  "mode": "选择方式",
+  "AccountSwitch": "切换账号(多任务)",
+  "account_switch_config": "账号切换配置",
+  "account_switch_usage_help": "使用前请先阅读 tasks/AccountSwitch/README.md",
+  "switch_account_count": "账号数量",
+  "switch_account_count_help": "总共要轮换的账号数量；切完这一圈后，账号切换任务会等 1 天再开始下一轮",
+  "trigger_all_enabled_tasks": "切号后触发所有已启用任务",
+  "trigger_all_enabled_tasks_help": "切号成功后，把当前配置里所有已启用任务的运行时间重置为当前，让它们立即依次执行",
+  "current_index": "当前切号指针",
+  "current_index_help": "脚本自动维护的切号进度，无需手动修改"
 }

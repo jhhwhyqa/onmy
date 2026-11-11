@@ -32,6 +32,7 @@ class ConfigMenu:
             "FindJade",
             "MemoryScrolls",
             "AssistBattle",
+            "AccountSwitch",
             "LevelRush"
         ]
         # 阴阳寮
