@@ -52,5 +52,14 @@
     "method": "Default",
     "keyword": "",
     "description": "高星boss名字"
+  },
+  {
+    "itemName": "md_daily_boss_count",
+    "roiFront": "0,0,80,30",
+    "roiBack": "0,0,80,30",
+    "mode": "DigitCounter",
+    "method": "Default",
+    "keyword": "",
+    "description": "每日鬼王购买次数x/5（占位，待标注）"
   }
 ]

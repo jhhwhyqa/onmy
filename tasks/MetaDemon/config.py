@@ -156,6 +156,10 @@ class MetaDemonConfig(ConfigBase):
         default='1',
         description='鬼王合成列表(空格分隔),支持1-5星合成,例:1 2 3(合成一星,二星,三星鬼王)',
     )
+    buy_daily_boss: bool = Field(
+        default=False,
+        description='在挑战页购买每日鬼王',
+    )
 
     @property
     def limit_time_v(self) -> timedelta:

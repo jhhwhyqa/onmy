@@ -6,6 +6,7 @@ import time
 import random
 from datetime import datetime, timedelta
 from module.atom.image import RuleImage
+from module.base.timer import Timer
 
 from tasks.Component.GeneralBattle.config_general_battle import GeneralBattleConfig
 from tasks.Component.GeneralBattle.general_battle import (
@@ -153,6 +154,9 @@ class ScriptTask(GeneralBattle, SwitchSoul, GameUi, QuickLoadout, FriendInviter,
         logger.info(f'Battle phase starts, limit_time resets to now '
                     f'({self.limit_time.total_seconds() / 60:.0f}min)')
         self.goto_page(ipages.page_meta_demon_boss)
+        # 每日鬼王：购买次数未满 x/5 时先进礼包买一次
+        if self.conf.meta_demon_config.buy_daily_boss:
+            self.buy_daily_boss()
         # 大小号协作：邀请模式(大号拉小号)与协助模式(小号拉大号)互斥，由 mode 决定
         assist_only = self.conf.meta_demon_invite.assist_only
         invite_only = self.conf.meta_demon_invite.invite_only
@@ -914,6 +918,77 @@ class ScriptTask(GeneralBattle, SwitchSoul, GameUi, QuickLoadout, FriendInviter,
         self.State.soul_key = preset_key
         self.goto_page(ipages.page_meta_demon_boss)
         return True
+
+    # ---------------------------------------------------------------- 每日鬼王购买
+    def buy_daily_boss(self) -> bool:
+        """在挑战页购买每日鬼王：次数 x/5 未满时进礼包买一次。
+
+        Returns:
+            bool: 是否完成一次购买；次数已满、识别失败或按钮缺失返回 False。
+        """
+        logger.hr('Buy daily MetaDemon boss', 2)
+        if not self.appear_then_click(self.I_MD_DAILY_BOSS_GIFT, interval=1):
+            logger.warning('Daily boss gift entry not found, skip buying')
+            return False
+        current, total = self._read_daily_boss_count()
+        if total <= 0:
+            logger.warning('Cannot read daily boss purchase count, skip buying')
+            self._leave_daily_boss_shop()
+            return False
+        if current >= total:
+            logger.info(f'Daily boss purchase count is full ({current}/{total}), skip buying')
+            self._leave_daily_boss_shop()
+            return False
+        logger.info(f'Daily boss purchase count {current}/{total}, buy now')
+        bought = self._buy_daily_boss_once()
+        self._leave_daily_boss_shop()
+        return bought
+
+    def _read_daily_boss_count(self, timeout: float = 8.0) -> tuple[int, int]:
+        """读取礼包页的每日鬼王购买次数 x/5；读不到时返回 (0, 0)。"""
+        timer = Timer(timeout).start()
+        while not timer.reached():
+            self.screenshot()
+            current, _, total = self.O_MD_DAILY_BOSS_COUNT.ocr(self.device.image)
+            if total > 0:
+                return current, total
+            time.sleep(0.5)
+        return 0, 0
+
+    def _buy_daily_boss_once(self) -> bool:
+        """购买 → 数量选 MAX → 确认购买。"""
+        if not self.appear_then_click(self.I_MD_DAILY_BOSS_BUY, interval=1):
+            logger.warning('Daily boss buy button not found')
+            return False
+        if not self.wait_until_appear(self.I_MD_DAILY_BOSS_MAX, wait_time=5):
+            logger.warning('Daily boss quantity dialog not found')
+            return False
+        if not self.appear_then_click(self.I_MD_DAILY_BOSS_MAX, interval=1):
+            logger.warning('Daily boss MAX button not found')
+            return False
+        if not self.wait_until_appear(self.I_MD_DAILY_BOSS_CONFIRM, wait_time=5):
+            logger.warning('Daily boss confirm button not found')
+            return False
+        if not self.appear_then_click(self.I_MD_DAILY_BOSS_CONFIRM, interval=1):
+            logger.warning('Daily boss confirm click failed')
+            return False
+        logger.info('Daily boss purchase confirmed')
+        time.sleep(1)
+        return True
+
+    def _leave_daily_boss_shop(self, timeout: float = 10.0) -> None:
+        """从礼包页退回鬼王挑战页。"""
+        timer = Timer(timeout).start()
+        while not timer.reached():
+            self.screenshot()
+            if self.appear(self.I_CHECK_BOSS_PAGE):
+                return
+            if self.appear_then_click(self.I_UI_BACK_YELLOW, interval=1):
+                continue
+            if self.appear_then_click(self.I_MD_CLOSE_POPUP, interval=1):
+                continue
+            time.sleep(0.5)
+        logger.warning('Daily boss shop did not close in time, continue')
 
     def finish_task(self):
         self.goto_page(ipages.page_main)

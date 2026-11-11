@@ -99,6 +99,14 @@ class MetaDemonAssets:
 	I_MD_QUICK_LOADOUT_FIGHT = RuleImage(roi_front=(772,555,89,42), roi_back=(740,531,155,86), threshold=0.8, method="Template matching", profile="High", file="./tasks/MetaDemon/md/md_md_quick_loadout_fight.png")
 	# 单拉协战 
 	I_MD_ASSIST_ALONE = RuleImage(roi_front=(140,371,91,28), roi_back=(30,123,297,529), threshold=0.8, method="Template matching", profile="High", file="./tasks/MetaDemon/md/md_md_assist_alone.png")
+	# 每日鬼王礼包入口 
+	I_MD_DAILY_BOSS_GIFT = RuleImage(roi_front=(1201,125,38,39), roi_back=(1201,125,38,39), threshold=0.8, method="Template matching", profile="High", file="./tasks/MetaDemon/md/md_daily_boss_gift.png")
+	# 每日鬼王购买按钮 
+	I_MD_DAILY_BOSS_BUY = RuleImage(roi_front=(1059,315,72,37), roi_back=(1059,315,72,37), threshold=0.8, method="Template matching", profile="High", file="./tasks/MetaDemon/md/md_daily_boss_buy.png")
+	# 每日鬼王数量MAX按钮 
+	I_MD_DAILY_BOSS_MAX = RuleImage(roi_front=(765,447,40,39), roi_back=(765,447,40,39), threshold=0.8, method="Template matching", profile="High", file="./tasks/MetaDemon/md/md_daily_boss_max.png")
+	# 每日鬼王确认购买按钮（占位，待标注） 
+	I_MD_DAILY_BOSS_CONFIRM = RuleImage(roi_front=(557,540,167,50), roi_back=(557,540,167,50), threshold=0.8, method="Template matching", profile="High", file="./tasks/MetaDemon/md/md_daily_boss_confirm.png")
 
 
 	# Ocr Rule Assets
@@ -114,6 +122,8 @@ class MetaDemonAssets:
 	O_MD_TICKET_PROGRESS_EXPLORATION = RuleOcr(roi=(936,14,82,33), area=(916,9,124,41), mode="DigitCounter", method="Default", keyword="", name="md_ticket_progress_exploration")
 	# 高星boss名字 
 	O_MD_BOSS_NAME = RuleOcr(roi=(513,147,32,190), area=(479,145,102,197), mode="Single", method="Default", keyword="", name="md_boss_name")
+	# 每日鬼王购买次数x/5（占位，待标注） 
+	O_MD_DAILY_BOSS_COUNT = RuleOcr(roi=(0,0,80,30), area=(0,0,80,30), mode="DigitCounter", method="Default", keyword="", name="md_daily_boss_count")
 
 
 	# Swipe Rule Assets

@@ -340,5 +340,41 @@
     "method": "Template matching",
     "threshold": 0.8,
     "description": "单拉协战"
+  },
+  {
+    "itemName": "md_daily_boss_gift",
+    "imageName": "md_daily_boss_gift.png",
+    "roiFront": "1201,125,38,39",
+    "roiBack": "1201,125,38,39",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "每日鬼王礼包入口"
+  },
+  {
+    "itemName": "md_daily_boss_buy",
+    "imageName": "md_daily_boss_buy.png",
+    "roiFront": "1059,315,72,37",
+    "roiBack": "1059,315,72,37",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "每日鬼王购买按钮"
+  },
+  {
+    "itemName": "md_daily_boss_max",
+    "imageName": "md_daily_boss_max.png",
+    "roiFront": "765,447,40,39",
+    "roiBack": "765,447,40,39",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "每日鬼王数量MAX按钮"
+  },
+  {
+    "itemName": "md_daily_boss_confirm",
+    "imageName": "md_daily_boss_confirm.png",
+    "roiFront": "557,540,167,50",
+    "roiBack": "557,540,167,50",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "每日鬼王确认购买按钮（占位，待标注）"
   }
 ]
