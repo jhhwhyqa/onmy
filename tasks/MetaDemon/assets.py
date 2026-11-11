@@ -68,7 +68,7 @@ class MetaDemonAssets:
 	# 召唤鬼王 
 	I_MD_SUMMON_BOSS = RuleImage(roi_front=(1142,581,76,83), roi_back=(1105,546,157,154), threshold=0.8, method="Template matching", profile="High", file="./tasks/MetaDemon/md/md_md_summon_boss.png")
 	# 合成一星 
-	I_MD_SYNTHESIS_ONE_STAR = RuleImage(roi_front=(226,178,62,65), roi_back=(209,150,100,501), threshold=0.85, method="Template matching", profile="High", file="./tasks/MetaDemon/md/md_md_synthesis_one_star.png")
+	I_MD_SYNTHESIS_ONE_STAR = RuleImage(roi_front=(221,222,75,19), roi_back=(209,150,100,501), threshold=0.85, method="Template matching", profile="High", file="./tasks/MetaDemon/md/md_md_synthesis_one_star.png")
 	# 合成二星 
 	I_MD_SYNTHESIS_TWO_STAR = RuleImage(roi_front=(226,276,61,66), roi_back=(207,152,99,500), threshold=0.85, method="Template matching", profile="High", file="./tasks/MetaDemon/md/md_md_synthesis_two_star.png")
 	# 合成三星 

@@ -200,7 +200,7 @@
   {
     "itemName": "md_synthesis_one_star",
     "imageName": "md_md_synthesis_one_star.png",
-    "roiFront": "226,178,62,65",
+    "roiFront": "221,222,75,19",
     "roiBack": "209,150,100,501",
     "method": "Template matching",
     "threshold": 0.85,
