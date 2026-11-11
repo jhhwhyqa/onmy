@@ -1,0 +1,8 @@
+[
+  {
+    "itemName": "md_quick_loadout_close",
+    "roiFront": "0,135,42,97",
+    "roiBack": "0,135,42,97",
+    "description": "弹窗关闭按钮"
+  }
+]

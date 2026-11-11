@@ -16,5 +16,41 @@
     "method": "Default",
     "keyword": "",
     "description": "好友列表"
+  },
+  {
+    "itemName": "md_ticket_progress",
+    "roiFront": "1133,6,82,33",
+    "roiBack": "1114,1,124,41",
+    "mode": "DigitCounter",
+    "method": "Default",
+    "keyword": "",
+    "description": "奖励页面超鬼王召唤券进度"
+  },
+  {
+    "itemName": "md_realm_raid_ticket",
+    "roiFront": "550,18,78,25",
+    "roiBack": "526,9,124,41",
+    "mode": "DigitCounter",
+    "method": "Default",
+    "keyword": "",
+    "description": "超鬼王期间突破券位置"
+  },
+  {
+    "itemName": "md_ticket_progress_exploration",
+    "roiFront": "936,14,82,33",
+    "roiBack": "916,9,124,41",
+    "mode": "DigitCounter",
+    "method": "Default",
+    "keyword": "",
+    "description": "探索页面超鬼王召唤券进度"
+  },
+  {
+    "itemName": "md_boss_name",
+    "roiFront": "513,147,32,190",
+    "roiBack": "479,145,102,197",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "高星boss名字"
   }
 ]

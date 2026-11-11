@@ -1048,21 +1048,45 @@
       "powerful_list": "",
       "synthesis_list": "1"
     },
+    "meta_demon_ticket_farm": {
+      "ticket_farm_enable": false,
+      "ticket_only": false,
+      "ticket_farm_mode": "exploration",
+      "layer": "拾层",
+      "kirin_type": "雷麒麟",
+      "exploration_level": "第二十八章",
+      "exploration_skip_realm_raid": false,
+      "realm_raid_threshold": 25
+    },
+    "meta_demon_invite": {
+      "invite_enable": false,
+      "coop_mode": "invite",
+      "stars": "6 5",
+      "friend_name": "",
+      "name_match_ratio": 60,
+      "wait_timeout": 10,
+      "poll_interval": 10,
+      "assist_wait_minutes": 10
+    },
     "switch_soul": {
       "enable": false,
       "switch_once": false,
-      "one_star": "",
-      "enable_one_star_preset": false,
-      "two_stars": "",
-      "enable_two_stars_preset": false,
-      "three_stars": "",
-      "enable_three_stars_preset": false,
-      "four_stars": "",
-      "enable_four_stars_preset": false,
+      "low_star": "",
+      "enable_low_star_preset": false,
       "five_stars": "",
       "enable_five_stars_preset": false,
       "six_stars": "",
       "enable_six_stars_preset": false
+    },
+    "boss_quick_loadout_config": {
+      "enable": false,
+      "mode": "mode_number",
+      "group_number": 1,
+      "preset_number": 1,
+      "group_name": "",
+      "preset_name": "",
+      "custom_preset_enable": false,
+      "custom_preset": "ALL:(1,1);"
     }
   },
   "frog_boss": {

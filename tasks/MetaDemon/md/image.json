@@ -29,8 +29,8 @@
   {
     "itemName": "md_synthesize",
     "imageName": "md_md_synthesize.png",
-    "roiFront": "0,0,100,100",
-    "roiBack": "0,0,100,100",
+    "roiFront": "1198,224,45,42",
+    "roiBack": "1198,224,45,42",
     "method": "Template matching",
     "threshold": 0.8,
     "description": "鬼王合成"
@@ -47,8 +47,8 @@
   {
     "itemName": "md_check_main_page",
     "imageName": "md_md_check_main_page.png",
-    "roiFront": "464,231,39,213",
-    "roiBack": "449,220,72,244",
+    "roiFront": "993,183,22,65",
+    "roiBack": "874,46,160,212",
     "method": "Template matching",
     "threshold": 0.8,
     "description": "超鬼王主界面"
@@ -56,8 +56,8 @@
   {
     "itemName": "md_get_yesterday_reward",
     "imageName": "md_md_get_yesterday_reward.png",
-    "roiFront": "547,571,183,56",
-    "roiBack": "471,523,327,163",
+    "roiFront": "711,543,183,56",
+    "roiBack": "471,485,496,201",
     "method": "Template matching",
     "threshold": 0.8,
     "description": "领取昨日奖励"
@@ -155,8 +155,8 @@
   {
     "itemName": "check_act_list_metademon_act",
     "imageName": "md_check_act_list_metademon_act.png",
-    "roiFront": "718,293,448,127",
-    "roiBack": "675,249,566,240",
+    "roiFront": "1026,72,149,126",
+    "roiBack": "985,50,218,441",
     "method": "Template matching",
     "threshold": 0.8,
     "description": "活动列表页超鬼王活动标志"
@@ -313,5 +313,32 @@
     "method": "Template matching",
     "threshold": 0.8,
     "description": "无鬼王门票标志"
+  },
+  {
+    "itemName": "md_goto_quick_loadout",
+    "imageName": "md_md_goto_quick_loadout.png",
+    "roiFront": "1226,436,28,26",
+    "roiBack": "1198,412,82,81",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "鬼王界面上的「一键配置」入口按钮"
+  },
+  {
+    "itemName": "md_quick_loadout_fight",
+    "imageName": "md_md_quick_loadout_fight.png",
+    "roiFront": "772,555,89,42",
+    "roiBack": "740,531,155,86",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": ""
+  },
+  {
+    "itemName": "md_assist_alone",
+    "imageName": "md_md_assist_alone.png",
+    "roiFront": "140,371,91,28",
+    "roiBack": "30,123,297,529",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "单拉协战"
   }
 ]
