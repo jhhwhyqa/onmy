@@ -59,6 +59,8 @@ class ScriptTask(GeneralBattle, SwitchSoul, GameUi, QuickLoadout, FriendInviter,
         summon_fail_count: int = 0
         # 最近一次读到的疲劳上限, 用于弹窗遮挡时估算恢复时间
         fatigue_total: int = 0
+        # 上一场打输的鬼王 (星级, 归一化鬼王名); 同一只鬼王再战时不再开强力追击
+        last_lost_boss: tuple | None = None
 
     # 一键配置连续失败上限, 防止素材/预设异常时空转
     LINEUP_FAIL_LIMIT = 3
@@ -244,10 +246,11 @@ class ScriptTask(GeneralBattle, SwitchSoul, GameUi, QuickLoadout, FriendInviter,
                     f'{self.cur_boss_type.name.lower() if self.cur_boss_type else "None"}'
                     f' [{self.boss_name or "unknown"}]'
                 )
-                self.run_general_battle(
+                win = self.run_general_battle(
                     self.current_battle_conf(),
                     battle_key=self._meta_demon_battle_key(),
                 )
+                self._record_battle_result(win, saw_result=True)
                 break
             # 出战/挑战前的「御魂与预设不一致」弹窗会吞掉后面的点击, 先处理掉
             if self.appear_then_click(self.I_CONFIRM_CLOSE_DIFF_SOUL, interval=0.6):
@@ -271,6 +274,7 @@ class ScriptTask(GeneralBattle, SwitchSoul, GameUi, QuickLoadout, FriendInviter,
         self.device.click_record_clear()
         logger.info(f"Start battle process on {self.cur_boss_type.name if self.cur_boss_type else 'None'}")
         win = False
+        result_seen = False
         while True:
             self.screenshot()
             if self.appear(self.I_MD_SUMMON_BOSS, interval=0.8) or \
@@ -279,16 +283,19 @@ class ScriptTask(GeneralBattle, SwitchSoul, GameUi, QuickLoadout, FriendInviter,
                 break
             if self.appear(self.I_WIN, interval=0.8):
                 win = True
+                result_seen = True
                 self.click(ipages.random_click())
                 continue
             if self.appear(self.I_FALSE, interval=0.8):
                 win = False
+                result_seen = True
                 self.click(ipages.random_click())
                 continue
             if self.appear(self.I_MD_SETTLING, interval=3.5):
                 logger.info('wait result')
                 time.sleep(random.uniform(3, 5))
                 continue
+        self._record_battle_result(win, saw_result=result_seen)
         total_run_time = datetime.now() - self.start_time
         logger.info(f'battle win: {win}')
         logger.info(f'battle count: {self.total_count}/{self.limit_count}')
@@ -299,6 +306,44 @@ class ScriptTask(GeneralBattle, SwitchSoul, GameUi, QuickLoadout, FriendInviter,
         if datetime.now() - self.start_time >= self.limit_time or \
                 self.total_count >= self.limit_count:
             self.State.done = True
+
+    # ------------------------------------------------ 强力追击：失败再战时关闭
+    def _current_boss_key(self) -> tuple:
+        """当前挑战鬼王的身份 (星级, 归一化鬼王名)。"""
+        return self.cur_boss_type, normalize_boss_name(self.boss_name)
+
+    def _record_battle_result(self, win: bool, saw_result: bool = True) -> None:
+        """记录本场输赢；同一只鬼王再战时据此关闭强力追击。"""
+        if not saw_result:
+            # 没看到结算页(中断/快速退出)就判定不了输赢, 保留原记录
+            return
+        if win:
+            if self.State.last_lost_boss is not None:
+                logger.info('Battle won, powerful fire setting restored for the next boss')
+            self.State.last_lost_boss = None
+            return
+        self.State.last_lost_boss = self._current_boss_key()
+        logger.warning(
+            'Battle lost on %s, powerful fire will be off on the retry',
+            self.boss_name
+            or (self.cur_boss_type.name if self.cur_boss_type else 'unknown'),
+        )
+
+    def _is_lost_boss_retry(self) -> bool:
+        """当前挑战是否就是上一场打输的那只鬼王。"""
+        lost = self.State.last_lost_boss
+        if lost is None:
+            return False
+        lost_type, lost_name = lost
+        current_type, current_name = self._current_boss_key()
+        if lost_type != current_type:
+            self.State.last_lost_boss = None
+            return False
+        # 任一侧名字为空时按同星级视为同一只，避免 OCR 抖动漏关强力
+        if lost_name and current_name and lost_name != current_name:
+            self.State.last_lost_boss = None
+            return False
+        return True
 
     # ---------------------------------------------------------------- 邀请好友模式
 
@@ -594,6 +639,11 @@ class ScriptTask(GeneralBattle, SwitchSoul, GameUi, QuickLoadout, FriendInviter,
                 return False
         # 低星鬼王不会强力追击
         if self.cur_boss_type is not None and self.cur_boss_type not in HIGH_STAR_TYPES:
+            self.ui_click(self.I_MD_ENABLE_POWERFUL_FIRE, self.I_MD_DISABLE_POWERFUL_FIRE, interval=0.6)
+            return True
+        # 同一只鬼王上一场打输了：再战不再开强力追击
+        if self._is_lost_boss_retry():
+            logger.info('Last battle on this boss was lost, disable powerful fire for retry')
             self.ui_click(self.I_MD_ENABLE_POWERFUL_FIRE, self.I_MD_DISABLE_POWERFUL_FIRE, interval=0.6)
             return True
         names, legacy_types = self.conf.meta_demon_config.powerful_entries_v
