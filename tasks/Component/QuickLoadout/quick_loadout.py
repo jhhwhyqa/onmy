@@ -279,7 +279,8 @@ class QuickLoadout(BaseTask, SwitchSoulAssets):
             )
             if text_stable or visual_stable:
                 stable_count += 1
-                if stable_count >= 2:
+                # 列表通常滑两次就到顶, 只需一次稳定确认, 不必再等第二帧
+                if stable_count >= 1:
                     logger.info(f'Quick loadout list reached top after {attempt} swipes')
                     return
             else:
@@ -297,8 +298,14 @@ class QuickLoadout(BaseTask, SwitchSoulAssets):
         logger.warning(f'Quick loadout rewind reached safety limit: {max_swipes}')
 
     def _find_name_y(self, ocr: RuleOcr, target: str, results=None):
+        y, score, _ = self._find_name_match(ocr, target, results)
+        return y, score
+
+    def _find_name_match(self, ocr: RuleOcr, target: str, results=None):
+        """返回 (y, score, 匹配到的原文)，便于日志定位误匹配。"""
         best_y = None
         best_score = 0.0
+        best_text = ''
         if results is None:
             results = ocr.detect_and_ocr(self.device.image)
         for result in results:
@@ -306,7 +313,30 @@ class QuickLoadout(BaseTask, SwitchSoulAssets):
             if score > best_score:
                 best_score = score
                 best_y = self._result_center_y(result, ocr.roi[1])
-        return best_y, best_score
+                best_text = result.ocr_text
+        return best_y, best_score, best_text
+
+    def _log_ocr_results(self, label: str, ocr: RuleOcr, results) -> None:
+        """把本轮 OCR 到的文本与 y 打进日志，便于定位误匹配/漏匹配。"""
+        items = [
+            (result.ocr_text, self._result_center_y(result, ocr.roi[1]))
+            for result in results
+        ]
+        logger.info(f'Quick loadout {label} OCR: {items}')
+
+    def _confirm_name_y(self, ocr: RuleOcr, target: str, y: int, tolerance: int = 6):
+        """点击前用新的一帧确认目标仍在原位置，避免列表滚动导致坐标过期。"""
+        self.screenshot()
+        results = ocr.detect_and_ocr(self.device.image, logDisplay=False)
+        y2, score2, text2 = self._find_name_match(ocr, target, results)
+        if y2 is None or score2 < 0.55 or abs(y2 - y) > tolerance:
+            logger.info(
+                f'Quick loadout target moved before click: "{target}" y={y} -> '
+                f'{y2} ("{text2}", score {score2:.2f}), retry'
+            )
+            return None
+        logger.info(f'Quick loadout target confirmed: "{target}" y={y2}')
+        return y2
 
     def _find_visible_preset_number_y(self, layout: QuickLoadoutLayout, target: int):
         panel_x, panel_y, _, _ = layout.panel
@@ -337,19 +367,35 @@ class QuickLoadout(BaseTask, SwitchSoulAssets):
         for _ in range(self.MAX_GROUP_SWIPES + 1):
             self.screenshot()
             results = layout.group_ocr.detect_and_ocr(self.device.image, logDisplay=False)
+            self._log_ocr_results('group', layout.group_ocr, results)
             current = tuple(result.ocr_text for result in results)
-            y, score = self._find_name_y(layout.group_ocr, config.group_name, results)
+            y, score, text = self._find_name_match(layout.group_ocr, config.group_name, results)
             if y is not None and score >= 0.55:
-                self.device.click(panel_x + self.GROUP_CLICK_X, y, control_name='QUICK_LOADOUT_GROUP_OCR')
-                sleep(0.6)
-                return True
+                logger.info(
+                    f'Quick loadout group matched "{text}" for "{config.group_name}" '
+                    f'at y={y} (score {score:.2f})'
+                )
+                confirmed_y = self._confirm_name_y(layout.group_ocr, config.group_name, y)
+                if confirmed_y is not None:
+                    self.device.click(panel_x + self.GROUP_CLICK_X, confirmed_y,
+                                      control_name='QUICK_LOADOUT_GROUP_OCR')
+                    sleep(0.6)
+                    return True
+                # 列表仍在滚动，坐标已过期；重新截图再找，不做多余滑动
+                continue
             stable_count = stable_count + 1 if current and current == previous else 0
             if stable_count >= 2:
                 break
             previous = current
+            # 分组可能在列表下方（如超鬼王分组）, 需要一直向下滑；
+            # 滑动同样计入全局点击保护, 每滑一次清掉自己的记录, 否则 10 次后抛错
             self.swipe(layout.group_swipe_down)
+            self.device.click_record_remove(layout.group_swipe_down.name)
             sleep(0.6)
-        logger.warning(f'Quick loadout group not found: {config.group_name}')
+        logger.warning(
+            f'Quick loadout group not found: {config.group_name}, '
+            f'visible groups: {list(previous or ())}'
+        )
         return False
 
     def _select_preset_row(self, layout: QuickLoadoutLayout, config: QuickLoadoutConfig):
@@ -364,21 +410,36 @@ class QuickLoadout(BaseTask, SwitchSoulAssets):
         for _ in range(self.MAX_PRESET_SWIPES + 1):
             self.screenshot()
             results = layout.preset_ocr.detect_and_ocr(self.device.image, logDisplay=False)
+            self._log_ocr_results('preset', layout.preset_ocr, results)
             current = tuple(result.ocr_text for result in results)
             if config.mode == QuickLoadoutMode.NUMBER:
                 y = self._find_visible_preset_number_y(layout, config.preset_number)
-                score = 1.0 if y is not None else 0.0
+                if y is not None:
+                    return y
             else:
-                y, score = self._find_name_y(layout.preset_ocr, config.preset_name, results)
-            if y is not None and score >= 0.55:
-                return y
+                y, score, text = self._find_name_match(layout.preset_ocr, config.preset_name, results)
+                if y is not None and score >= 0.55:
+                    logger.info(
+                        f'Quick loadout preset matched "{text}" for "{config.preset_name}" '
+                        f'at y={y} (score {score:.2f})'
+                    )
+                    confirmed_y = self._confirm_name_y(layout.preset_ocr, config.preset_name, y)
+                    if confirmed_y is not None:
+                        return confirmed_y
+                    # 列表仍在滚动，坐标已过期；重新截图再找，不做多余滑动
+                    continue
             stable_count = stable_count + 1 if current and current == previous else 0
             if stable_count >= 2:
                 break
             previous = current
+            # 反复下滑会触发全局点击保护, 每滑一次清掉自己的记录
             self.swipe(layout.preset_swipe_down)
+            self.device.click_record_remove(layout.preset_swipe_down.name)
             sleep(0.6)
-        logger.warning(f'Quick loadout preset not found: {target_label}')
+        logger.warning(
+            f'Quick loadout preset not found: {target_label}, '
+            f'visible presets: {list(previous or ())}'
+        )
         return None
 
     def _equip_quick_loadout_souls(self, layout: QuickLoadoutLayout, row_y: int) -> None:
