@@ -56,6 +56,8 @@ class ScriptTask(GeneralBattle, SwitchSoul, GameUi, QuickLoadout, FriendInviter,
         assist_dead_count: int = 0
         # 召唤偶发失败次数: 弹窗点完却没召出鬼王, 达上限收工
         summon_fail_count: int = 0
+        # 最近一次读到的疲劳上限, 用于弹窗遮挡时估算恢复时间
+        fatigue_total: int = 0
 
     # 一键配置连续失败上限, 防止素材/预设异常时空转
     LINEUP_FAIL_LIMIT = 3
@@ -252,6 +254,8 @@ class ScriptTask(GeneralBattle, SwitchSoul, GameUi, QuickLoadout, FriendInviter,
                     self.click(self.I_MD_DRINK_TEA)  # 喝茶
                     continue
                 # 不喝茶则结束任务安排下一次运行
+                current, _, total = self.O_MD_FATIGUE.ocr(self.device.image)
+                self.notify_fatigue_full(current, total)
                 self.ui_click_until_disappear(self.I_MD_CLOSE_POPUP, interval=0.6)
                 self.set_next_run('MetaDemon', target=datetime.now() + self.conf.scheduler.wait_interval)
                 self.finish_task()
@@ -447,11 +451,40 @@ class ScriptTask(GeneralBattle, SwitchSoul, GameUi, QuickLoadout, FriendInviter,
                 continue
         logger.info(f'{target_boss_ticket} synthesis done')
 
+    def _fatigue_recover_minutes(self, current: int, total: int) -> int:
+        """按 1 疲劳值 1 分钟估算满值后的恢复时间。"""
+        value = max(int(current or 0), int(total or 0))
+        if value <= 0:
+            # 弹窗遮挡等情况下 OCR 可能读不到, 用最近一次读到的上限兜底
+            value = int(self.State.fatigue_total or 0)
+        return value
+
+    @staticmethod
+    def _format_fatigue_minutes(minutes: int) -> str:
+        if minutes <= 0:
+            return '未知'
+        hours, mins = divmod(minutes, 60)
+        if hours and mins:
+            return f'{hours}小时{mins}分钟'
+        if hours:
+            return f'{hours}小时'
+        return f'{mins}分钟'
+
+    def notify_fatigue_full(self, current: int = 0, total: int = 0) -> None:
+        """疲劳值满时推送恢复所需时间。"""
+        minutes = self._fatigue_recover_minutes(current, total)
+        content = f'疲劳值已满，恢复满值所需时间为：{self._format_fatigue_minutes(minutes)}'
+        logger.warning(content)
+        self.config.notifier.push(title='超鬼王疲劳值已满', content=content)
+
     def check_fatigue(self):
         logger.hr('Check fatigue')
         current, remain, total = self.O_MD_FATIGUE.ocr(self.device.image)
+        if total > 0:
+            self.State.fatigue_total = total
         # 不喝茶且当前疲劳度已满
         if not self.conf.meta_demon_config.auto_tea and (current > total or remain < 0):
+            self.notify_fatigue_full(current, total)
             self.set_next_run('MetaDemon', target=datetime.now() + self.conf.scheduler.wait_interval)
             self.finish_task()
         return True
