@@ -69,6 +69,7 @@ FIVE_STAR_BOSS_NAMES: tuple[str, ...] = (
     '鬼金羊',
     '梦山白藏主',
     '卑弥呼',
+    '缘结神',
 )
 
 # 按星级索引的名单，避免五星名字被子串误配到六星
@@ -148,7 +149,8 @@ class MetaDemonConfig(ConfigBase):
     )
     powerful_list: str = Field(
         default='',
-        description='开启强力鬼王列表(空格分隔),例:4 5(四星鬼王和五星鬼王开启强力追击)',
+        description='开启强力追击的鬼王名列表(空格/逗号分隔),例:修罗鬼童丸 蟹姬\n'
+                    '按鬼王名匹配; 兼容旧配置, 单个数字仍按星级处理',
     )
     synthesis_list: str = Field(
         default='1',
@@ -175,15 +177,28 @@ class MetaDemonConfig(ConfigBase):
         return fire_boss_type_list
 
     @property
+    def powerful_entries_v(self) -> tuple[list[str], list[BossType]]:
+        """解析强力追击配置, 返回 (鬼王名列表, 兼容旧配置的星级列表)。
+
+        鬼王名按空格/逗号分隔; 纯数字项沿用旧语义按星级处理, 保证老配置不失效。
+        """
+        text = self.powerful_list.replace('，', ' ').replace(',', ' ')
+        names: list[str] = []
+        boss_types: list[BossType] = []
+        for token in text.split():
+            if token.isdigit():
+                try:
+                    boss_types.append(BossType(int(token)))
+                except ValueError:
+                    continue
+                continue
+            names.append(token)
+        return names, boss_types
+
+    @property
     def powerful_list_v(self) -> list[BossType]:
-        powerful_list_text = self.powerful_list.strip()
-        if powerful_list_text == '':
-            return []
-        powerful_num_list = powerful_list_text.split(' ')
-        powerful_boss_type_list = [
-            BossType(int(num_text)) for num_text in powerful_num_list
-        ]
-        return powerful_boss_type_list
+        """兼容旧接口: 只返回配置里的星级项。"""
+        return self.powerful_entries_v[1]
 
     @property
     def synthesis_list_v(self) -> list[BossType]:

@@ -588,12 +588,27 @@ class ScriptTask(GeneralBattle, SwitchSoul, GameUi, QuickLoadout, FriendInviter,
             self.screenshot()
             if not self.appear(self.I_MD_FIRE):  # 处于boss界面但是没有挑战按钮
                 return False
-        powerful_list = self.conf.meta_demon_config.powerful_list_v
-        # 当前boss类型未知或不在强力列表中则使用普通追击
-        if self.cur_boss_type is None or self.cur_boss_type not in powerful_list:
+        # 低星鬼王不会强力追击
+        if self.cur_boss_type is not None and self.cur_boss_type not in HIGH_STAR_TYPES:
             self.ui_click(self.I_MD_ENABLE_POWERFUL_FIRE, self.I_MD_DISABLE_POWERFUL_FIRE, interval=0.6)
             return True
-        # 已知类型且在强力列表中则开启强力追击
+        names, legacy_types = self.conf.meta_demon_config.powerful_entries_v
+        boss_name = normalize_boss_name(self.boss_name)
+        name_hit = bool(
+            boss_name
+            and any(normalize_boss_name(name) == boss_name for name in names)
+        )
+        # 旧配置里的星级项继续生效, 避免已有配置失效
+        type_hit = self.cur_boss_type is not None and self.cur_boss_type in legacy_types
+        if not name_hit and not type_hit:
+            logger.info(
+                f'Boss "{self.boss_name or "unknown"}" not in powerful list, '
+                f'use normal fire'
+            )
+            self.ui_click(self.I_MD_ENABLE_POWERFUL_FIRE, self.I_MD_DISABLE_POWERFUL_FIRE, interval=0.6)
+            return True
+        reason = f'name "{boss_name}"' if name_hit else f'star {self.cur_boss_type.name}'
+        logger.info(f'Enable powerful fire by {reason}')
         self.ui_click(self.I_MD_DISABLE_POWERFUL_FIRE, self.I_MD_ENABLE_POWERFUL_FIRE, interval=0.6)
         return True
 
@@ -640,7 +655,10 @@ class ScriptTask(GeneralBattle, SwitchSoul, GameUi, QuickLoadout, FriendInviter,
         )
 
     def update_boss_name(self) -> str:
-        """识别挑战浮窗上的鬼王名，并按当前星级对齐到标准写法。"""
+        """识别挑战浮窗上的鬼王名，并按当前星级对齐到标准写法。
+
+        低星只有低星阵容、也不会强力追击, 不需要鬼王名。
+        """
         if self.cur_boss_type is not None and self.cur_boss_type not in HIGH_STAR_TYPES:
             self.boss_name = ''
             return ''
@@ -649,26 +667,24 @@ class ScriptTask(GeneralBattle, SwitchSoul, GameUi, QuickLoadout, FriendInviter,
             self.boss_name = ''
             return ''
         names = boss_names_for(self.cur_boss_type)
+        attempts = 3
         best = ''
         best_hit = False
-        for attempt in range(1, 4):
+        for attempt in range(1, attempts + 1):
             self.screenshot()
             raw = str(name_ocr.ocr(self.device.image) or '').strip()
             value = canonical_boss_name(raw, self.cur_boss_type)
-            logger.info(f'MetaDemon boss name OCR {attempt}/3: {raw} -> {value}')
-            # 命中名单优先，其次取更长的结果
-            hit = value in names
-            if hit and not best_hit:
-                best, best_hit = value, True
-            elif not best_hit and len(value) > len(best):
+            logger.info(f'MetaDemon boss name OCR {attempt}/{attempts}: {raw} -> {value}')
+            # 一次识别到鬼王名就停止, 不再重复 OCR; 只有读空时才重试
+            if value:
                 best = value
-            if best_hit:
+                best_hit = value in names
                 break
             time.sleep(0.3)
         self.boss_name = best
         if not best:
             logger.warning('MetaDemon boss name OCR is empty, fallback to star-only lineup')
-        elif not best_hit:
+        elif names and not best_hit:
             logger.warning(f'Boss name "{best}" not in known list, use it as is')
         return best
 
