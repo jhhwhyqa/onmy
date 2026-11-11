@@ -243,6 +243,10 @@ class ScriptTask(GeneralBattle, SwitchSoul, GameUi, QuickLoadout, FriendInviter,
                     battle_key=self._meta_demon_battle_key(),
                 )
                 break
+            # 出战/挑战前的「御魂与预设不一致」弹窗会吞掉后面的点击, 先处理掉
+            if self.appear_then_click(self.I_CONFIRM_CLOSE_DIFF_SOUL, interval=0.6):
+                logger.info('Confirm auto equip souls and start battle')
+                continue
             if self.appear(self.I_MD_DRINK_TEA, interval=1.2):  # 出现喝茶弹窗
                 if self.conf.meta_demon_config.auto_tea:
                     self.click(self.I_MD_DRINK_TEA)  # 喝茶

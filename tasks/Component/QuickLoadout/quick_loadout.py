@@ -455,6 +455,20 @@ class QuickLoadout(BaseTask, SwitchSoulAssets):
             return
         logger.info('Quick loadout soul confirmation did not appear; preset may already be equipped')
 
+    def _confirm_diff_soul_dialog(self) -> bool:
+        """处理「御魂与预设不一致，是否自动装配御魂并出战」弹窗。
+
+        装备御魂没生效时，点出战会弹这个模态框，挡住后面的挑战按钮；
+        点「确定」让游戏自己装配御魂并出战。
+        """
+        sure = getattr(self, 'I_CONFIRM_CLOSE_DIFF_SOUL', None)
+        if sure is None:
+            return False
+        if self.appear_then_click(sure, interval=0.6):
+            logger.info('Confirm auto equip souls and start battle')
+            return True
+        return False
+
     def _deploy_quick_loadout(self, layout, fight_anchor, dismiss, row_y) -> bool:
         panel_x = layout.panel[0]
         self.device.click(panel_x + self.PRESET_SELECT_X, row_y, control_name='QUICK_LOADOUT_PRESET')
@@ -463,6 +477,8 @@ class QuickLoadout(BaseTask, SwitchSoulAssets):
         timer = Timer(self.PANEL_CLOSE_TIMEOUT).start()
         while not timer.reached():
             self.screenshot()
+            if self._confirm_diff_soul_dialog():
+                continue
             if not self.appear(fight_anchor):
                 logger.info('Quick loadout deployed')
                 return True
