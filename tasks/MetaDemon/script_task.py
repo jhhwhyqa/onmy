@@ -561,21 +561,46 @@ class ScriptTask(GeneralBattle, SwitchSoul, GameUi, QuickLoadout, FriendInviter,
         return True
 
     def _detect_deployed_boss_type(self) -> None:
-        """鬼王已召唤好（挑战按钮可见）时补星级：一律按六星处理，走邀请流程。"""
-        logger.info('Boss already deployed, treat as high star')
-        # 遗留鬼王只会是上次邀请没打掉的高星，直接按六星处理
-        self.cur_boss_type = BossType.SIX_STARS
+        """鬼王已召唤好（挑战按钮可见）时补星级：按鬼王名反查五星/六星名单。
+
+        遗留鬼王不一定是高星（低星召唤后没打完也会留在场上），
+        所以先按名字反查星级；名字不在任何高星名单里时按低星处理。
+        名字识别为空时无法判断，沿用旧行为按六星兜底。
+        """
+        logger.info('Boss already deployed, resolving star by boss name')
         name_ocr = getattr(self, 'O_MD_BOSS_NAME', None)
-        if name_ocr is None:
+        value = ''
+        if name_ocr is not None:
+            for _ in range(3):
+                self.screenshot()
+                value = str(name_ocr.ocr(self.device.image) or '').strip()
+                if normalize_boss_name(value):
+                    break
+                time.sleep(0.3)
+
+        if not normalize_boss_name(value):
+            # 读不到名字就没有依据, 保持旧行为走高星流程
+            self.cur_boss_type = BossType.SIX_STARS
+            logger.warning(
+                'Deployed boss name is empty, fall back to six star handling'
+            )
             return
-        for _ in range(3):
-            self.screenshot()
-            value = str(name_ocr.ocr(self.device.image) or '').strip()
-            if normalize_boss_name(value):
-                self.boss_name = value
-                logger.info(f'Deployed boss "{value}" -> {self.cur_boss_type.name}')
+
+        for boss_type in HIGH_STAR_TYPES:
+            matched = canonical_boss_name(value, boss_type)
+            if matched in boss_names_for(boss_type):
+                self.cur_boss_type = boss_type
+                self.boss_name = matched
+                logger.info(f'Deployed boss "{value}" -> {boss_type.name}')
                 return
-            time.sleep(0.3)
+
+        # 不在五六星名单: 遗留鬼王按低星处理, 星级由配置的 low_star 预设决定
+        self.cur_boss_type = LOW_STAR_TYPES[0]
+        self.boss_name = value
+        logger.warning(
+            f'Deployed boss "{value}" is not in five/six star lists, '
+            f'treat as low star ({self.cur_boss_type.name})'
+        )
 
     def update_boss_name(self) -> str:
         """识别挑战浮窗上的鬼王名，并按当前星级对齐到标准写法。"""

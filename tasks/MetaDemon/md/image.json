@@ -200,7 +200,7 @@
   {
     "itemName": "md_synthesis_one_star",
     "imageName": "md_md_synthesis_one_star.png",
-    "roiFront": "228,178,60,65",
+    "roiFront": "226,178,62,65",
     "roiBack": "209,150,100,501",
     "method": "Template matching",
     "threshold": 0.85,
@@ -236,7 +236,7 @@
   {
     "itemName": "md_synthesis_five_star",
     "imageName": "md_md_synthesis_five_star.png",
-    "roiFront": "225,570,63,71",
+    "roiFront": "218,461,77,80",
     "roiBack": "206,149,103,503",
     "method": "Template matching",
     "threshold": 0.85,
@@ -317,7 +317,7 @@
   {
     "itemName": "md_goto_quick_loadout",
     "imageName": "md_md_goto_quick_loadout.png",
-    "roiFront": "1226,436,28,26",
+    "roiFront": "1226,433,28,27",
     "roiBack": "1198,412,82,81",
     "method": "Template matching",
     "threshold": 0.8,

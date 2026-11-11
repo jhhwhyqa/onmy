@@ -68,7 +68,7 @@ class MetaDemonAssets:
 	# 召唤鬼王 
 	I_MD_SUMMON_BOSS = RuleImage(roi_front=(1142,581,76,83), roi_back=(1105,546,157,154), threshold=0.8, method="Template matching", profile="High", file="./tasks/MetaDemon/md/md_md_summon_boss.png")
 	# 合成一星 
-	I_MD_SYNTHESIS_ONE_STAR = RuleImage(roi_front=(228,178,60,65), roi_back=(209,150,100,501), threshold=0.85, method="Template matching", profile="High", file="./tasks/MetaDemon/md/md_md_synthesis_one_star.png")
+	I_MD_SYNTHESIS_ONE_STAR = RuleImage(roi_front=(226,178,62,65), roi_back=(209,150,100,501), threshold=0.85, method="Template matching", profile="High", file="./tasks/MetaDemon/md/md_md_synthesis_one_star.png")
 	# 合成二星 
 	I_MD_SYNTHESIS_TWO_STAR = RuleImage(roi_front=(226,276,61,66), roi_back=(207,152,99,500), threshold=0.85, method="Template matching", profile="High", file="./tasks/MetaDemon/md/md_md_synthesis_two_star.png")
 	# 合成三星 
@@ -76,7 +76,7 @@ class MetaDemonAssets:
 	# 合成四星 
 	I_MD_SYNTHESIS_FOUR_STAR = RuleImage(roi_front=(226,477,61,68), roi_back=(208,148,96,500), threshold=0.85, method="Template matching", profile="High", file="./tasks/MetaDemon/md/md_md_synthesis_four_star.png")
 	# 合成五星 
-	I_MD_SYNTHESIS_FIVE_STAR = RuleImage(roi_front=(225,570,63,71), roi_back=(206,149,103,503), threshold=0.85, method="Template matching", profile="High", file="./tasks/MetaDemon/md/md_md_synthesis_five_star.png")
+	I_MD_SYNTHESIS_FIVE_STAR = RuleImage(roi_front=(218,461,77,80), roi_back=(206,149,103,503), threshold=0.85, method="Template matching", profile="High", file="./tasks/MetaDemon/md/md_md_synthesis_five_star.png")
 	# 开始合成 
 	I_MD_START_SYNTHESIS = RuleImage(roi_front=(906,562,108,39), roi_back=(884,548,155,62), threshold=0.8, method="Template matching", profile="High", file="./tasks/MetaDemon/md/md_md_start_synthesis.png")
 	# 合成花钱标志 
@@ -94,7 +94,7 @@ class MetaDemonAssets:
 	# 无鬼王门票标志 
 	I_MD_TICKET_EMPTY = RuleImage(roi_front=(591,305,100,100), roi_back=(447,295,368,154), threshold=0.8, method="Template matching", profile="High", file="./tasks/MetaDemon/md/md_md_ticket_empty.png")
 	# 鬼王界面上的「一键配置」入口按钮 
-	I_MD_GOTO_QUICK_LOADOUT = RuleImage(roi_front=(1226,436,28,26), roi_back=(1198,412,82,81), threshold=0.8, method="Template matching", profile="High", file="./tasks/MetaDemon/md/md_md_goto_quick_loadout.png")
+	I_MD_GOTO_QUICK_LOADOUT = RuleImage(roi_front=(1226,433,28,27), roi_back=(1198,412,82,81), threshold=0.8, method="Template matching", profile="High", file="./tasks/MetaDemon/md/md_md_goto_quick_loadout.png")
 	#  
 	I_MD_QUICK_LOADOUT_FIGHT = RuleImage(roi_front=(772,555,89,42), roi_back=(740,531,155,86), threshold=0.8, method="Template matching", profile="High", file="./tasks/MetaDemon/md/md_md_quick_loadout_fight.png")
 	# 单拉协战 
