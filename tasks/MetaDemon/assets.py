@@ -122,8 +122,8 @@ class MetaDemonAssets:
 	O_MD_TICKET_PROGRESS_EXPLORATION = RuleOcr(roi=(936,14,82,33), area=(916,9,124,41), mode="DigitCounter", method="Default", keyword="", name="md_ticket_progress_exploration")
 	# 高星boss名字 
 	O_MD_BOSS_NAME = RuleOcr(roi=(513,147,32,190), area=(479,145,102,197), mode="Single", method="Default", keyword="", name="md_boss_name")
-	# 每日鬼王购买次数x/5（占位，待标注） 
-	O_MD_DAILY_BOSS_COUNT = RuleOcr(roi=(0,0,80,30), area=(0,0,80,30), mode="DigitCounter", method="Default", keyword="", name="md_daily_boss_count")
+	# 每日鬼王购买次数x/5 
+	O_MD_DAILY_BOSS_COUNT = RuleOcr(roi=(1104,276,30,27), area=(1104,276,30,27), mode="DigitCounter", method="Default", keyword="", name="md_daily_boss_count")
 
 
 	# Swipe Rule Assets
