@@ -105,7 +105,7 @@ class MetaDemonAssets:
 	I_MD_DAILY_BOSS_BUY = RuleImage(roi_front=(1059,315,72,37), roi_back=(1059,315,72,37), threshold=0.8, method="Template matching", profile="High", file="./tasks/MetaDemon/md/md_daily_boss_buy.png")
 	# 每日鬼王数量MAX按钮 
 	I_MD_DAILY_BOSS_MAX = RuleImage(roi_front=(765,447,40,39), roi_back=(765,447,40,39), threshold=0.8, method="Template matching", profile="High", file="./tasks/MetaDemon/md/md_daily_boss_max.png")
-	# 每日鬼王确认购买按钮（占位，待标注） 
+	# 每日鬼王确认购买按钮 
 	I_MD_DAILY_BOSS_CONFIRM = RuleImage(roi_front=(557,540,167,50), roi_back=(557,540,167,50), threshold=0.8, method="Template matching", profile="High", file="./tasks/MetaDemon/md/md_daily_boss_confirm.png")
 
 

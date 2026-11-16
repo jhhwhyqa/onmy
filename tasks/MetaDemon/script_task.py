@@ -138,6 +138,9 @@ class ScriptTask(GeneralBattle, SwitchSoul, GameUi, QuickLoadout, FriendInviter,
 
     def run(self):
         self.before_run()
+        # 每日鬼王：一启动就先进活动买一次，再刷票/打鬼王（邀请与单人模式都先买）
+        if self.conf.meta_demon_config.buy_daily_boss:
+            self.buy_daily_boss()
         # 门票不足时先刷票（探索/觉醒），刷满再开始正式活动
         if not self.ensure_tickets():
             logger.warning('Ticket farm did not finish, retry later')
@@ -156,9 +159,6 @@ class ScriptTask(GeneralBattle, SwitchSoul, GameUi, QuickLoadout, FriendInviter,
         logger.info(f'Battle phase starts, limit_time resets to now '
                     f'({self.limit_time.total_seconds() / 60:.0f}min)')
         self.goto_page(ipages.page_meta_demon_boss)
-        # 每日鬼王：购买次数未满 x/5 时先进礼包买一次
-        if self.conf.meta_demon_config.buy_daily_boss:
-            self.buy_daily_boss()
         # 大小号协作：邀请模式(大号拉小号)与协助模式(小号拉大号)互斥，由 mode 决定
         assist_only = self.conf.meta_demon_invite.assist_only
         invite_only = self.conf.meta_demon_invite.invite_only
@@ -721,6 +721,8 @@ class ScriptTask(GeneralBattle, SwitchSoul, GameUi, QuickLoadout, FriendInviter,
             self.boss_name = ''
             return ''
         names = boss_names_for(self.cur_boss_type)
+        # 五六星名单会随每日轮换变动: 按当前星级对不上时, 用全名单只对齐写法, 不改星级
+        all_names = boss_names_for(None)
         attempts = 3
         best = ''
         best_hit = False
@@ -728,17 +730,21 @@ class ScriptTask(GeneralBattle, SwitchSoul, GameUi, QuickLoadout, FriendInviter,
             self.screenshot()
             raw = str(name_ocr.ocr(self.device.image) or '').strip()
             value = canonical_boss_name(raw, self.cur_boss_type)
+            if value not in names and all_names:
+                aligned = canonical_boss_name(raw)
+                if aligned in all_names:
+                    value = aligned
             logger.info(f'MetaDemon boss name OCR {attempt}/{attempts}: {raw} -> {value}')
             # 一次识别到鬼王名就停止, 不再重复 OCR; 只有读空时才重试
             if value:
                 best = value
-                best_hit = value in names
+                best_hit = value in names or value in all_names
                 break
             time.sleep(0.3)
         self.boss_name = best
         if not best:
             logger.warning('MetaDemon boss name OCR is empty, fallback to star-only lineup')
-        elif names and not best_hit:
+        elif not best_hit:
             logger.warning(f'Boss name "{best}" not in known list, use it as is')
         return best
 
@@ -977,6 +983,8 @@ class ScriptTask(GeneralBattle, SwitchSoul, GameUi, QuickLoadout, FriendInviter,
             bool: 是否完成一次购买；次数已满、识别失败或按钮缺失返回 False。
         """
         logger.hr('Buy daily MetaDemon boss', 2)
+        # 提前到刷票前调用时，任务可能还在别的界面，先自己导航到挑战页
+        self.goto_page(ipages.page_meta_demon_boss)
         if not self.appear_then_click(self.I_MD_DAILY_BOSS_GIFT, interval=1):
             logger.warning('Daily boss gift entry not found, skip buying')
             return False

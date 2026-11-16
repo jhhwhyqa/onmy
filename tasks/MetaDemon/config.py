@@ -82,9 +82,14 @@ BOSS_NAMES_BY_TYPE: dict[int, tuple[str, ...]] = {
 BOSS_NAME_MATCH_RATIO = 0.7
 
 
+# OCR 偶发把简体鬼王名认成繁体字, 先统一再比对 (如「緣结神」-> 「缘结神」)
+_BOSS_NAME_CHAR_VARIANTS = str.maketrans({'緣': '缘', '結': '结'})
+
+
 def normalize_boss_name(value: str) -> str:
     """去掉鬼王名里的空白与标点, 便于比对与拼 key。"""
-    return re.sub(r'[\s·•,，.。:：_\-—]+', '', str(value or '')).strip()
+    text = str(value or '').translate(_BOSS_NAME_CHAR_VARIANTS)
+    return re.sub(r'[\s·•,，.。:：_\-—]+', '', text).strip()
 
 
 def canonical_boss_name(value: str, boss_type=None) -> str:

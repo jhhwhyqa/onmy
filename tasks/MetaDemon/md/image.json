@@ -375,6 +375,6 @@
     "roiBack": "557,540,167,50",
     "method": "Template matching",
     "threshold": 0.8,
-    "description": "每日鬼王确认购买按钮（占位，待标注）"
+    "description": "每日鬼王确认购买按钮"
   }
 ]
