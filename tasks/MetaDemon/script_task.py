@@ -746,7 +746,39 @@ class ScriptTask(GeneralBattle, SwitchSoul, GameUi, QuickLoadout, FriendInviter,
             logger.warning('MetaDemon boss name OCR is empty, fallback to star-only lineup')
         elif not best_hit:
             logger.warning(f'Boss name "{best}" not in known list, use it as is')
+        self._correct_boss_type_by_name(best, raw)
         return best
+
+    @staticmethod
+    def _boss_type_by_name(name: str) -> BossType | None:
+        """按鬼王名反查星级；不在五六星名单里返回 None。"""
+        for boss_type in HIGH_STAR_TYPES:
+            if name in boss_names_for(boss_type):
+                return boss_type
+        return None
+
+    def _correct_boss_type_by_name(self, name: str, raw: str = '') -> None:
+        """以鬼王名为准纠正星级。
+
+        五星/六星召唤票的模板只差底部星数, 截图稍有差异就会互串: 点五星票
+        实际召出六星鬼王, 或者反过来。门票星级错了会拿错阵容, 所以召唤完成
+        后按鬼王名再校准一次; 星级变化时作废已上阵标识, 让后面的阵容切换重来。
+        """
+        if not name or self.cur_boss_type is None:
+            return
+        # 只信精确命中的名字: 模糊对齐出来的名字可能本来就认错了, 不据此改星级
+        if raw and normalize_boss_name(raw) != name:
+            return
+        matched_type = self._boss_type_by_name(name)
+        if matched_type is None or matched_type == self.cur_boss_type:
+            return
+        logger.warning(
+            f'Boss "{name}" is {matched_type.name}, correct star '
+            f'{self.cur_boss_type.name} -> {matched_type.name}'
+        )
+        self.cur_boss_type = matched_type
+        # 星级变了, 之前按错误星级上阵的阵容/御魂标识作废
+        self.State.lineup_key = ''
 
     def _quick_loadout_assets(self) -> tuple:
         """返回鬼王战一键配置所需的素材, 任一缺失则返回空元组。"""
