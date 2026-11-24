@@ -280,7 +280,12 @@ class LogBrowserService:
                 )
             )
 
-        return sorted(files, key=lambda item: (item.day, item.file_name), reverse=True)
+        # 同一天可能同时有升级前的 .txt 和升级后的 .md：新后缀优先，避免默认窗口停在不再增长的旧文件上
+        return sorted(
+            files,
+            key=lambda item: (item.day, item.file_name.endswith(LOG_FILE_SUFFIX), item.file_name),
+            reverse=True,
+        )
 
     def read_window(
         self,
