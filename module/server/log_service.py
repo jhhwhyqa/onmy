@@ -11,6 +11,13 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import quote
 
+from module.logger import (
+    ERROR_LOG_FILENAME,
+    LEGACY_ERROR_LOG_FILENAMES,
+    LEGACY_LOG_FILE_SUFFIXES,
+    LOG_FILE_SUFFIX,
+)
+
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 LOG_ROOT = (PROJECT_ROOT / "log").resolve()
@@ -33,11 +40,20 @@ DEFAULT_ERROR_LOG_LIMIT_BYTES = 262144
 MAX_ERROR_LOG_LIMIT_BYTES = 1048576
 POLL_INTERVAL_SECONDS = 1.0
 
-_LOG_FILE_RE = re.compile(r"^(?P<day>\d{4}-\d{2}-\d{2})_(?P<script>.+)\.txt$")
+_LOG_FILE_RE = re.compile(r"^(?P<day>\d{4}-\d{2}-\d{2})_(?P<script>.+)\.(?:md|txt)$")
 _ERROR_LEGACY_RE = re.compile(r"^(?P<timestamp>\d{10,})$")
 _ERROR_NAMED_RE = re.compile(r"^(?P<script>.+)_(?P<timestamp>\d{10,})$")
 _UNSAFE_NAME_RE = re.compile(r'[<>:"/\\|?*\x00-\x1f]')
 _SYSTEM_LOG_NAMES = {"api", "server", "script", "base", "assets"}
+
+
+def error_log_path(directory: Path) -> Path:
+    """错误目录里的日志文件：新目录为 log.md，旧目录兼容 log.txt。"""
+    for name in (ERROR_LOG_FILENAME, *LEGACY_ERROR_LOG_FILENAMES):
+        path = directory / name
+        if path.is_file():
+            return path
+    return directory / ERROR_LOG_FILENAME
 
 
 class LogServiceError(Exception):
@@ -70,7 +86,7 @@ class LogFileInfo:
     Attributes:
         day: 日志文件名中的日期。
         script_name: 已标准化后的脚本名。
-        file_name: 日志文件名, 格式为 `YYYY-MM-DD_<script>.txt`。
+        file_name: 日志文件名, 格式为 `YYYY-MM-DD_<script>.md`（旧文件为 `.txt`）。
         path: 日志文件的绝对路径。
         size: 扫描时读取到的文件字节数。
     """
@@ -604,7 +620,7 @@ class LogBrowserService:
 
         Args:
             error_id: 错误目录名, 支持新格式 `<script_name>_<timestamp_ms>` 和旧格式 `<timestamp_ms>`。
-            log_limit_bytes: `log.txt` 最多返回的字节数。
+            log_limit_bytes: 错误日志文件（`log.md`，旧目录为 `log.txt`）最多返回的字节数。
 
         Returns:
             错误元信息、脱敏日志内容和截图元信息列表。
@@ -619,7 +635,7 @@ class LogBrowserService:
                 f"log_limit_bytes must be in 1..{MAX_ERROR_LOG_LIMIT_BYTES}",
             )
         info = self._get_error_info(error_id)
-        log_payload = self._read_error_text(info.path / "log.txt", log_limit_bytes)
+        log_payload = self._read_error_text(error_log_path(info.path), log_limit_bytes)
         images = [self._image_item(info, path) for path in sorted(info.path.glob("*.png"), key=lambda item: item.name)]
         return {
             "id": info.id,
@@ -1077,9 +1093,13 @@ class LogBrowserService:
             script_name: 脚本名。
 
         Returns:
-            `YYYY-MM-DD_<script>.txt` 格式文件名。
+            `YYYY-MM-DD_<script>.md` 格式文件名；当天已有旧版 `.txt` 时沿用旧文件。
         """
-        return f"{date.today().isoformat()}_{normalize_script_name(script_name)}.txt"
+        base = f"{date.today().isoformat()}_{normalize_script_name(script_name)}"
+        for suffix in (LOG_FILE_SUFFIX, *LEGACY_LOG_FILE_SUFFIXES):
+            if (LOG_ROOT / f"{base}{suffix}").exists():
+                return f"{base}{suffix}"
+        return f"{base}{LOG_FILE_SUFFIX}"
 
     @staticmethod
     def _empty_window(
@@ -1254,7 +1274,7 @@ class LogBrowserService:
         Returns:
             列表接口返回的单个错误项。
         """
-        log_path = info.path / "log.txt"
+        log_path = error_log_path(info.path)
         images = list(info.path.glob("*.png"))
         return {
             "id": info.id,
@@ -1296,7 +1316,7 @@ class LogBrowserService:
         """按字节上限读取错误日志文本。
 
         Args:
-            path: `log.txt` 路径。
+            path: 错误日志文件路径（新目录为 `log.md`，旧目录可能是 `log.txt`）。
             limit_bytes: 最大读取字节数。
 
         Returns:
@@ -1304,7 +1324,7 @@ class LogBrowserService:
         """
         if not path.exists() or not path.is_file():
             return {
-                "file_name": "log.txt",
+                "file_name": ERROR_LOG_FILENAME,
                 "content": "",
                 "size": 0,
                 "limit_bytes": limit_bytes,
@@ -1317,7 +1337,7 @@ class LogBrowserService:
         if truncated:
             data = data[:limit_bytes]
         return {
-            "file_name": "log.txt",
+            "file_name": path.name,
             "content": data.decode("utf-8", errors="ignore"),
             "size": size,
             "limit_bytes": limit_bytes,

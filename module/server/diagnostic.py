@@ -11,7 +11,13 @@ from pathlib import Path
 
 from module.config.utils import read_file, deep_get
 from module.server.config_manager import ConfigManager
-from module.logger import logger
+from module.logger import (
+    ERROR_LOG_FILENAME,
+    LEGACY_ERROR_LOG_FILENAMES,
+    LEGACY_LOG_FILE_SUFFIXES,
+    LOG_FILE_SUFFIX,
+    logger,
+)
 
 PROJECT_ROOT = Path.cwd().resolve()
 LOG_DIR = PROJECT_ROOT / 'log'
@@ -101,17 +107,25 @@ def build_diagnostic_zip(config_name: str = '') -> Path:
     zip_path = OUT_DIR / f'oas_diag_{tag}_{stamp}.zip'
 
     log_files = []
+    log_suffixes = (LOG_FILE_SUFFIX, *LEGACY_LOG_FILE_SUFFIXES)
     for name in instances:
-        log_files += _recent_files(f'*_{name}.txt', _RECENT_INSTANCE_LOGS)
-    log_files += _recent_files('*_api.txt', _RECENT_SHARED_LOGS)
-    log_files += _recent_files('*_server.txt', _RECENT_SHARED_LOGS)
+        for suffix in log_suffixes:
+            log_files += _recent_files(f'*_{name}{suffix}', _RECENT_INSTANCE_LOGS)
+    for suffix in log_suffixes:
+        log_files += _recent_files(f'*_api{suffix}', _RECENT_SHARED_LOGS)
+        log_files += _recent_files(f'*_server{suffix}', _RECENT_SHARED_LOGS)
 
     error_logs = []
     error_root = LOG_DIR / 'error'
     if error_root.exists():
         try:
-            err = [p for p in error_root.glob('*/log.txt') if p.is_file()]
-            err.sort(key=lambda p: p.stat().st_mtime, reverse=True)
+            # 每个错误目录取一个日志文件；新目录 log.md 优先，旧目录回退 log.txt
+            found = {}
+            for name in (ERROR_LOG_FILENAME, *LEGACY_ERROR_LOG_FILENAMES):
+                for path in error_root.glob(f'*/{name}'):
+                    if path.is_file():
+                        found.setdefault(path.parent, path)
+            err = sorted(found.values(), key=lambda p: p.stat().st_mtime, reverse=True)
             error_logs = err[:_RECENT_ERROR_LOGS]
         except OSError:
             error_logs = []
@@ -125,7 +139,7 @@ def build_diagnostic_zip(config_name: str = '') -> Path:
                 logger.warning(f'diagnostic: skip {f}: {e}')
         for f in error_logs:
             try:
-                zf.writestr(f'error/{f.parent.name}/log.txt',
+                zf.writestr(f'error/{f.parent.name}/{f.name}',
                             _scrub(f.read_text(encoding='utf-8', errors='replace')))
             except OSError as e:
                 logger.warning(f'diagnostic: skip {f}: {e}')

@@ -17,6 +17,15 @@ from rich.rule import Rule
 from typing import Callable, List
 
 
+# 日志文件后缀：新版本写 .md，旧版本的 .txt 仍可读取
+LOG_FILE_SUFFIX = '.md'
+LEGACY_LOG_FILE_SUFFIXES = ('.txt',)
+
+# 错误现场保存的日志文件名；旧版本写的是 log.txt，读取侧仍兼容
+ERROR_LOG_FILENAME = 'log.md'
+LEGACY_ERROR_LOG_FILENAMES = ('log.txt',)
+
+
 def cleanup_logs(log_dir: str = "./log", keep_days: int = 7):
     """删除 log_dir 下所有早于 keep_days 的文件夹和文件"""
     log_path = Path(log_dir)
@@ -144,7 +153,7 @@ class RichFileHandler(RichHandler):
     """支持跨天自动轮转的 Rich 文件日志处理器。
 
     Args:
-        script_name: 当前 handler 绑定的脚本名, 用于生成 `log/YYYY-MM-DD_<script>.txt`。
+        script_name: 当前 handler 绑定的脚本名, 用于生成 `log/YYYY-MM-DD_<script>.md`。
         log_date: 当前 handler 绑定的日志日期; 写入前会和当天日期比较。
         log_file: 当前日志文件路径字符串, 会同步到 `logger.log_file`。
         file: 当前 Rich Console 正在写入的文件对象。
@@ -186,7 +195,7 @@ class RichFileHandler(RichHandler):
 
         log_path = Path("./log")
         log_path.mkdir(parents=True, exist_ok=True)
-        log_file = f'./log/{today}_{self.script_name}.txt'
+        log_file = f'./log/{today}_{self.script_name}{LOG_FILE_SUFFIX}'
         new_file = open(log_file, mode='a', encoding='utf-8')
         old_file = self._file
         self.console.file = new_file
@@ -264,12 +273,12 @@ def set_file_logger(name=pyw_name, *, do_cleanup=False):
     """设置当前进程的脚本文件日志。
 
     Args:
-        name: 脚本配置名, 会用于生成 `log/YYYY-MM-DD_<name>.txt`。
+        name: 脚本配置名, 会用于生成 `log/YYYY-MM-DD_<name>.md`。
         do_cleanup: 是否在设置文件日志后清理过期日志和错误目录。
     """
     name = normalize_log_name(name)
     today = date.today()
-    log_file = f'./log/{today}_{name}.txt'
+    log_file = f'./log/{today}_{name}{LOG_FILE_SUFFIX}'
     try:
         file = open(log_file, mode='a', encoding='utf-8')
     except FileNotFoundError:

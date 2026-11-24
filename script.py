@@ -21,7 +21,7 @@ from module.config.config import Config
 from module.device.env import IS_WINDOWS
 from module.base.utils import load_module
 from module.base.decorator import del_cached_property
-from module.logger import logger
+from module.logger import ERROR_LOG_FILENAME, logger
 from module.exception import *
 from module.server.i18n import I18n
 from module.image.rpc import ensure_image_server_ready, get_image_client
@@ -94,7 +94,7 @@ class Script:
 
         保存内容包括:
         - 最近一段截图, 文件名为时间戳 PNG。
-        - 当前脚本日志的截取内容, 文件名为 log.txt。
+        - 当前脚本日志的截取内容, 文件名为 log.md。
 
         说明:
         - 新错误目录名会带上脚本名, 便于前端区分不同脚本产生的错误。
@@ -127,7 +127,7 @@ class Script:
                     start = index
             lines = lines[start - 2:]
             lines = handle_sensitive_logs(lines)
-        with open(f'{folder}/log.txt', 'w', encoding='utf-8') as f:
+        with open(f'{folder}/{ERROR_LOG_FILENAME}', 'w', encoding='utf-8') as f:
             f.writelines(lines)
         self._last_error_log_dir = folder
         return folder

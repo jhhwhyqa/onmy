@@ -10,11 +10,13 @@ from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
+from module.logger import LEGACY_LOG_FILE_SUFFIXES, LOG_FILE_SUFFIX
+
 PROJECT_ROOT = Path.cwd().resolve()
 LOG_ROOT = (PROJECT_ROOT / "log").resolve()
 POLL_INTERVAL_SECONDS = 1.0
 HISTORICAL_CACHE_TTL = timedelta(hours=1)
-_LOG_FILE_RE = re.compile(r"^(?P<day>\d{4}-\d{2}-\d{2})_(?P<script>.+)\.txt$")
+_LOG_FILE_RE = re.compile(r"^(?P<day>\d{4}-\d{2}-\d{2})_(?P<script>.+)\.(?:md|txt)$")
 
 _TIMESTAMP_RE = re.compile(r"^(?P<ts>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3})\s+\|")
 _TASK_LINE_RE = re.compile(r"\[Task\]\s+(?P<task>[A-Za-z0-9_]+)\s+\(")
@@ -585,7 +587,12 @@ class LogStatsService:
 
     @staticmethod
     def _log_path(script_name: str, target_day: date) -> Path:
-        return LOG_ROOT / f"{target_day.isoformat()}_{script_name}.txt"
+        base = LOG_ROOT / f"{target_day.isoformat()}_{script_name}"
+        for suffix in (LOG_FILE_SUFFIX, *LEGACY_LOG_FILE_SUFFIXES):
+            path = Path(f"{base}{suffix}")
+            if path.exists():
+                return path
+        return Path(f"{base}{LOG_FILE_SUFFIX}")
 
     def _today_log_path(self, script_name: str) -> Path:
         return self._log_path(script_name, date.today())

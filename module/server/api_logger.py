@@ -14,7 +14,7 @@ from fastapi.routing import APIRoute
 from fastapi.responses import FileResponse
 from starlette.responses import Response, StreamingResponse
 
-from module.logger import file_formatter
+from module.logger import LOG_FILE_SUFFIX, file_formatter
 
 
 API_LOGGER_NAME = "oas.api"
@@ -39,7 +39,7 @@ def _build_api_file_handler(log_file: str) -> logging.FileHandler:
 def ensure_api_logger() -> logging.Logger:
     log_dir = Path("./log")
     log_dir.mkdir(parents=True, exist_ok=True)
-    log_file = str(log_dir / f"{date.today().isoformat()}_api.txt")
+    log_file = str(log_dir / f"{date.today().isoformat()}_api{LOG_FILE_SUFFIX}")
 
     current_handler = None
     for handler in list(api_logger.handlers):

@@ -76,7 +76,7 @@ class ErrorLogItem(BaseModel):
     timestamp_ms: int = Field(description="错误目录中的毫秒时间戳")
     time: str = Field(description="错误时间, 带本地时区的 ISO 字符串")
     legacy: bool = Field(description="是否为旧格式纯时间戳目录")
-    log_size: int = Field(description="错误目录下 log.txt 的字节数")
+    log_size: int = Field(description="错误目录下 log.md 的字节数")
     image_count: int = Field(description="错误目录下 PNG 截图数量")
 
 
@@ -91,11 +91,11 @@ class ErrorLogListResponse(BaseModel):
 
 
 class ErrorLogText(BaseModel):
-    """错误目录中 `log.txt` 的返回内容。"""
+    """错误目录中 `log.md` 的返回内容（旧目录可能是 `log.txt`）。"""
 
-    file_name: str = Field(description="日志文件名, 固定为 log.txt")
+    file_name: str = Field(description="日志文件名: 新目录为 log.md, 旧目录为 log.txt")
     content: str = Field(description="日志文本内容")
-    size: int = Field(description="log.txt 原始字节数")
+    size: int = Field(description="日志文件原始字节数")
     limit_bytes: int = Field(description="本次读取使用的字节上限")
     truncated: bool = Field(description="日志内容是否因超过 limit_bytes 被截断")
 
@@ -118,7 +118,7 @@ class ErrorDetailResponse(BaseModel):
     timestamp_ms: int = Field(description="错误目录中的毫秒时间戳")
     time: str = Field(description="错误时间, 带本地时区的 ISO 字符串")
     legacy: bool = Field(description="是否为旧格式纯时间戳目录")
-    log: ErrorLogText = Field(description="错误目录下 log.txt 的内容")
+    log: ErrorLogText = Field(description="错误目录下 log.md 的内容（旧目录为 log.txt）")
     images: list[ErrorImageInfo] = Field(default_factory=list, description="错误目录下的 PNG 截图元信息")
 
 
@@ -160,7 +160,7 @@ async def get_error_log_detail(
         default=262144,
         ge=1,
         le=MAX_ERROR_LOG_LIMIT_BYTES,
-        description="log.txt 最多返回的字节数",
+        description="错误日志文件最多返回的字节数",
     ),
 ):
     """查询单个错误目录的详情。"""
