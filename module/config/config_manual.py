@@ -11,10 +11,10 @@ class ConfigManual:
         Restart > SoulsTidy
         > KekkaiUtilize > KekkaiActivation > DemonEncounter
         > AreaBoss > GoldYoukai > ExperienceYoukai > Nian > Tako > AutoCheckinBigGod > RealmRaid > RyouToppa > DailyTrifles > Exploration
-        > Dokan > ZombieGuild > AbyssShadows > Hunt > GuildBanquet > DemonRetreat > GuildActivityMonitor
+        > Dokan > ZombieGuild > AbyssShadows > Hunt > GuildBanquet > DemonRetreat
         > Orochi > OrochiMoans > Sougenbi > FallenSun > EternitySea > SixRealms > OtherWorldTwilight
         > ActivityShikigami > WantedQuests
-        > BondlingFairyland > EvoZone > GoryouRealm > HeroTest > FindJade > LevelRush
+        > BondlingFairyland > EvoZone > GoryouRealm > HeroTest > FindJade
         > CollectiveMissions
         > Pets > TalismanPass > Delegation
         > Secret > WeeklyTrifles > MysteryShop > Duel > Chess

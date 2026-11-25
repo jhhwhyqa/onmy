@@ -1,7 +1,6 @@
 # This Python file uses the following encoding: utf-8
 # @author runhey
 # github https://github.com/runhey
-from tasks.GuildActivityMonitor.config import GuildActivityMonitor
 from tasks.OtherWorldTwilight.config import OtherWorldTwilight
 
 import re
@@ -51,7 +50,6 @@ from tasks.Hunt.config import Hunt
 from tasks.AbyssShadows.config import AbyssShadows
 from tasks.GuildBanquet.config import GuildBanquet
 from tasks.DemonRetreat.config import DemonRetreat
-from tasks.GuildActivityMonitor.config import GuildActivityMonitor
 
 # 这一部分是活动的配置-----------------------------------------------------------------------------------------------------
 from tasks.ActivityShikigami.config import ActivityShikigami
@@ -69,7 +67,7 @@ from tasks.IbukiArena.config import IbukiArena
 
 # ----------------------------------------------------------------------------------------------------------------------
 
-# 肝帝专属---------------------------------------------------------------------------------------------------------------
+# 其他副本 --------------------------------------------------------------------------------------------------------------
 from tasks.BondlingFairyland.config import BondlingFairyland
 from tasks.EvoZone.config import EvoZone
 from tasks.GoryouRealm.config import GoryouRealm
@@ -78,7 +76,6 @@ from tasks.FindJade.config import FindJade
 from tasks.MemoryScrolls.config import MemoryScrolls
 from tasks.AssistBattle.config import AssistBattle
 from tasks.AccountSwitch.config import AccountSwitch
-from tasks.LevelRush.config import LevelRush
 # ----------------------------------------------------------------------------------------------------------------------
 
 # 每周任务---------------------------------------------------------------------------------------------------------------
@@ -141,7 +138,7 @@ class ConfigModel(ConfigBase):
     demon_drill: DemonDrill = Field(default_factory=DemonDrill)
     ibuki_arena: IbukiArena = Field(default_factory=IbukiArena)
 
-    # 这些是肝帝专属
+    # 这些是其他副本
     bondling_fairyland: BondlingFairyland = Field(default_factory=BondlingFairyland)
     evo_zone: EvoZone = Field(default_factory=EvoZone)
     goryou_realm: GoryouRealm = Field(default_factory=GoryouRealm)
@@ -150,7 +147,6 @@ class ConfigModel(ConfigBase):
     memory_scrolls: MemoryScrolls = Field(default_factory=MemoryScrolls)
     assist_battle: AssistBattle = Field(default_factory=AssistBattle)
     account_switch: AccountSwitch = Field(default_factory=AccountSwitch)
-    level_rush: LevelRush = Field(default_factory=LevelRush)
 
     # 这些是每周任务
     true_orochi: TrueOrochi = Field(default_factory=TrueOrochi)
@@ -161,7 +157,7 @@ class ConfigModel(ConfigBase):
     duel: Duel = Field(default_factory=Duel)
     chess: Chess = Field(default_factory=Chess)
 
-    # 阴阳寮
+    # 寮任务
     collective_missions: CollectiveMissions = Field(default_factory=CollectiveMissions)
     hunt: Hunt = Field(default_factory=Hunt)
     dokan: Dokan = Field(default_factory=Dokan)
@@ -169,7 +165,6 @@ class ConfigModel(ConfigBase):
     abyss_shadows: AbyssShadows = Field(default_factory=AbyssShadows)
     guild_banquet: GuildBanquet = Field(default_factory=GuildBanquet)
     demon_retreat: DemonRetreat = Field(default_factory=DemonRetreat)
-    guild_activity_monitor: GuildActivityMonitor = Field(default_factory=GuildActivityMonitor)
 
     def __init__(self, config_name: str=None, **data) -> None:
         """

@@ -1,0 +1,11 @@
+[
+  {
+    "itemName": "close_recommend",
+    "imageName": "login_close_recommend.png",
+    "roiFront": "362,579,214,58",
+    "roiBack": "362,579,214,58",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "关闭个性化推荐弹窗"
+  }
+]

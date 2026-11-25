@@ -22,8 +22,8 @@ class ConfigMenu:
         self.menu["Daily Task"] = ['DailyTrifles', 'AreaBoss', 'GoldYoukai', 'ExperienceYoukai', 'Nian',
                                    'TalismanPass', 'DemonEncounter', 'Pets', 'SoulsTidy', 'Delegation', 'WantedQuests',
                                    'Tako', 'AutoCheckinBigGod']
-        # 很肝的任务
-        self.menu["Liver Emperor Exclusive"] = [
+        # 其他副本
+        self.menu["Other Dungeons"] = [
             "BondlingFairyland",
             "EvoZone",
             "GoryouRealm",
@@ -32,13 +32,12 @@ class ConfigMenu:
             "FindJade",
             "MemoryScrolls",
             "AssistBattle",
-            "AccountSwitch",
-            "LevelRush"
+            "AccountSwitch"
         ]
-        # 阴阳寮
-        self.menu["Guild"] = ['KekkaiUtilize', 'KekkaiActivation', 'RealmRaid', 'RyouToppa', 'Dokan', 'ZombieGuild',
-                              'CollectiveMissions',
-                              'Hunt' , 'AbyssShadows', 'GuildBanquet', 'DemonRetreat', 'GuildActivityMonitor']
+        # 寮任务
+        self.menu["Guild Tasks"] = ['KekkaiUtilize', 'KekkaiActivation', 'RealmRaid', 'RyouToppa', 'Dokan', 'ZombieGuild',
+                                    'CollectiveMissions',
+                                    'Hunt' , 'AbyssShadows', 'GuildBanquet', 'DemonRetreat']
         # 每周任务
         self.menu["Weekly Task"] = ['TrueOrochi', 'RichMan', 'Secret', 'WeeklyTrifles', 'MysteryShop', 'Duel', 'Chess']
         # 活动的任务

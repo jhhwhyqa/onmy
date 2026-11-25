@@ -45,6 +45,9 @@ CONFIG_REDACTION_KEYS = {
 # 已迁移到其它位置的旧字段：导入旧配置时忽略，不当作未知字段报错。
 CONFIG_DEPRECATED_PATHS = {
     "script.error.notify_config",
+    # 已移除的任务，旧配置里可能还留着这两个段
+    "guild_activity_monitor",
+    "level_rush",
 }
 
 

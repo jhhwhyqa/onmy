@@ -43,5 +43,23 @@
     "method": "Template matching",
     "threshold": 0.8,
     "description": "购买时货币类型为勾玉"
+  },
+  {
+    "itemName": "side_check_rookie_mall",
+    "imageName": "store_rookie_mall_entry.png",
+    "roiFront": "913,13,31,32",
+    "roiBack": "913,13,31,32",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "新手商店入口"
+  },
+  {
+    "itemName": "rookie_goto_special",
+    "imageName": "store_rookie_goto_special.png",
+    "roiFront": "1187,298,44,67",
+    "roiBack": "1169,90,85,488",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "新手商店前往特供"
   }
 ]

@@ -1,4 +1,4 @@
-# 账号切换（AccountSwitch）
+# 切换账号（AccountSwitch）
 
 一键批量切号，让多个账号轮流执行当前配置里已启用的所有任务。
 
